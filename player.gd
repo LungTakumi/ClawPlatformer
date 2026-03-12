@@ -41,6 +41,20 @@ func _physics_process(delta):
 	if not is_on_floor():
 		velocity.y += gravity * delta
 		velocity.y = min(velocity.y, MAX_FALL_SPEED)
+	
+	# Handle moving platform - move player with platform when standing on it
+	var platform_velocity = Vector2.ZERO
+	if is_on_floor():
+		for i in get_slide_collision_count():
+			var collision = get_slide_collision(i)
+			if collision.get_collider() and collision.get_collider().is_in_group("moving_platform"):
+				if collision.get_collider().has_method("get_platform_velocity"):
+					platform_velocity = collision.get_collider().get_platform_velocity()
+				break
+	
+	# Apply platform velocity to player (smooth)
+	if platform_velocity.length() > 0:
+		position += platform_velocity * delta
 
 	# Handle Jump - double jump
 	if Input.is_action_just_pressed("jump"):

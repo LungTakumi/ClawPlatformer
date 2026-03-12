@@ -1,5 +1,52 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v2.0 - Volcano & More (2026-03-13)
+
+### Bug 修复
+- ✅ 修复移动平台物理计算 - 改进平台移动的平滑度和玩家跟随
+- ✅ 修复玩家在移动平台上滑落的问题
+
+### 新增功能
+- ✅ **Volcano 关卡** - 新增第16关，熔岩/火焰主题关卡
+  - 红色/橙色熔岩主题背景
+  - 11个平台，多条路线
+  - 包含3颗星星和11枚金币
+  - 4个敌人分布在不同平台
+- ✅ 版本号更新为 v2.0
+- ✅ 改进开始画面显示
+
+### 关卡列表 (v2.0)
+1. Green Hills
+2. Sky Bridges
+3. Moving Platforms
+4. Mountain Climb
+5. Floating Islands
+6. The Tower
+7. Cave
+8. Rainbow Bridge
+9. Crystal Caverns
+10. Bonus Stage
+11. Sky Fortress
+12. Dragon's Lair (Boss)
+13. Secret Garden ✨
+14. Ice Palace ❄️
+15. Volcano 🔥 新增
+
+### Power-up 类型
+- 无敌 (⭐) - 5秒无敌时间
+- 速度提升 (⚡) - 移动速度 x1.5
+- 二段跳 (🔺) - 获得永久二段跳能力
+- 额外生命 (❤️) - 增加1条生命
+
+### 构建信息
+- Web Export: ✅ 成功 (2026-03-13)
+- itch.io: ✅ 发布成功 (html channel)
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
 ## v1.9 - Ice Palace & Improvements (2026-03-13)
 
 ### Bug 修复
