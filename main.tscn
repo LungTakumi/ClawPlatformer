@@ -1,9 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://dch5faybafqyg"]
 
-[ext_resource type="Script" path="res://main.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://c3qfpbtac5kdi" path="res://main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://virtual_controls.tscn" id="2_vc"]
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node2D" unique_id=559384473]
 script = ExtResource("1_main")
 
-[node name="VirtualControls" parent="." instance=ExtResource("2_vc")]
+[node name="VirtualControls" parent="." unique_id=137559871 instance=ExtResource("2_vc")]
