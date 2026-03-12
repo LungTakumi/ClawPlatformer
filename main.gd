@@ -305,23 +305,32 @@ var levels = [
 		"goal": {"x": 1080, "y": 400}
 	},
 	{
-		"name": "The Tower",
+		"name": "Crystal Caverns",
+		"bg_color": Color(0.1, 0.15, 0.25),
 		"platforms": [
-			{"x": 50, "y": 550, "w": 150, "h": 40}, {"x": 150, "y": 480, "w": 80, "h": 20},
-			{"x": 250, "y": 420, "w": 80, "h": 20}, {"x": 350, "y": 360, "w": 80, "h": 20},
-			{"x": 450, "y": 300, "w": 80, "h": 20}, {"x": 550, "y": 240, "w": 80, "h": 20},
-			{"x": 650, "y": 180, "w": 80, "h": 20}, {"x": 800, "y": 200, "w": 150, "h": 20}
+			{"x": 50, "y": 550, "w": 150, "h": 30},
+			{"x": 250, "y": 480, "w": 100, "h": 20},
+			{"x": 400, "y": 400, "w": 80, "h": 20},
+			{"x": 550, "y": 320, "w": 100, "h": 20},
+			{"x": 700, "y": 400, "w": 80, "h": 20},
+			{"x": 850, "y": 320, "w": 100, "h": 20},
+			{"x": 1000, "y": 250, "w": 80, "h": 20},
+			{"x": 1150, "y": 350, "w": 150, "h": 20}
 		],
 		"coins": [
-			{"x": 100, "y": 480}, {"x": 180, "y": 410}, {"x": 280, "y": 350},
-			{"x": 380, "y": 290}, {"x": 480, "y": 230}, {"x": 580, "y": 170}, {"x": 850, "y": 140}
+			{"x": 80, "y": 480}, {"x": 280, "y": 420},
+			{"x": 420, "y": 340}, {"x": 580, "y": 260},
+			{"x": 720, "y": 340}, {"x": 880, "y": 260},
+			{"x": 1020, "y": 190}, {"x": 1200, "y": 290}
+		],
+		"stars": [
+			{"x": 600, "y": 180}, {"x": 950, "y": 150}
 		],
 		"enemies": [
-			{"x": 150, "y": 440, "min_x": 110, "max_x": 190},
-			{"x": 350, "y": 320, "min_x": 310, "max_x": 390},
-			{"x": 550, "y": 200, "min_x": 510, "max_x": 590}
+			{"x": 300, "y": 440, "min_x": 200, "max_x": 350},
+			{"x": 700, "y": 360, "min_x": 650, "max_x": 800}
 		],
-		"goal": {"x": 850, "y": 150}
+		"goal": {"x": 1200, "y": 300}
 	},
 	# Bonus Stage - lots of coins and moving platforms!
 	{
@@ -357,6 +366,9 @@ var levels = [
 			{"x": 550, "y": 220}, {"x": 700, "y": 180},
 			{"x": 850, "y": 150}, {"x": 1000, "y": 120},
 			{"x": 1150, "y": 100}, {"x": 1300, "y": 200}
+		],
+		"stars": [
+			{"x": 400, "y": 300}, {"x": 700, "y": 200}, {"x": 1000, "y": 150}
 		],
 		"enemies": [],
 		"goal": {"x": 1350, "y": 250}
@@ -516,7 +528,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v1.5 - Visual Improvements!"
+	version.text = "v1.6 - Level Improvements!"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.position = Vector2(300, 150)
 	version.add_theme_font_size_override("font_size", 16)
@@ -543,7 +555,7 @@ func show_start_screen():
 	
 	# Features list
 	var features = Label.new()
-	features.text = "✨ Features:\n• 12 Exciting Levels\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements"
+	features.text = "✨ Features:\n• 13 Exciting Levels\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements"
 	features.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	features.position = Vector2(300, 380)
 	features.add_theme_font_size_override("font_size", 16)

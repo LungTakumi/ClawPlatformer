@@ -1,6 +1,31 @@
 # 🦞 Lobster Platformer 开发日志
 
-## v1.5 - Visual Improvements & Bug Fixes (2026-03-13)
+## v1.6 - Level Improvements (2026-03-13)
+
+### Bug 修复
+- ✅ 修复关卡重复问题 - "The Tower" 不再重复出现
+- ✅ 新增关卡 "Crystal Caverns" 替代重复关卡
+- ✅ Bonus Stage 新增星星收集
+
+### 新增功能
+- ✅ **Crystal Caverns 关卡** - 新增第9关，包含水晶洞主题
+- ✅ **关卡更新** - 现在有13个精心设计的关卡
+
+### 关卡列表 (更新)
+1. Green Hills
+2. Sky Bridges
+3. Moving Platforms
+4. Mountain Climb
+5. Floating Islands
+6. The Tower
+7. Cave
+8. Rainbow Bridge
+9. Crystal Caverns ✨ 新增
+10. Bonus Stage
+11. Sky Fortress
+12. Dragon's Lair (Boss)
+
+### Power-up 类型
 
 ### 新增功能
 - ✅ **粒子效果系统** - 添加跳跃、落地、收集道具时的粒子效果
