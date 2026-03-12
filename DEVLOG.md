@@ -1,5 +1,52 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v1.7 - Pause Menu & Secret Level (2026-03-13)
+
+### Bug 修复
+- ✅ 修复 First Coin 成就无法解锁的问题
+
+### 新增功能
+- ✅ **暂停菜单** - 按 ESC 或 P 键暂停游戏
+  - 继续游戏 (Resume)
+  - 重新开始关卡 (Restart Level)
+  - 返回主菜单 (Quit to Menu)
+- ✅ **秘密关卡 Secret Garden** - 第14个关卡
+  - 绿色主题的隐藏关卡
+  - 包含3颗星星和15枚金币
+  - 敌人分布在不同平台
+- ✅ 更新版本号为 v1.7
+- ✅ 更新功能列表
+
+### 关卡列表 (v1.7)
+1. Green Hills
+2. Sky Bridges
+3. Moving Platforms
+4. Mountain Climb
+5. Floating Islands
+6. The Tower
+7. Cave
+8. Rainbow Bridge
+9. Crystal Caverns
+10. Bonus Stage
+11. Sky Fortress
+12. Dragon's Lair (Boss)
+13. Secret Garden ✨ 新增
+
+### Power-up 类型
+- 无敌 (⭐) - 5秒无敌时间
+- 速度提升 (⚡) - 移动速度 x1.5
+- 二段跳 (🔺) - 获得永久二段跳能力
+- 额外生命 (❤️) - 增加1条生命
+
+### 构建信息
+- Web Export: ✅ 成功 (2026-03-13)
+- itch.io: ✅ 发布成功 (html channel)
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
 ## v1.6 - Level Improvements (2026-03-13)
 
 ### Bug 修复
