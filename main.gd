@@ -572,7 +572,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v1.7 - Pause Menu & Secret Level!"
+	version.text = "v1.8 - Bug Fixes & Improvements"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.position = Vector2(300, 150)
 	version.add_theme_font_size_override("font_size", 16)
@@ -599,7 +599,7 @@ func show_start_screen():
 	
 	# Features list
 	var features = Label.new()
-	features.text = "✨ Features:\n• 14 Exciting Levels\n• Secret Garden Level ✨\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements\n• ⏸️ Pause Menu (ESC)"
+	features.text = "✨ Features:\n• 14 Exciting Levels\n• Secret Garden Level ✨\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements\n• ⏸️ Pause Menu (ESC)\n• 🎮 Mobile Controls"
 	features.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	features.position = Vector2(300, 380)
 	features.add_theme_font_size_override("font_size", 16)

@@ -128,11 +128,12 @@ func _physics_process(delta):
 	
 	# Update HP bar position to follow boss
 	if hp_bar:
-		var cam = get_tree().get_first_node_in_group("player")
-		if cam and cam.get_child_count() > 0:
-			var cam_node = cam.get_node_or_null("Camera2D")
-			if cam_node:
-				var screen_pos = cam_node.get_screen_position()
+		var game = get_tree().get_first_node_in_group("game")
+		if game and game.player:
+			var player = game.player
+			var cam = player.get_node_or_null("Camera2D")
+			if cam:
+				var screen_pos = cam.get_screen_position()
 				hp_bar.get_parent().position = global_position + Vector2(-50, -80) - screen_pos
 
 func perform_attack():

@@ -1,5 +1,19 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v1.8 - Bug Fixes (2026-03-13)
+
+### Bug 修复
+- ✅ 修复 Boss HP条位置跟随问题 - 现在正确跟随玩家视角
+
+### 构建信息
+- Web Export: ✅ 成功 (2026-03-13)
+- itch.io: ✅ 发布成功 (html channel)
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
 ## v1.7 - Pause Menu & Secret Level (2026-03-13)
 
 ### Bug 修复
