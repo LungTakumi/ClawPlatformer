@@ -11,6 +11,8 @@ var max_jumps = 2
 var jump_count = 0
 var facing_right = true
 var trail_timer = 0.0
+var anim_timer = 0.0
+var was_on_floor = true
 
 func _physics_process(delta):
 	if is_dead:
@@ -45,7 +47,14 @@ func _physics_process(delta):
 	
 	# Reset jump count when on floor
 	if is_on_floor():
+		if not was_on_floor:
+			animate_land()  # Landing effect
 		jump_count = 0
+	
+	was_on_floor = is_on_floor()
+	
+	# Animate walking
+	animate_walk(delta)
 	
 	# Trail effect when moving
 	trail_timer += delta
@@ -62,6 +71,13 @@ func update_facing():
 	if visual:
 		visual.scale.x = 1 if facing_right else -1
 
+func animate_walk(delta):
+	# Walking bounce animation
+	var visual = get_node_or_null("Visual")
+	if visual and is_on_floor() and abs(velocity.x) > 10:
+		anim_timer += delta * 12
+		visual.position.y = -12 + sin(anim_timer) * 2
+
 func animate_jump():
 	var visual = get_node_or_null("Visual")
 	if visual:
@@ -70,6 +86,28 @@ func animate_jump():
 		tween.tween_property(visual, "scale", Vector2(1, 1), 0.12)
 	
 	spawn_dust()
+
+func animate_land():
+	# Landing squash effect
+	var visual = get_node_or_null("Visual")
+	if visual:
+		var tween = create_tween()
+		tween.tween_property(visual, "scale", Vector2(1.3, 0.7), 0.08)
+		tween.tween_property(visual, "scale", Vector2(1, 1), 0.1)
+	
+	# Landing dust
+	for i in range(6):
+		var dust = ColorRect.new()
+		dust.size = Vector2(4, 4)
+		dust.color = Color(0.8, 0.7, 0.6, 0.8)
+		dust.position = Vector2(randf_range(-12, 12), 0)
+		add_child(dust)
+		
+		var tween = create_tween()
+		var target_pos = Vector2(randf_range(-30, 30), randf_range(5, 15))
+		tween.tween_property(dust, "position", dust.position + target_pos, 0.2)
+		tween.tween_property(dust, "modulate:a", 0.0, 0.2)
+		tween.tween_callback(dust.queue_free)
 
 func spawn_dust():
 	for i in range(4):

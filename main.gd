@@ -7,10 +7,12 @@ var current_level = 0
 var combo = 0
 var combo_timer = 0.0
 var last_coin_time = 0.0
+var stars_collected = 0  # 🌟 Star counter
 var high_score = 0
 var player: CharacterBody2D = null
-var platforms: Array[StaticBody2D] = []
+var platforms: Array[Node2D] = []
 var coins: Array[Area2D] = []
+var stars: Array[Area2D] = []  # 🌟 Star collectibles
 var enemies: Array[CharacterBody2D] = []
 var goal: Area2D = null
 var game_started = false
@@ -59,6 +61,9 @@ var levels = [
 			{"x": 450, "y": 450}, {"x": 700, "y": 250}, {"x": 200, "y": 450},
 			{"x": 900, "y": 350}, {"x": 500, "y": 250}
 		],
+		"stars": [
+			{"x": 600, "y": 350}
+		],
 		"enemies": [{"x": 150, "y": 460, "min_x": 0, "max_x": 300}],
 		"goal": {"x": 900, "y": 350}
 	},
@@ -73,6 +78,9 @@ var levels = [
 		"coins": [
 			{"x": 150, "y": 450}, {"x": 320, "y": 380}, {"x": 500, "y": 300},
 			{"x": 700, "y": 220}, {"x": 860, "y": 150}, {"x": 1000, "y": 350}, {"x": 1150, "y": 350}
+		],
+		"stars": [
+			{"x": 600, "y": 180}, {"x": 900, "y": 100}
 		],
 		"enemies": [
 			{"x": 300, "y": 440, "min_x": 250, "max_x": 400},
@@ -269,6 +277,9 @@ var levels = [
 			{"x": 720, "y": 260}, {"x": 920, "y": 340},
 			{"x": 1080, "y": 260}, {"x": 1250, "y": 190}
 		],
+		"stars": [
+			{"x": 500, "y": 150}, {"x": 800, "y": 100}, {"x": 1100, "y": 120}
+		],
 		"enemies": [
 			{"x": 400, "y": 200, "type": "flying"},
 			{"x": 700, "y": 150, "type": "flying"},
@@ -371,6 +382,9 @@ func clear_level():
 	for c in coins:
 		if is_instance_valid(c): c.queue_free()
 	coins.clear()
+	for s in stars:  # 🌟 Clear stars
+		if is_instance_valid(s): s.queue_free()
+	stars.clear()
 	for e in enemies:
 		if is_instance_valid(e): e.queue_free()
 	enemies.clear()
@@ -431,6 +445,11 @@ func setup_level(level_index):
 	for c in level["coins"]:
 		create_coin(c.x, c.y)
 	
+	# 🌟 Create stars (if defined in level)
+	if level.has("stars"):
+		for s in level["stars"]:
+			create_star(s.x, s.y)
+	
 	# Create enemies
 	for e in level["enemies"]:
 		var enemy_type = e.get("type", "ground")
@@ -464,7 +483,7 @@ func create_player_visual(p):
 	p.add_child(col)
 
 func create_platform(x, y, w, h, move_data = null):
-	var platform: StaticBody2D
+	var platform: Node2D
 	var is_moving = move_data != null
 	
 	if is_moving:
@@ -543,6 +562,45 @@ func create_coin(x, y):
 	
 	add_child(coin)
 	coins.append(coin)
+
+# 🌟 Create a star collectible
+func create_star(x, y):
+	var star = Area2D.new()
+	star.position = Vector2(x, y)
+	star.script = load("res://star.gd")
+	
+	# Create star shape using Polygon2D
+	var sprite = Polygon2D.new()
+	var pts = PackedVector2Array()
+	var inner_radius = 8.0
+	var outer_radius = 16.0
+	for i in range(10):
+		var radius = inner_radius if i % 2 == 0 else outer_radius
+		var angle = i * TAU / 10 - TAU / 4
+		pts.append(Vector2(cos(angle), sin(angle)) * radius)
+	sprite.polygon = pts
+	sprite.color = Color(1, 0.85, 0.2, 1)
+	sprite.position = Vector2(0, -8)
+	star.add_child(sprite)
+	
+	# Add glow effect
+	var glow = Polygon2D.new()
+	glow.polygon = pts.duplicate()
+	glow.color = Color(1, 0.9, 0.4, 0.4)
+	glow.position = sprite.position
+	star.add_child(glow)
+	
+	var col = CollisionShape2D.new()
+	var circle = CircleShape2D.new()
+	circle.radius = 14
+	col.shape = circle
+	star.add_child(col)
+	
+	# Connect body entered signal manually
+	star.body_entered.connect(star._on_body_entered)
+	
+	add_child(star)
+	stars.append(star)
 
 func create_enemy(x, y, type = "ground") -> CharacterBody2D:
 	var enemy: CharacterBody2D
@@ -686,6 +744,15 @@ func setup_ui():
 	combo_label.add_theme_font_size_override("font_size", 22)
 	combo_label.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
 	canvas.add_child(combo_label)
+	
+	# 🌟 Stars collected
+	var star_label = Label.new()
+	star_label.name = "StarLabel"
+	star_label.text = "⭐: 0"
+	star_label.position = Vector2(20, 150)
+	star_label.add_theme_font_size_override("font_size", 20)
+	star_label.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+	canvas.add_child(star_label)
 
 func setup_mobile_controls():
 	var controls = CanvasLayer.new()
@@ -726,9 +793,11 @@ func update_ui_labels():
 		var sl = ui.get_node_or_null("ScoreLabel")
 		var ll = ui.get_node_or_null("LevelLabel")
 		var lv = ui.get_node_or_null("LivesLabel")
+		var star_lbl = ui.get_node_or_null("StarLabel")
 		if sl: sl.text = "Score: " + str(score)
 		if ll: ll.text = "Level: " + str(current_level + 1)
 		if lv and player: lv.text = "Lives: " + str(player.lives)
+		if star_lbl: star_lbl.text = "⭐: " + str(stars_collected)
 		update_combo_display()
 
 func update_combo_display():
@@ -762,6 +831,11 @@ func add_score(points):
 	# Light shake on coin collect
 	if points == 25:  # Enemy kill
 		screen_shake_intensity(5)
+
+# 🌟 Called when player collects a star
+func collect_star():
+	stars_collected += 1
+	update_ui_labels()
 
 func _update_lives():
 	update_ui_labels()

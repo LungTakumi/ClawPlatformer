@@ -1,8 +1,9 @@
 # 🦞 Lobster Platformer 开发日志
 
-## v0.9 - Moving Platforms & Combo Update (2026-03-12)
+## v1.0 - Stars & Animation Update (2026-03-13)
 
 ### Bug 修复
+- ✅ 修复 platforms 数组类型错误（StaticBody2D → Node2D）
 - ✅ 修复敌人 velocity 未初始化问题
 - ✅ 修复资源加载方式（改用 Godot 资源加载，兼容 Web 导出）
 
@@ -12,14 +13,13 @@
 - ✅ **飞行敌人** - 新型敌人，会在空中漂浮移动
 - ✅ **屏幕震动** - 敌人死亡时触发相机震动效果
 - ✅ **天空堡垒关卡** - 新关卡，带有 3 个飞行敌人
+- 🌟 **星星收集系统** - 新收集品，每个价值 50 分，带粒子特效
+- 🎮 **改进动画** - 玩家行走弹跳、跳跃伸展、落地挤压动画
+- 💥 **改进粒子效果** - 星星收集爆发特效、落地尘土效果
 
 ### 构建信息
-- Web Export: ✅ 成功 (2026-03-12 23:50)
+- Web Export: ✅ 成功 (2026-03-13)
 - itch.io: ✅ 发布成功
-
-### 待完成
-- 🔲 更多关卡设计
-- 🔲 音效增强
 
 ### 游戏链接
 - https://lungtakumi.itch.io/clawplatformer
