@@ -9,8 +9,8 @@ var jump_timer = 0.0
 func _ready():
 	# 随机方向: -1 或 1
 	direction = -1 if randf() > 0.5 else 1
-	# 随机初始移动
-	velocity.x = direction * speed
+	# 初始化 velocity - 这是必需的！
+	velocity = Vector2(direction * speed, 0)
 
 func _physics_process(delta):
 	# 随机跳跃 - 20% chance every second if on floor

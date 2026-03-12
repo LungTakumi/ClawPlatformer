@@ -4,6 +4,10 @@ extends Node2D
 var score = 0
 var lives = 3
 var current_level = 0
+var combo = 0
+var combo_timer = 0.0
+var last_coin_time = 0.0
+var high_score = 0
 var player: CharacterBody2D = null
 var platforms: Array[StaticBody2D] = []
 var coins: Array[Area2D] = []
@@ -12,6 +16,11 @@ var goal: Area2D = null
 var game_started = false
 var checkpoint_pos = Vector2(80, 350)
 var stars_container: Node2D = null
+var moving_platforms: Array = []  # Track moving platforms for animation
+var screen_shake = 0.0
+
+func screen_shake_intensity(amount):
+	screen_shake = amount
 
 # Kenney assets - sprite sheets
 var char_tilesheet: Texture2D
@@ -30,12 +39,9 @@ func _ready():
 	show_start_screen()
 
 func load_kenney_assets():
-	# Load Kenney sprite sheets using ImageTexture (no import needed)
-	var char_img = Image.load_from_file("res://sprites/tilemap-characters_packed.png")
-	char_tilesheet = ImageTexture.create_from_image(char_img)
-	
-	var tile_img = Image.load_from_file("res://sprites/tilemap_packed.png")
-	tile_tilesheet = ImageTexture.create_from_image(tile_img)
+	# Use Godot's built-in resource loader (works in exports)
+	char_tilesheet = load("res://sprites/tilemap-characters_packed.png")
+	tile_tilesheet = load("res://sprites/tilemap_packed.png")
 
 # Level data - now including Bonus Stage!
 var levels = [
@@ -243,6 +249,32 @@ var levels = [
 		],
 		"enemies": [],
 		"goal": {"x": 1350, "y": 250}
+	},
+	# NEW! Sky Fortress - with flying enemies!
+	{
+		"name": "Sky Fortress",
+		"bg_color": Color(0.08, 0.1, 0.2),
+		"platforms": [
+			{"x": 50, "y": 550, "w": 180, "h": 30},
+			{"x": 300, "y": 480, "w": 100, "h": 20},
+			{"x": 500, "y": 400, "w": 120, "h": 20},
+			{"x": 700, "y": 320, "w": 100, "h": 20},
+			{"x": 900, "y": 400, "w": 80, "h": 20},
+			{"x": 1050, "y": 320, "w": 100, "h": 20},
+			{"x": 1200, "y": 250, "w": 120, "h": 20}
+		],
+		"coins": [
+			{"x": 100, "y": 480}, {"x": 180, "y": 450},
+			{"x": 320, "y": 420}, {"x": 520, "y": 340},
+			{"x": 720, "y": 260}, {"x": 920, "y": 340},
+			{"x": 1080, "y": 260}, {"x": 1250, "y": 190}
+		],
+		"enemies": [
+			{"x": 400, "y": 200, "type": "flying"},
+			{"x": 700, "y": 150, "type": "flying"},
+			{"x": 1000, "y": 180, "type": "flying"}
+		],
+		"goal": {"x": 1250, "y": 200}
 	}
 ]
 
@@ -279,9 +311,25 @@ func update_stars_parallax():
 				elif star.position.x > 1400:
 					star.position.x -= 1400
 
-func _process(_delta):
+func _process(delta):
 	if game_started and player:
 		update_stars_parallax()
+		# Update combo timer
+		if combo_timer > 0:
+			combo_timer -= delta
+			if combo_timer <= 0:
+				combo = 0
+				update_combo_display()
+		# Camera shake effect
+		if screen_shake > 0:
+			screen_shake -= delta * 30
+			var cam = player.get_node_or_null("Camera2D")
+			if cam:
+				cam.offset = Vector2(randf_range(-screen_shake, screen_shake), randf_range(-screen_shake, screen_shake))
+		else:
+			var cam = player.get_node_or_null("Camera2D")
+			if cam:
+				cam.offset = Vector2.ZERO
 
 func show_start_screen():
 	game_started = false
@@ -319,6 +367,7 @@ func clear_level():
 	for p in platforms:
 		if is_instance_valid(p): p.queue_free()
 	platforms.clear()
+	moving_platforms.clear()  # Clear moving platforms
 	for c in coins:
 		if is_instance_valid(c): c.queue_free()
 	coins.clear()
@@ -372,7 +421,11 @@ func setup_level(level_index):
 	
 	# Create platforms
 	for p in level["platforms"]:
-		create_platform(p.x, p.y, p.w, p.h)
+		# Check if platform has movement data
+		var move_data = null
+		if p.has("move_x") or p.has("move_y"):
+			move_data = {"move_x": p.get("move_x", 0), "move_y": p.get("move_y", 0)}
+		create_platform(p.x, p.y, p.w, p.h, move_data)
 	
 	# Create coins
 	for c in level["coins"]:
@@ -380,8 +433,10 @@ func setup_level(level_index):
 	
 	# Create enemies
 	for e in level["enemies"]:
-		var enemy = create_enemy(e.x, e.y)
-		enemy.platform_bounds = {"min_x": e.min_x, "max_x": e.max_x}
+		var enemy_type = e.get("type", "ground")
+		var enemy = create_enemy(e.x, e.y, enemy_type)
+		if enemy.has_method("setup_movement"):
+			enemy.platform_bounds = {"min_x": e.get("min_x", 0), "max_x": e.get("max_x", 300)}
 	
 	# Create goal
 	if level.has("goal"):
@@ -408,8 +463,17 @@ func create_player_visual(p):
 	col.shape = rect
 	p.add_child(col)
 
-func create_platform(x, y, w, h):
-	var platform = StaticBody2D.new()
+func create_platform(x, y, w, h, move_data = null):
+	var platform: StaticBody2D
+	var is_moving = move_data != null
+	
+	if is_moving:
+		# 使用 CharacterBody2D 实现移动平台
+		platform = CharacterBody2D.new()
+		platform.set_script(load("res://moving_platform.gd"))  # 创建移动平台脚本
+	else:
+		platform = StaticBody2D.new()
+	
 	platform.position = Vector2(x, y)
 	
 	# Use Kenney tile sprites for platforms
@@ -446,10 +510,16 @@ func create_platform(x, y, w, h):
 	var rect = RectangleShape2D.new()
 	rect.size = Vector2(w, h)
 	collision.shape = rect
+	collision.position = Vector2(w/2, h/2)  # Center collision
 	platform.add_child(collision)
 	
 	add_child(platform)
 	platforms.append(platform)
+	
+	# Setup moving platform if needed
+	if is_moving:
+		platform.setup_movement(move_data)
+		moving_platforms.append(platform)
 
 func create_coin(x, y):
 	var coin = Area2D.new()
@@ -474,29 +544,53 @@ func create_coin(x, y):
 	add_child(coin)
 	coins.append(coin)
 
-func create_enemy(x, y) -> CharacterBody2D:
-	var enemy = CharacterBody2D.new()
-	enemy.position = Vector2(x, y)
-	enemy.script = load("res://enemy.gd")
-	enemy.platform_bounds = {"min_x": 0, "max_x": 300}
+func create_enemy(x, y, type = "ground") -> CharacterBody2D:
+	var enemy: CharacterBody2D
 	
-	# Use Kenney enemy/monster sprite (tile 9-11 in characters sheet)
-	var sprite = Sprite2D.new()
-	sprite.name = "Visual"  # Named for animation functions
-	sprite.texture = char_tilesheet
-	sprite.region_enabled = true
-	# Monster/enemy is around tile 9-12 in characters sheet
-	sprite.region_rect = Rect2(9 * 25, 0, 24, 24)
-	sprite.position = Vector2(0, -12)
-	enemy.add_child(sprite)
-	
-	# Collision
-	var col = CollisionShape2D.new()
-	col.position = Vector2(0, -12)
-	var rect = RectangleShape2D.new()
-	rect.size = Vector2(20, 24)
-	col.shape = rect
-	enemy.add_child(col)
+	if type == "flying":
+		enemy = CharacterBody2D.new()
+		enemy.script = load("res://flying_enemy.gd")
+		
+		# Use Kenney bat/flying monster sprite (tile 12-14 in characters sheet)
+		var sprite = Sprite2D.new()
+		sprite.name = "Visual"
+		sprite.texture = char_tilesheet
+		sprite.region_enabled = true
+		# Bat/flying enemy is around tile 12-14
+		sprite.region_rect = Rect2(12 * 25, 0, 24, 24)
+		sprite.position = Vector2(0, -12)
+		enemy.add_child(sprite)
+		
+		# Collision
+		var col = CollisionShape2D.new()
+		col.position = Vector2(0, -12)
+		var rect = RectangleShape2D.new()
+		rect.size = Vector2(20, 20)
+		col.shape = rect
+		enemy.add_child(col)
+	else:
+		enemy = CharacterBody2D.new()
+		enemy.position = Vector2(x, y)
+		enemy.script = load("res://enemy.gd")
+		enemy.platform_bounds = {"min_x": 0, "max_x": 300}
+		
+		# Use Kenney enemy/monster sprite (tile 9-11 in characters sheet)
+		var sprite = Sprite2D.new()
+		sprite.name = "Visual"  # Named for animation functions
+		sprite.texture = char_tilesheet
+		sprite.region_enabled = true
+		# Monster/enemy is around tile 9-12 in characters sheet
+		sprite.region_rect = Rect2(9 * 25, 0, 24, 24)
+		sprite.position = Vector2(0, -12)
+		enemy.add_child(sprite)
+		
+		# Collision
+		var col = CollisionShape2D.new()
+		col.position = Vector2(0, -12)
+		var rect = RectangleShape2D.new()
+		rect.size = Vector2(20, 24)
+		col.shape = rect
+		enemy.add_child(col)
 	
 	add_child(enemy)
 	enemies.append(enemy)
@@ -583,6 +677,15 @@ func setup_ui():
 	level_label.add_theme_font_size_override("font_size", 24)
 	level_label.add_theme_color_override("font_color", Color(0.5, 0.8, 1))
 	canvas.add_child(level_label)
+	
+	# Combo label
+	var combo_label = Label.new()
+	combo_label.name = "ComboLabel"
+	combo_label.text = ""
+	combo_label.position = Vector2(20, 120)
+	combo_label.add_theme_font_size_override("font_size", 22)
+	combo_label.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+	canvas.add_child(combo_label)
 
 func setup_mobile_controls():
 	var controls = CanvasLayer.new()
@@ -617,10 +720,6 @@ func setup_mobile_controls():
 	jump_btn.released.connect(func(): Input.action_release("jump"))
 	controls.add_child(jump_btn)
 
-func add_score(points):
-	score += points
-	update_ui_labels()
-
 func update_ui_labels():
 	var ui = get_tree().get_first_node_in_group("ui")
 	if ui:
@@ -630,6 +729,39 @@ func update_ui_labels():
 		if sl: sl.text = "Score: " + str(score)
 		if ll: ll.text = "Level: " + str(current_level + 1)
 		if lv and player: lv.text = "Lives: " + str(player.lives)
+		update_combo_display()
+
+func update_combo_display():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		var cl = ui.get_node_or_null("ComboLabel")
+		if cl:
+			if combo > 1:
+				cl.text = "Combo x" + str(combo) + "!"
+				# Flash effect
+				cl.add_theme_color_override("font_color", Color(1, 0.8 + 0.2 * sin(Time.get_ticks_msec() / 100.0), 0.2))
+			else:
+				cl.text = ""
+
+func add_score(points):
+	# Combo system - collect coins quickly for bonus!
+	var now = Time.get_ticks_msec()
+	if now - last_coin_time < 1500:  # 1.5 second window
+		combo = min(combo + 1, 10)  # Max 10x combo
+	else:
+		combo = 1
+	
+	last_coin_time = now
+	combo_timer = 2.0  # 2 seconds to maintain combo
+	
+	# Calculate bonus from combo
+	var bonus = points * combo
+	score += bonus
+	update_ui_labels()
+	
+	# Light shake on coin collect
+	if points == 25:  # Enemy kill
+		screen_shake_intensity(5)
 
 func _update_lives():
 	update_ui_labels()
