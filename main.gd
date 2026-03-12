@@ -461,6 +461,41 @@ var levels = [
 			{"x": 900, "y": 240, "min_x": 850, "max_x": 980}
 		],
 		"goal": {"x": 1200, "y": 300}
+	},
+	# NEW! Ice Palace - Ice/Snow themed level
+	{
+		"name": "Ice Palace",
+		"bg_color": Color(0.1, 0.15, 0.3),
+		"platforms": [
+			{"x": 50, "y": 550, "w": 150, "h": 30},
+			{"x": 250, "y": 480, "w": 100, "h": 20},
+			{"x": 400, "y": 400, "w": 80, "h": 20},
+			{"x": 550, "y": 320, "w": 100, "h": 20},
+			{"x": 400, "y": 220, "w": 80, "h": 20},
+			{"x": 250, "y": 150, "w": 100, "h": 20},
+			{"x": 450, "y": 100, "w": 80, "h": 20},
+			{"x": 650, "y": 180, "w": 100, "h": 20},
+			{"x": 800, "y": 280, "w": 80, "h": 20},
+			{"x": 950, "y": 350, "w": 100, "h": 20},
+			{"x": 1100, "y": 450, "w": 150, "h": 20}
+		],
+		"coins": [
+			{"x": 100, "y": 480}, {"x": 280, "y": 420},
+			{"x": 420, "y": 340}, {"x": 580, "y": 260},
+			{"x": 420, "y": 160}, {"x": 280, "y": 90},
+			{"x": 470, "y": 40}, {"x": 680, "y": 120},
+			{"x": 820, "y": 220}, {"x": 980, "y": 290},
+			{"x": 1150, "y": 390}
+		],
+		"stars": [
+			{"x": 280, "y": 50}, {"x": 800, "y": 180}, {"x": 1150, "y": 350}
+		],
+		"enemies": [
+			{"x": 300, "y": 440, "min_x": 200, "max_x": 350},
+			{"x": 600, "y": 280, "min_x": 500, "max_x": 650},
+			{"x": 950, "y": 310, "min_x": 900, "max_x": 1050}
+		],
+		"goal": {"x": 1150, "y": 400}
 	}
 ]
 
@@ -572,7 +607,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v1.8 - Bug Fixes & Improvements"
+	version.text = "v1.9 - Ice Palace & Improvements"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.position = Vector2(300, 150)
 	version.add_theme_font_size_override("font_size", 16)
@@ -599,7 +634,7 @@ func show_start_screen():
 	
 	# Features list
 	var features = Label.new()
-	features.text = "✨ Features:\n• 14 Exciting Levels\n• Secret Garden Level ✨\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements\n• ⏸️ Pause Menu (ESC)\n• 🎮 Mobile Controls"
+	features.text = "✨ Features:\n• 15 Exciting Levels\n• Secret Garden Level ✨\n• Ice Palace NEW! ❄️\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements\n• ⏸️ Pause Menu (ESC)\n• 🎮 Mobile Controls"
 	features.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	features.position = Vector2(300, 380)
 	features.add_theme_font_size_override("font_size", 16)

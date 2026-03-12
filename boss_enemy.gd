@@ -133,8 +133,11 @@ func _physics_process(delta):
 			var player = game.player
 			var cam = player.get_node_or_null("Camera2D")
 			if cam:
-				var screen_pos = cam.get_screen_position()
-				hp_bar.get_parent().position = global_position + Vector2(-50, -80) - screen_pos
+				# Calculate screen position relative to camera
+				var cam_pos = cam.global_position
+				var screen_center = Vector2(640, 360)  # Center of viewport
+				var relative_pos = global_position - cam_pos
+				hp_bar.get_parent().position = screen_center + relative_pos + Vector2(-50, -120)
 
 func perform_attack():
 	current_attack = randi() % 3

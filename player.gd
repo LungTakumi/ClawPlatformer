@@ -177,7 +177,12 @@ func die():
 		var tween = create_tween()
 		tween.tween_property(self, "modulate:a", 0.0, 0.3)
 		tween.tween_callback(func():
-			global_position = Vector2(100, 350)
+			# Respawn at checkpoint or level start
+			var game = get_tree().get_first_node_in_group("game")
+			if game:
+				global_position = game.checkpoint_pos + Vector2(0, -30)
+			else:
+				global_position = Vector2(100, 350)
 			is_dead = false
 			modulate.a = 1.0
 			velocity = Vector2.ZERO

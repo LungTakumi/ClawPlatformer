@@ -4,6 +4,7 @@ var start_pos: Vector2
 var move_data: Dictionary = {}
 var move_speed = 2.0  # Speed of oscillation
 var move_timer = 0.0
+var current_velocity: Vector2 = Vector2.ZERO
 
 func setup_movement(data: Dictionary):
 	start_pos = position
@@ -28,10 +29,15 @@ func _physics_process(delta):
 	if offset.length() > 0:
 		# Sine wave movement
 		var amplitude = offset / 2.0  # Half the total offset each direction
-		new_pos.x = start_pos.x + sin(move_timer) * amplitude.x
-		new_pos.y = start_pos.y + sin(move_timer) * amplitude.y
+		var target_x = start_pos.x + sin(move_timer) * amplitude.x
+		var target_y = start_pos.y + sin(move_timer) * amplitude.y
+		
+		# Calculate velocity for moving player (smooth interpolation)
+		current_velocity = Vector2(target_x - position.x, target_y - position.y) / delta
+		new_pos = Vector2(target_x, target_y)
 	
-	# Calculate velocity for moving player
-	velocity = (new_pos - position) / delta
+	# Apply velocity and move
+	velocity = current_velocity
 	move_and_slide()
+	# Update position after move_and_slide
 	position = new_pos
