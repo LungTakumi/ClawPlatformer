@@ -1,0 +1,51 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://virtual_controls.gd" id="1_vc"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_Left"]
+bg_color = Color(1, 1, 1, 0.3)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_Right"]
+bg_color = Color(1, 1, 1, 0.3)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_Jump"]
+bg_color = Color(0, 1, 0, 0.4)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+
+[node name="VirtualControls" type="CanvasLayer"]
+script = ExtResource("1_vc")
+
+[node name="LeftButton" type="Button" parent="."]
+offset_left = 40.0
+offset_top = 520.0
+offset_right = 140.0
+offset_bottom = 620.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_Left")
+text = "◀"
+
+[node name="RightButton" type="Button" parent="."]
+offset_left = 160.0
+offset_top = 520.0
+offset_right = 260.0
+offset_bottom = 620.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_Right")
+text = "▶"
+
+[node name="JumpButton" type="Button" parent="."]
+offset_left = 1000.0
+offset_top = 520.0
+offset_right = 1180.0
+offset_bottom = 620.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_Jump")
+text = "JUMP"

@@ -1,0 +1,26 @@
+# Godot binary files
+*.import -binary
+*.tscn -binary
+*.scn -binary
+*.tres -binary
+
+# Text files
+*.gd text
+*.md text
+*.txt text
+*.json text
+*.yml text
+*.yaml text
+*.toml text
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.svg text
+*.webp binary
+
+# Audio
+*.wav binary
+*.ogg binary
+*.mp3 binary
