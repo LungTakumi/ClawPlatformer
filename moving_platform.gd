@@ -15,26 +15,23 @@ func setup_movement(data: Dictionary):
 	
 	# Random start phase so platforms don't all move in sync
 	move_timer = randf() * TAU
+	
+	# Set as moving platform group
+	add_to_group("moving_platform")
 
 func _physics_process(delta):
 	move_timer += delta * move_speed
 	
 	var offset = move_data.get("target_offset", Vector2.ZERO)
+	var new_pos = position
+	
 	if offset.length() > 0:
 		# Sine wave movement
 		var amplitude = offset / 2.0  # Half the total offset each direction
-		var new_x = start_pos.x + sin(move_timer) * amplitude.x
-		var new_y = start_pos.y + sin(move_timer) * amplitude.y
-		
-		var target_pos = Vector2(new_x, new_y)
-		var velocity = target_pos - position
-		move_and_slide()
-		position = target_pos  # Override position directly for smooth movement
-		
-		# Move player if standing on this platform
-		for i in get_slide_collision_count():
-			var collision = get_slide_collision(i)
-			var collider = collision.get_collider()
-			if collider and collider.is_in_group("player"):
-				# Add platform velocity to player
-				collider.position += velocity
+		new_pos.x = start_pos.x + sin(move_timer) * amplitude.x
+		new_pos.y = start_pos.y + sin(move_timer) * amplitude.y
+	
+	# Calculate velocity for moving player
+	velocity = (new_pos - position) / delta
+	move_and_slide()
+	position = new_pos

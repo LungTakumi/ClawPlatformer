@@ -309,6 +309,29 @@ var levels = [
 			{"x": 1000, "y": 180, "type": "flying"}
 		],
 		"goal": {"x": 1250, "y": 200}
+	},
+	# Boss Battle!
+	{
+		"name": "Dragon's Lair",
+		"bg_color": Color(0.15, 0.05, 0.1),
+		"is_boss": true,
+		"boss_name": "Red Dragon",
+		"platforms": [
+			{"x": 50, "y": 550, "w": 200, "h": 40},
+			{"x": 350, "y": 450, "w": 150, "h": 20},
+			{"x": 600, "y": 350, "w": 100, "h": 20},
+			{"x": 850, "y": 450, "w": 150, "h": 20},
+			{"x": 1100, "y": 550, "w": 200, "h": 40}
+		],
+		"coins": [
+			{"x": 100, "y": 480}, {"x": 200, "y": 450},
+			{"x": 400, "y": 380}, {"x": 600, "y": 280},
+			{"x": 900, "y": 380}, {"x": 1200, "y": 480}
+		],
+		"enemies": [
+			{"x": 700, "y": 250, "type": "boss", "hp": 5}
+		],
+		"goal": {"x": 1250, "y": 500}
 	}
 ]
 
@@ -422,8 +445,16 @@ func _input(event):
 			start_game()
 		else:
 			var ui = get_tree().get_first_node_in_group("ui")
-			if ui and ui.has_node("GameOverOverlay"):
-				start_game()
+			if ui:
+				# Check for game over or victory and restart
+				if ui.has_node("GameOverOverlay") or ui.has_node("VictoryOverlay"):
+					# Reset game
+					current_level = 0
+					score = 0
+					lives = 3
+					stars_collected = 0
+					game_started = true
+					setup_level(0)
 
 func start_game():
 	game_started = true
@@ -476,7 +507,8 @@ func setup_level(level_index):
 	# Create enemies
 	for e in level["enemies"]:
 		var enemy_type = e.get("type", "ground")
-		var enemy = create_enemy(e.x, e.y, enemy_type)
+		var enemy_hp = e.get("hp", 1)
+		var enemy = create_enemy(e.x, e.y, enemy_type, enemy_hp)
 		if enemy.has_method("setup_movement"):
 			enemy.platform_bounds = {"min_x": e.get("min_x", 0), "max_x": e.get("max_x", 300)}
 	
@@ -625,7 +657,7 @@ func create_star(x, y):
 	add_child(star)
 	stars.append(star)
 
-func create_enemy(x, y, type = "ground") -> CharacterBody2D:
+func create_enemy(x, y, type = "ground", hp = 1) -> CharacterBody2D:
 	var enemy: CharacterBody2D
 	
 	if type == "flying":
@@ -649,6 +681,13 @@ func create_enemy(x, y, type = "ground") -> CharacterBody2D:
 		rect.size = Vector2(20, 20)
 		col.shape = rect
 		enemy.add_child(col)
+	elif type == "boss":
+		# Boss enemy
+		enemy = CharacterBody2D.new()
+		enemy.position = Vector2(x, y)
+		enemy.script = load("res://boss_enemy.gd")
+		enemy.hp = hp
+		enemy.max_hp = hp
 	else:
 		enemy = CharacterBody2D.new()
 		enemy.position = Vector2(x, y)
@@ -675,6 +714,7 @@ func create_enemy(x, y, type = "ground") -> CharacterBody2D:
 	
 	add_child(enemy)
 	enemies.append(enemy)
+	return enemy
 	return enemy
 
 func create_checkpoint(x, y):
@@ -875,7 +915,12 @@ func _update_lives():
 
 func next_level():
 	current_level += 1
-	setup_level(current_level)
+	# Check if player completed all levels (including boss)
+	if current_level >= levels.size():
+		# Show victory screen instead of looping
+		show_victory()
+	else:
+		setup_level(current_level)
 
 func show_game_over():
 	var ui = get_tree().get_first_node_in_group("ui")
@@ -898,5 +943,47 @@ func show_game_over():
 		game_over.add_theme_font_size_override("font_size", 42)
 		game_over.add_theme_color_override("font_color", Color.RED)
 		ui.add_child(game_over)
+
+func show_victory():
+	# Save high score
+	save_high_score()
+	
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		if ui.has_node("VictoryOverlay"): ui.get_node("VictoryOverlay").queue_free()
+		if ui.has_node("VictoryText"): ui.get_node("VictoryText").queue_free()
+		if ui.has_node("GameOverOverlay"): ui.get_node("GameOverOverlay").queue_free()
+		if ui.has_node("GameOverText"): ui.get_node("GameOverText").queue_free()
+		
+		var overlay = ColorRect.new()
+		overlay.name = "VictoryOverlay"
+		overlay.size = Vector2(2000, 2000)
+		overlay.position = Vector2(-500, -500)
+		overlay.color = Color(0.05, 0.1, 0.15, 0.9)
+		ui.add_child(overlay)
+		
+		var victory = Label.new()
+		victory.name = "VictoryText"
+		victory.text = "🏆 VICTORY! 🏆\n\n" + "You completed all levels!\n\n" + "Final Score: " + str(score) + "\n" + "Stars: " + str(stars_collected) + "\n" + "High Score: " + str(high_score) + "\n\n" + "Press SPACE to Play Again"
+		victory.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		victory.position = Vector2(200, 200)
+		victory.add_theme_font_size_override("font_size", 36)
+		victory.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+		ui.add_child(victory)
+		
+		# Add celebration particles
+		for i in range(30):
+			await get_tree().create_timer(0.1).timeout
+			var particle = ColorRect.new()
+			particle.size = Vector2(6, 6)
+			particle.color = Color(1, randf(), randf(), 1)
+			particle.position = Vector2(randf() * 800, randf() * 600)
+			particle.z_index = 100
+			ui.add_child(particle)
+			
+			var tween = create_tween()
+			tween.tween_property(particle, "position", particle.position + Vector2(randf_range(-100, 100), randf_range(-150, 50)), 2.0)
+			tween.parallel().tween_property(particle, "modulate:a", 0.0, 2.0)
+			tween.tween_callback(particle.queue_free)
 
 
