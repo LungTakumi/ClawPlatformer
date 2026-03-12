@@ -222,24 +222,82 @@ func take_damage(amount = 1):
 
 func die():
 	# Big explosion effect
-	for i in range(20):
+	for i in range(30):
 		var particle = ColorRect.new()
-		particle.size = Vector2(8, 8)
-		particle.color = Color(1, 0.4, 0.2, 1)
-		particle.position = position + Vector2(randf_range(-30, 30), randf_range(-40, 10))
+		particle.size = Vector2(8 + randf() * 8, 8 + randf() * 8)
+		particle.color = Color(1, randf_range(0.3, 0.6), 0.1, 1)
+		particle.position = position + Vector2(randf_range(-40, 40), randf_range(-50, 20))
 		get_parent().add_child(particle)
 		
 		var tween = create_tween()
-		var target = particle.position + Vector2(randf_range(-50, 50), randf_range(-50, 50))
-		tween.tween_property(particle, "position", target, 0.5)
-		tween.parallel().tween_property(particle, "modulate:a", 0.0, 0.5)
+		var target = particle.position + Vector2(randf_range(-60, 60), randf_range(-60, 30))
+		tween.tween_property(particle, "position", target, 0.5 + randf() * 0.3)
+		tween.parallel().tween_property(particle, "modulate:a", 0.0, 0.5 + randf() * 0.3)
 		tween.tween_callback(particle.queue_free)
 	
 	# Add score
 	var game = get_tree().get_first_node_in_group("game")
 	if game:
-		game.score += 500
-		game.screen_shake_intensity(15)
+		game.score += 1000  # Increased from 500
+		game.screen_shake_intensity(20)
+		
+		# Drop powerups as reward
+		drop_powerups()
+	
+	# Remove boss after delay
+	await get_tree().create_timer(0.5).timeout
+	
+	# Show victory screen
+	if game:
+		game.show_victory()
 	
 	# Remove boss
 	queue_free()
+
+func drop_powerups():
+	# Drop random powerups when boss dies
+	var powerup_types = ["invincible", "speed", "double_jump", "extra_life"]
+	var num_drops = randi() % 3 + 3  # 3-5 powerups
+	
+	for i in range(num_drops):
+		await get_tree().create_timer(0.2 + i * 0.15).timeout
+		
+		var p_type = powerup_types[randi() % powerup_types.size()]
+		var powerup = Area2D.new()
+		powerup.position = position + Vector2(randf_range(-30, 30), randf_range(-30, 10))
+		powerup.script = load("res://powerup.gd")
+		powerup.powerup_type = p_type
+		
+		# Set sprite color based on type
+		var sprite = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(6):
+			var angle = j * TAU / 6
+			pts.append(Vector2(cos(angle), sin(angle)) * 12)
+		sprite.polygon = pts
+		
+		match p_type:
+			"invincible":
+				sprite.color = Color(1, 0.9, 0.2, 1)  # Gold
+				powerup.display_name = "⭐ INVINCIBLE"
+			"speed":
+				sprite.color = Color(0.2, 0.9, 1, 1)  # Cyan
+				powerup.display_name = "⚡ SPEED"
+			"double_jump":
+				sprite.color = Color(0.8, 0.4, 1, 1)  # Purple
+				powerup.display_name = "🔺 DOUBLE JUMP"
+			"extra_life":
+				sprite.color = Color(1, 0.4, 0.4, 1)  # Red
+				powerup.display_name = "❤️ EXTRA LIFE"
+		
+		sprite.position = Vector2(0, -8)
+		powerup.add_child(sprite)
+		
+		# Collision
+		var col = CollisionShape2D.new()
+		var circle = CircleShape2D.new()
+		circle.radius = 14
+		col.shape = circle
+		powerup.add_child(col)
+		
+		get_parent().add_child(powerup)

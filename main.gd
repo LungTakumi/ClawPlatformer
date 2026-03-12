@@ -350,6 +350,30 @@ func create_background_stars():
 		star.add_to_group("star")
 		stars_container.add_child(star)
 
+func show_level_name(level_name):
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		# Remove existing level name
+		var existing = ui.get_node_or_null("LevelName")
+		if existing: existing.queue_free()
+		
+		var name_label = Label.new()
+		name_label.name = "LevelName"
+		name_label.text = "🎮 " + level_name
+		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_label.position = Vector2(300, 150)
+		name_label.add_theme_font_size_override("font_size", 36)
+		name_label.add_theme_color_override("font_color", Color(0.9, 0.9, 1))
+		ui.add_child(name_label)
+		
+		# Fade in and out animation
+		name_label.modulate.a = 0
+		var tween = create_tween()
+		tween.tween_property(name_label, "modulate:a", 1.0, 0.5)
+		tween.tween_interval(1.5)
+		tween.tween_property(name_label, "modulate:a", 0.0, 0.8)
+		tween.tween_callback(name_label.queue_free)
+
 func update_stars_parallax():
 	if stars_container and player:
 		var cam_offset = Vector2.ZERO
@@ -399,23 +423,41 @@ func show_start_screen():
 	var title = Label.new()
 	title.text = "🦞 LOBSTER PLATFORMER 🦞"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(300, 200)
+	title.position = Vector2(300, 150)
 	title.add_theme_font_size_override("font_size", 42)
 	title.add_theme_color_override("font_color", Color(0.2, 0.8, 1))
 	canvas.add_child(title)
 	
+	# Version info
+	var version = Label.new()
+	version.text = "v1.3 - Boss Battle Update!"
+	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	version.position = Vector2(300, 200)
+	version.add_theme_font_size_override("font_size", 16)
+	version.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+	canvas.add_child(version)
+	
 	var instr = Label.new()
 	instr.text = "Arrow Keys / WASD: Move\nSpace: Jump\n\nCollect coins, avoid enemies,\nreach the golden portal!"
 	instr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	instr.position = Vector2(300, 320)
+	instr.position = Vector2(300, 280)
 	instr.add_theme_font_size_override("font_size", 22)
 	instr.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	canvas.add_child(instr)
 	
+	# Features list
+	var features = Label.new()
+	features.text = "✨ Features:\n• 12 Exciting Levels\n• Boss Battles\n• Power-ups & Combos\n• High Score Tracking"
+	features.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	features.position = Vector2(300, 420)
+	features.add_theme_font_size_override("font_size", 16)
+	features.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	canvas.add_child(features)
+	
 	var start = Label.new()
 	start.text = "Press SPACE to Start"
 	start.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	start.position = Vector2(300, 480)
+	start.position = Vector2(300, 520)
 	start.add_theme_font_size_override("font_size", 28)
 	start.add_theme_color_override("font_color", Color(1, 0.85, 0))
 	canvas.add_child(start)
@@ -447,7 +489,15 @@ func _input(event):
 			var ui = get_tree().get_first_node_in_group("ui")
 			if ui:
 				# Check for game over or victory and restart
-				if ui.has_node("GameOverOverlay") or ui.has_node("VictoryOverlay"):
+				if ui.has_node("GameOverOverlay") or ui.has_node("GameOverText"):
+					# Reset game
+					current_level = 0
+					score = 0
+					lives = 3
+					stars_collected = 0
+					game_started = true
+					setup_level(0)
+				elif ui.has_node("VictoryOverlay") or ui.has_node("VictoryText"):
 					# Reset game
 					current_level = 0
 					score = 0
@@ -473,6 +523,14 @@ func setup_level(level_index):
 	
 	var level = levels[level_index]
 	RenderingServer.set_default_clear_color(level.get("bg_color", Color(0.1, 0.12, 0.18)))
+	
+	# Show level name
+	show_level_name(level.get("name", "Level " + str(level_index + 1)))
+	
+	# Show boss warning if boss level
+	if level.get("is_boss", false):
+		await get_tree().create_timer(1.5).timeout
+		show_boss_warning()
 	
 	# Create player
 	player = CharacterBody2D.new()
@@ -921,6 +979,27 @@ func next_level():
 		show_victory()
 	else:
 		setup_level(current_level)
+		# Check if next level is boss level
+		if levels[current_level].get("is_boss", false):
+			show_boss_warning()
+
+func show_boss_warning():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		var warning = Label.new()
+		warning.name = "BossWarning"
+		warning.text = "⚠️ BOSS BATTLE! ⚠️"
+		warning.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		warning.position = Vector2(250, 200)
+		warning.add_theme_font_size_override("font_size", 48)
+		warning.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
+		ui.add_child(warning)
+		
+		# Fade out after 2 seconds
+		var tween = create_tween()
+		tween.tween_interval(2.0)
+		tween.tween_property(warning, "modulate:a", 0.0, 1.0)
+		tween.tween_callback(warning.queue_free)
 
 func show_game_over():
 	var ui = get_tree().get_first_node_in_group("ui")

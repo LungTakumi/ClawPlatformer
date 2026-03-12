@@ -1,5 +1,34 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v1.3 - Bug Fixes & Improvements (2026-03-13)
+
+### Bug 修复
+- ✅ 修复重新开始游戏的问题（支持游戏结束和胜利后按空格重新开始）
+- ✅ Boss 战后正确显示胜利画面
+- ✅ Boss 死亡后触发胜利画面
+
+### 新增功能
+- ✅ **关卡名称显示** - 进入每个关卡时显示关卡名称
+- ✅ **Boss 警告** - 进入 Boss 战前显示警告提示
+- ✅ **Boss 奖励** - Boss 死亡后掉落随机 Power-up
+- ✅ **改进开始画面** - 显示版本信息和功能列表
+- ✅ **扩展音效系统** - 添加 Powerup、Enemy、Boss Warning、Checkpoint 音效
+
+### Power-up 类型
+- 无敌 (⭐) - 5秒无敌时间
+- 速度提升 (⚡) - 移动速度 x1.5
+- 二段跳 (🔺) - 获得永久二段跳能力
+- 额外生命 (❤️) - 增加1条生命
+
+### 构建信息
+- Web Export: ✅ 成功 (2026-03-13)
+- itch.io: ✅ 发布成功
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
 ## v1.2 - Boss Battle Update (2026-03-13)
 
 ### Bug 修复
