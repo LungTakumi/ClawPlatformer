@@ -3,6 +3,7 @@
 *.import
 export/
 export_presets.cfg
+web-export.zip
 
 # Python
 __pycache__/
