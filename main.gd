@@ -505,19 +505,20 @@ func show_start_screen():
 	canvas.add_to_group("ui")
 	add_child(canvas)
 	
+	# Animated title
 	var title = Label.new()
 	title.text = "🦞 LOBSTER PLATFORMER 🦞"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(300, 120)
+	title.position = Vector2(300, 100)
 	title.add_theme_font_size_override("font_size", 42)
 	title.add_theme_color_override("font_color", Color(0.2, 0.8, 1))
 	canvas.add_child(title)
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v1.4 - Timer & Achievements!"
+	version.text = "v1.5 - Visual Improvements!"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	version.position = Vector2(300, 170)
+	version.position = Vector2(300, 150)
 	version.add_theme_font_size_override("font_size", 16)
 	version.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
 	canvas.add_child(version)
@@ -1096,6 +1097,10 @@ func add_score(points):
 	score += bonus
 	update_ui_labels()
 	
+	# Spawn coin collection particles
+	if player:
+		spawn_collection_particles(Color(1, 0.85, 0.2), player.global_position)
+	
 	# 🏆 Check achievements
 	if points == 25:  # Enemy kill
 		screen_shake_intensity(5)
@@ -1109,8 +1114,26 @@ func collect_star():
 	stars_collected += 1
 	update_ui_labels()
 	
+	# 🌟 Star collection particles
+	spawn_collection_particles(Color(1, 0.85, 0.3), player.global_position if player else Vector2.ZERO)
+	
 	# 🏆 Star achievements
 	update_achievement_progress("star_gatherer", stars_collected)
+
+# Spawn collection particles
+func spawn_collection_particles(color: Color, pos: Vector2):
+	for i in range(8):
+		var particle = ColorRect.new()
+		particle.size = Vector2(4, 4)
+		particle.color = color
+		particle.position = pos + Vector2(randf_range(-10, 10), randf_range(-20, 0))
+		add_child(particle)
+		
+		var tween = create_tween()
+		var target = Vector2(randf_range(-40, 40), randf_range(-50, -20))
+		tween.tween_property(particle, "position", particle.position + target, 0.5)
+		tween.parallel().tween_property(particle, "modulate:a", 0.0, 0.5)
+		tween.tween_callback(particle.queue_free)
 
 func _update_lives():
 	update_ui_labels()
