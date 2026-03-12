@@ -22,6 +22,25 @@ var moving_platforms: Array = []  # Track moving platforms for animation
 var screen_shake = 0.0
 var audio_manager: Node = null  # 🔧 Fixed: Initialize audio manager
 
+# ⏱️ Timer system
+var level_start_time = 0.0
+var total_play_time = 0.0
+var current_level_time = 0.0
+
+# 🏆 Achievement system
+var achievements = {
+	"first_coin": {"name": "First Coin", "desc": "Collect your first coin", "unlocked": false},
+	"coin_collector": {"name": "Coin Collector", "desc": "Collect 100 coins", "unlocked": false, "progress": 0, "target": 100},
+	"star_gatherer": {"name": "Star Gatherer", "desc": "Collect 10 stars", "unlocked": false, "progress": 0, "target": 10},
+	"boss_slayer": {"name": "Boss Slayer", "desc": "Defeat the Red Dragon", "unlocked": false},
+	"no_damage_boss": {"name": "Perfect Fighter", "desc": "Defeat boss without taking damage", "unlocked": false},
+	"combo_master": {"name": "Combo Master", "desc": "Get a 10x combo", "unlocked": false},
+	"speed_runner": {"name": "Speed Runner", "desc": "Complete a level in under 30 seconds", "unlocked": false},
+	"perfect_level": {"name": "Perfect Level", "desc": "Complete a level without dying", "unlocked": false, "progress": 0, "target": 1}
+}
+var boss_damage_taken = false
+var level_deaths = 0
+
 func screen_shake_intensity(amount):
 	screen_shake = amount
 
@@ -38,6 +57,7 @@ func _ready():
 	add_to_group("game")
 	load_kenney_assets()
 	load_high_score()  # 💾 Load saved high score
+	load_achievements()  # 🏆 Load achievements
 	RenderingServer.set_default_clear_color(Color(0.1, 0.15, 0.2))
 	create_background_stars()
 	show_start_screen()
@@ -67,6 +87,66 @@ func save_high_score():
 		if save_file:
 			save_file.store_var(high_score)
 			save_file.close()
+
+# 🏆 Achievement system
+func load_achievements():
+	var save_file = FileAccess.open("user://achievements.dat", FileAccess.READ)
+	if save_file:
+		var data = save_file.get_var()
+		if data and typeof(data) == TYPE_DICTIONARY:
+			for key in data:
+				if achievements.has(key):
+					achievements[key] = data[key]
+		save_file.close()
+
+func save_achievements():
+	var save_file = FileAccess.open("user://achievements.dat", FileAccess.WRITE)
+	if save_file:
+		save_file.store_var(achievements)
+		save_file.close()
+
+func unlock_achievement(key):
+	if achievements.has(key) and not achievements[key].get("unlocked", false):
+		achievements[key]["unlocked"] = true
+		save_achievements()
+		show_achievement_notification(key)
+
+func update_achievement_progress(key, progress):
+	if achievements.has(key):
+		achievements[key]["progress"] = progress
+		if achievements[key].has("target") and progress >= achievements[key]["target"]:
+			unlock_achievement(key)
+
+func show_achievement_notification(key):
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		var ach = achievements[key]
+		var notif = Label.new()
+		notif.text = "🏆 Achievement Unlocked!\n" + ach["name"]
+		notif.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		notif.position = Vector2(200, 100)
+		notif.add_theme_font_size_override("font_size", 24)
+		notif.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+		notif.modulate.a = 0
+		ui.add_child(notif)
+		
+		var tween = create_tween()
+		tween.tween_property(notif, "modulate:a", 1.0, 0.3)
+		tween.tween_interval(2.0)
+		tween.tween_property(notif, "modulate:a", 0.0, 0.5)
+		tween.tween_property(notif, "position:y", 50, 0.5)
+		tween.tween_callback(notif.queue_free)
+
+# ⏱️ Timer functions
+func start_level_timer():
+	level_start_time = Time.get_ticks_msec() / 1000.0
+	current_level_time = 0.0
+
+func get_level_time():
+	return current_level_time
+
+func get_total_time():
+	return total_play_time
 
 # Level data - now including Bonus Stage!
 var levels = [
@@ -411,6 +491,11 @@ func _process(delta):
 			var cam = player.get_node_or_null("Camera2D")
 			if cam:
 				cam.offset = Vector2.ZERO
+		
+		# Update level timer
+		if level_start_time > 0:
+			current_level_time = (Time.get_ticks_msec() / 1000.0) - level_start_time
+			update_timer_display()
 
 func show_start_screen():
 	game_started = false
@@ -423,41 +508,66 @@ func show_start_screen():
 	var title = Label.new()
 	title.text = "🦞 LOBSTER PLATFORMER 🦞"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(300, 150)
+	title.position = Vector2(300, 120)
 	title.add_theme_font_size_override("font_size", 42)
 	title.add_theme_color_override("font_color", Color(0.2, 0.8, 1))
 	canvas.add_child(title)
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v1.3 - Boss Battle Update!"
+	version.text = "v1.4 - Timer & Achievements!"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	version.position = Vector2(300, 200)
+	version.position = Vector2(300, 170)
 	version.add_theme_font_size_override("font_size", 16)
 	version.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
 	canvas.add_child(version)
 	
+	# High score
+	if high_score > 0:
+		var hs = Label.new()
+		hs.text = "🏆 High Score: " + str(high_score)
+		hs.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hs.position = Vector2(300, 195)
+		hs.add_theme_font_size_override("font_size", 18)
+		hs.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+		canvas.add_child(hs)
+	
 	var instr = Label.new()
 	instr.text = "Arrow Keys / WASD: Move\nSpace: Jump\n\nCollect coins, avoid enemies,\nreach the golden portal!"
 	instr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	instr.position = Vector2(300, 280)
-	instr.add_theme_font_size_override("font_size", 22)
+	instr.position = Vector2(300, 240)
+	instr.add_theme_font_size_override("font_size", 20)
 	instr.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	canvas.add_child(instr)
 	
 	# Features list
 	var features = Label.new()
-	features.text = "✨ Features:\n• 12 Exciting Levels\n• Boss Battles\n• Power-ups & Combos\n• High Score Tracking"
+	features.text = "✨ Features:\n• 12 Exciting Levels\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements"
 	features.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	features.position = Vector2(300, 420)
+	features.position = Vector2(300, 380)
 	features.add_theme_font_size_override("font_size", 16)
 	features.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 	canvas.add_child(features)
 	
+	# Show unlocked achievements count
+	var unlocked_count = 0
+	for key in achievements:
+		if achievements[key].get("unlocked", false):
+			unlocked_count += 1
+	
+	if unlocked_count > 0:
+		var ach = Label.new()
+		ach.text = "🏆 Achievements: " + str(unlocked_count) + "/" + str(achievements.size())
+		ach.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		ach.position = Vector2(300, 460)
+		ach.add_theme_font_size_override("font_size", 16)
+		ach.add_theme_color_override("font_color", Color(0.8, 0.9, 1))
+		canvas.add_child(ach)
+	
 	var start = Label.new()
 	start.text = "Press SPACE to Start"
 	start.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	start.position = Vector2(300, 520)
+	start.position = Vector2(300, 500)
 	start.add_theme_font_size_override("font_size", 28)
 	start.add_theme_color_override("font_color", Color(1, 0.85, 0))
 	canvas.add_child(start)
@@ -511,6 +621,8 @@ func start_game():
 	current_level = 0
 	score = 0
 	lives = 3
+	total_play_time = 0.0
+	level_deaths = 0
 	setup_level(current_level)
 
 func setup_level(level_index):
@@ -523,6 +635,11 @@ func setup_level(level_index):
 	
 	var level = levels[level_index]
 	RenderingServer.set_default_clear_color(level.get("bg_color", Color(0.1, 0.12, 0.18)))
+	
+	# ⏱️ Start level timer
+	start_level_timer()
+	level_deaths = 0
+	boss_damage_taken = false
 	
 	# Show level name
 	show_level_name(level.get("name", "Level " + str(level_index + 1)))
@@ -867,11 +984,20 @@ func setup_ui():
 	level_label.add_theme_color_override("font_color", Color(0.5, 0.8, 1))
 	canvas.add_child(level_label)
 	
+	# ⏱️ Timer label
+	var timer_label = Label.new()
+	timer_label.name = "TimerLabel"
+	timer_label.text = "⏱️ 00:00.00"
+	timer_label.position = Vector2(20, 115)
+	timer_label.add_theme_font_size_override("font_size", 20)
+	timer_label.add_theme_color_override("font_color", Color(0.8, 0.9, 1))
+	canvas.add_child(timer_label)
+	
 	# Combo label
 	var combo_label = Label.new()
 	combo_label.name = "ComboLabel"
 	combo_label.text = ""
-	combo_label.position = Vector2(20, 120)
+	combo_label.position = Vector2(20, 150)
 	combo_label.add_theme_font_size_override("font_size", 22)
 	combo_label.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
 	canvas.add_child(combo_label)
@@ -880,7 +1006,7 @@ func setup_ui():
 	var star_label = Label.new()
 	star_label.name = "StarLabel"
 	star_label.text = "⭐: 0"
-	star_label.position = Vector2(20, 150)
+	star_label.position = Vector2(20, 180)
 	star_label.add_theme_font_size_override("font_size", 20)
 	star_label.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
 	canvas.add_child(star_label)
@@ -930,6 +1056,17 @@ func update_ui_labels():
 		if lv and player: lv.text = "Lives: " + str(player.lives)
 		if star_lbl: star_lbl.text = "⭐: " + str(stars_collected)
 		update_combo_display()
+		update_timer_display()
+
+func update_timer_display():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		var tl = ui.get_node_or_null("TimerLabel")
+		if tl:
+			var mins = int(current_level_time) / 60
+			var secs = int(current_level_time) % 60
+			var ms = int((current_level_time - floor(current_level_time)) * 100)
+			tl.text = "⏱️ %02d:%02d.%02d" % [mins, secs, ms]
 
 func update_combo_display():
 	var ui = get_tree().get_first_node_in_group("ui")
@@ -959,17 +1096,27 @@ func add_score(points):
 	score += bonus
 	update_ui_labels()
 	
-	# Light shake on coin collect
+	# 🏆 Check achievements
 	if points == 25:  # Enemy kill
 		screen_shake_intensity(5)
+	
+	# Combo achievements
+	if combo >= 10:
+		unlock_achievement("combo_master")
 
 # 🌟 Called when player collects a star
 func collect_star():
 	stars_collected += 1
 	update_ui_labels()
+	
+	# 🏆 Star achievements
+	update_achievement_progress("star_gatherer", stars_collected)
 
 func _update_lives():
 	update_ui_labels()
+
+func track_death():
+	level_deaths += 1
 
 func next_level():
 	current_level += 1
@@ -978,6 +1125,14 @@ func next_level():
 		# Show victory screen instead of looping
 		show_victory()
 	else:
+		# 🏆 Check speed runner achievement
+		if current_level_time < 30:
+			unlock_achievement("speed_runner")
+		
+		# 🏆 Check perfect level achievement (no deaths)
+		if level_deaths == 0:
+			update_achievement_progress("perfect_level", achievements["perfect_level"].get("progress", 0) + 1)
+		
 		setup_level(current_level)
 		# Check if next level is boss level
 		if levels[current_level].get("is_boss", false):
@@ -1027,6 +1182,15 @@ func show_victory():
 	# Save high score
 	save_high_score()
 	
+	# 🏆 Unlock boss slayer achievement
+	unlock_achievement("boss_slayer")
+	if not boss_damage_taken:
+		unlock_achievement("no_damage_boss")
+	
+	# Add total time to score bonus
+	var time_bonus = max(0, 300 - int(total_play_time))  # Time bonus
+	score += time_bonus
+	
 	var ui = get_tree().get_first_node_in_group("ui")
 	if ui:
 		if ui.has_node("VictoryOverlay"): ui.get_node("VictoryOverlay").queue_free()
@@ -1041,12 +1205,16 @@ func show_victory():
 		overlay.color = Color(0.05, 0.1, 0.15, 0.9)
 		ui.add_child(overlay)
 		
+		# Format total time
+		var mins = int(total_play_time) / 60
+		var secs = int(total_play_time) % 60
+		
 		var victory = Label.new()
 		victory.name = "VictoryText"
-		victory.text = "🏆 VICTORY! 🏆\n\n" + "You completed all levels!\n\n" + "Final Score: " + str(score) + "\n" + "Stars: " + str(stars_collected) + "\n" + "High Score: " + str(high_score) + "\n\n" + "Press SPACE to Play Again"
+		victory.text = "🏆 VICTORY! 🏆\n\n" + "You completed all levels!\n\n" + "Final Score: " + str(score) + "\n" + "Stars: " + str(stars_collected) + "\n" + "Time: %02d:%02d" % [mins, secs] + "\n" + "High Score: " + str(high_score) + "\n\n" + "Press SPACE to Play Again"
 		victory.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		victory.position = Vector2(200, 200)
-		victory.add_theme_font_size_override("font_size", 36)
+		victory.position = Vector2(200, 180)
+		victory.add_theme_font_size_override("font_size", 32)
 		victory.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
 		ui.add_child(victory)
 		

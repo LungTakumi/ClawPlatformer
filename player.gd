@@ -170,6 +170,9 @@ func die():
 	is_dead = true
 	lives -= 1
 	
+	# Track level deaths for achievements
+	get_tree().call_group("game", "track_death")
+	
 	if lives > 0:
 		var tween = create_tween()
 		tween.tween_property(self, "modulate:a", 0.0, 0.3)

@@ -25,6 +25,12 @@ func collect():
 		
 		# Add score
 		get_tree().call_group("game", "add_score", 10)
+		
+		# 🏆 Update coin collector achievement
+		var game = get_tree().get_first_node_in_group("game")
+		if game and game.has_method("update_achievement_progress"):
+			game.update_achievement_progress("coin_collector", 
+				game.achievements["coin_collector"].get("progress", 0) + 1)
 
 func spawn_particles():
 	# Create particle burst effect using small ColorRects

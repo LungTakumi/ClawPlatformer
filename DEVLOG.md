@@ -1,5 +1,43 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v1.4 - Timer & Achievements (2026-03-13)
+
+### 新增功能
+- ✅ **计时挑战系统** - 每关显示通关时间
+- ✅ **成就系统** - 8个可解锁成就：
+  - First Coin: 收集第一枚金币
+  - Coin Collector: 收集100枚金币
+  - Star Gatherer: 收集10颗星星
+  - Boss Slayer: 击败红龙
+  - Perfect Fighter: 无伤击败Boss
+  - Combo Master: 获得10x连击
+  - Speed Runner: 30秒内通关
+  - Perfect Level: 零死亡通关
+- ✅ **总游戏时间追踪**
+- ✅ **通关时间奖励** - 越快通关分数越高
+- ✅ **成就解锁通知** - 获得成就时显示提示
+- ✅ **开始画面改进** - 显示已解锁成就数量和高分
+
+### Bug 修复
+- ✅ 修复重新开始游戏的问题（支持游戏结束和胜利后按空格重新开始）
+- ✅ Boss 战后正确显示胜利画面
+- ✅ Boss 死亡后触发胜利画面
+
+### Power-up 类型
+- 无敌 (⭐) - 5秒无敌时间
+- 速度提升 (⚡) - 移动速度 x1.5
+- 二段跳 (🔺) - 获得永久二段跳能力
+- 额外生命 (❤️) - 增加1条生命
+
+### 构建信息
+- Web Export: ✅ 成功 (2026-03-13)
+- itch.io: ✅ 发布成功
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
 ## v1.3 - Bug Fixes & Improvements (2026-03-13)
 
 ### Bug 修复
