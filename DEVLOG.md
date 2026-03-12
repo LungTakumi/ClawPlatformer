@@ -1,5 +1,48 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v2.1 - Haunted Forest (2026-03-13)
+
+### 新增功能
+- ✅ **Haunted Forest 关卡** - 新增第17关，万圣节/森林主题关卡
+  - 深紫色万圣节主题背景
+  - 11个平台，多条路线
+  - 包含3颗星星和11枚金币
+  - 4个敌人分布在不同平台
+- ✅ 版本号更新为 v2.1
+
+### 关卡列表 (v2.1)
+1. Green Hills
+2. Sky Bridges
+3. Moving Platforms
+4. Mountain Climb
+5. Floating Islands
+6. The Tower
+7. Cave
+8. Rainbow Bridge
+9. Crystal Caverns
+10. Bonus Stage
+11. Sky Fortress
+12. Dragon's Lair (Boss)
+13. Secret Garden ✨
+14. Ice Palace ❄️
+15. Volcano 🔥
+16. Haunted Forest 👻 新增
+
+### Power-up 类型
+- 无敌 (⭐) - 5秒无敌时间
+- 速度提升 (⚡) - 移动速度 x1.5
+- 二段跳 (🔺) - 获得永久二段跳能力
+- 额外生命 (❤️) - 增加1条生命
+
+### 构建信息
+- Web Export: ✅ 成功 (2026-03-13)
+- itch.io: ✅ 发布成功 (html channel)
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
 ## v2.0 - Volcano & More (2026-03-13)
 
 ### Bug 修复
