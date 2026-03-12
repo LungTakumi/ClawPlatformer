@@ -8,7 +8,7 @@ var combo = 0
 var combo_timer = 0.0
 var last_coin_time = 0.0
 var stars_collected = 0  # 🌟 Star counter
-var high_score = 0
+var high_score = 0  # 💾 Persist high score
 var player: CharacterBody2D = null
 var platforms: Array[Node2D] = []
 var coins: Array[Area2D] = []
@@ -20,6 +20,7 @@ var checkpoint_pos = Vector2(80, 350)
 var stars_container: Node2D = null
 var moving_platforms: Array = []  # Track moving platforms for animation
 var screen_shake = 0.0
+var audio_manager: Node = null  # 🔧 Fixed: Initialize audio manager
 
 func screen_shake_intensity(amount):
 	screen_shake = amount
@@ -36,14 +37,36 @@ const CHAR_TILE_SIZE = Vector2(24, 24)  # For characters
 func _ready():
 	add_to_group("game")
 	load_kenney_assets()
+	load_high_score()  # 💾 Load saved high score
 	RenderingServer.set_default_clear_color(Color(0.1, 0.15, 0.2))
 	create_background_stars()
 	show_start_screen()
+	
+	# Initialize audio manager
+	audio_manager = Node.new()
+	audio_manager.set_script(load("res://audio_manager.gd"))
+	audio_manager.name = "AudioManager"
+	add_child(audio_manager)
 
 func load_kenney_assets():
 	# Use Godot's built-in resource loader (works in exports)
 	char_tilesheet = load("res://sprites/tilemap-characters_packed.png")
 	tile_tilesheet = load("res://sprites/tilemap_packed.png")
+
+# 💾 High score persistence
+func load_high_score():
+	var save_file = FileAccess.open("user://highscore.dat", FileAccess.READ)
+	if save_file:
+		high_score = save_file.get_var()
+		save_file.close()
+
+func save_high_score():
+	if score > high_score:
+		high_score = score
+		var save_file = FileAccess.open("user://highscore.dat", FileAccess.WRITE)
+		if save_file:
+			save_file.store_var(high_score)
+			save_file.close()
 
 # Level data - now including Bonus Stage!
 var levels = [
@@ -703,6 +726,16 @@ func create_goal(x, y):
 	goal.add_child(col)
 	
 	add_child(goal)
+
+# 🌀 Create a powerup
+var powerups: Array[Area2D] = []
+
+func create_powerup(x, y):
+	var powerup = Area2D.new()
+	powerup.position = Vector2(x, y)
+	powerup.script = load("res://powerup.gd")
+	add_child(powerup)
+	powerups.append(powerup)
 
 func setup_ui():
 	var old = get_tree().get_first_node_in_group("ui")

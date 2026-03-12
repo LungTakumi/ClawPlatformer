@@ -14,9 +14,28 @@ var trail_timer = 0.0
 var anim_timer = 0.0
 var was_on_floor = true
 
+# Powerup states
+var is_invincible = false
+var invincible_timer = 0.0
+var has_permanent_double_jump = false
+var speed_multiplier = 1.0
+var speed_timer = 0.0
+
 func _physics_process(delta):
 	if is_dead:
 		return
+	
+	# Handle powerup timers
+	if is_invincible:
+		invincible_timer -= delta
+		if invincible_timer <= 0:
+			is_invincible = false
+			modulate = Color.WHITE
+	
+	if speed_multiplier > 1.0:
+		speed_timer -= delta
+		if speed_timer <= 0:
+			speed_multiplier = 1.0
 	
 	# Add gravity
 	if not is_on_floor():
@@ -29,19 +48,23 @@ func _physics_process(delta):
 			velocity.y = JUMP_VELOCITY
 			jump_count += 1
 			animate_jump()
+			# Play jump sound
+			var game = get_tree().get_first_node_in_group("game")
+			if game and game.audio_manager:
+				game.audio_manager.play_jump()
 
 	# Get input direction
 	var direction = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
 	
 	if direction != 0:
-		velocity.x = direction * SPEED
+		velocity.x = direction * SPEED * speed_multiplier
 		if direction > 0:
 			facing_right = true
 		else:
 			facing_right = false
 		update_facing()
 	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED)
+		velocity.x = move_toward(velocity.x, 0, SPEED * speed_multiplier)
 
 	move_and_slide()
 	
@@ -61,6 +84,10 @@ func _physics_process(delta):
 	if trail_timer > 0.05 and velocity.length() > 10:
 		trail_timer = 0
 		spawn_trail()
+	
+	# Invincibility visual - flash
+	if is_invincible:
+		modulate = Color(1, 1, 1, 0.5 + 0.5 * sin(Time.get_ticks_msec() / 50.0))
 	
 	# Check if fell off screen
 	if global_position.y > 800:
@@ -159,3 +186,49 @@ func die():
 
 func collect():
 	pass
+
+# Powerup functions
+func activate_invincible(duration: float):
+	is_invincible = true
+	invincible_timer = duration
+	modulate = Color(1, 0.9, 0.3, 1)
+	# Spawn invincibility particles
+	for i in range(8):
+		var p = ColorRect.new()
+		p.size = Vector2(4, 4)
+		p.color = Color(1, 0.9, 0.3, 0.6)
+		p.position = Vector2(randf_range(-15, 15), randf_range(-25, 5))
+		add_child(p)
+		var tw = create_tween()
+		tw.tween_property(p, "position", p.position + Vector2(randf_range(-30, 30), randf_range(-40, 10)), 0.5)
+		tw.parallel().tween_property(p, "modulate:a", 0.0, 0.5)
+		tw.tween_callback(p.queue_free)
+
+func activate_speed_boost(duration: float):
+	speed_multiplier = 1.5
+	speed_timer = duration
+	# Speed effect visual
+	var trail = ColorRect.new()
+	trail.size = Vector2(30, 30)
+	trail.color = Color(0.2, 0.9, 1, 0.3)
+	trail.z_index = -2
+	trail.position = Vector2(-15, -30)
+	get_parent().add_child(trail)
+	var tw = create_tween()
+	tw.tween_property(trail, "modulate:a", 0.0, duration)
+	tw.tween_callback(trail.queue_free)
+
+func activate_double_jump():
+	has_permanent_double_jump = true
+	max_jumps = 3
+	# Visual feedback
+	var label = Label.new()
+	label.text = "DOUBLE JUMP!"
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", Color(0.8, 0.4, 1))
+	label.position = global_position + Vector2(-50, -50)
+	get_parent().add_child(label)
+	var tw = create_tween()
+	tw.tween_property(label, "position", label.position + Vector2(0, -30), 1.0)
+	tw.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
+	tw.tween_callback(label.queue_free)

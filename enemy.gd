@@ -41,8 +41,13 @@ func _physics_process(delta):
 		var collision = get_slide_collision(i)
 		var collider = collision.get_collider()
 		if collider.is_in_group("player"):
+			# Check if player is invincible
+			if collider.has_method("is_invincible") and collider.is_invincible:
+				# Kill enemy with invincibility effect!
+				die()
+				collider.velocity.y = -250
 			# Check if player is falling from above
-			if collider.velocity.y > 0 and global_position.y > collider.global_position.y:
+			elif collider.velocity.y > 0 and global_position.y > collider.global_position.y:
 				# Kill enemy!
 				die()
 				collider.velocity.y = -300  # Bounce
