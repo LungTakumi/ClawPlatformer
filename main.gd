@@ -40,6 +40,7 @@ var achievements = {
 }
 var boss_damage_taken = false
 var level_deaths = 0
+var is_paused = false  # ⏸️ Pause state
 
 func screen_shake_intensity(amount):
 	screen_shake = amount
@@ -424,6 +425,42 @@ var levels = [
 			{"x": 700, "y": 250, "type": "boss", "hp": 5}
 		],
 		"goal": {"x": 1250, "y": 500}
+	},
+	# Secret Level - Unlockable!
+	{
+		"name": "Secret Garden",
+		"bg_color": Color(0.05, 0.2, 0.15),
+		"is_secret": true,
+		"platforms": [
+			{"x": 50, "y": 500, "w": 120, "h": 30},
+			{"x": 200, "y": 420, "w": 80, "h": 20},
+			{"x": 320, "y": 350, "w": 80, "h": 20},
+			{"x": 450, "y": 420, "w": 80, "h": 20},
+			{"x": 580, "y": 350, "w": 80, "h": 20},
+			{"x": 700, "y": 280, "w": 100, "h": 20},
+			{"x": 850, "y": 350, "w": 80, "h": 20},
+			{"x": 980, "y": 280, "w": 80, "h": 20},
+			{"x": 1100, "y": 350, "w": 150, "h": 20}
+		],
+		"coins": [
+			{"x": 80, "y": 430}, {"x": 150, "y": 400},
+			{"x": 220, "y": 350}, {"x": 290, "y": 280},
+			{"x": 350, "y": 350}, {"x": 420, "y": 280},
+			{"x": 500, "y": 350}, {"x": 580, "y": 280},
+			{"x": 650, "y": 210}, {"x": 720, "y": 210},
+			{"x": 800, "y": 280}, {"x": 870, "y": 280},
+			{"x": 940, "y": 210}, {"x": 1010, "y": 210},
+			{"x": 1150, "y": 290}
+		],
+		"stars": [
+			{"x": 350, "y": 180}, {"x": 720, "y": 150}, {"x": 1010, "y": 150}
+		],
+		"enemies": [
+			{"x": 300, "y": 310, "min_x": 260, "max_x": 380},
+			{"x": 600, "y": 310, "min_x": 540, "max_x": 620},
+			{"x": 900, "y": 240, "min_x": 850, "max_x": 980}
+		],
+		"goal": {"x": 1200, "y": 300}
 	}
 ]
 
@@ -485,6 +522,13 @@ func update_stars_parallax():
 					star.position.x -= 1400
 
 func _process(delta):
+	# ⏸️ Handle pause
+	if Input.is_action_just_pressed("pause"):
+		toggle_pause()
+	
+	if is_paused:
+		return
+	
 	if game_started and player:
 		update_stars_parallax()
 		# Update combo timer
@@ -528,7 +572,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v1.6 - Level Improvements!"
+	version.text = "v1.7 - Pause Menu & Secret Level!"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.position = Vector2(300, 150)
 	version.add_theme_font_size_override("font_size", 16)
@@ -555,7 +599,7 @@ func show_start_screen():
 	
 	# Features list
 	var features = Label.new()
-	features.text = "✨ Features:\n• 13 Exciting Levels\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements"
+	features.text = "✨ Features:\n• 14 Exciting Levels\n• Secret Garden Level ✨\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements\n• ⏸️ Pause Menu (ESC)"
 	features.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	features.position = Vector2(300, 380)
 	features.add_theme_font_size_override("font_size", 16)
@@ -584,6 +628,91 @@ func show_start_screen():
 	start.add_theme_font_size_override("font_size", 28)
 	start.add_theme_color_override("font_color", Color(1, 0.85, 0))
 	canvas.add_child(start)
+
+func toggle_pause():
+	if not game_started:
+		return
+	
+	is_paused = !is_paused
+	
+	var ui = get_tree().get_first_node_in_group("ui")
+	
+	if is_paused:
+		# Show pause menu
+		show_pause_menu()
+		get_tree().paused = true
+	else:
+		# Hide pause menu
+		hide_pause_menu()
+		get_tree().paused = false
+
+func show_pause_menu():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if not ui:
+		return
+	
+	# Remove existing pause menu if any
+	var existing = ui.get_node_or_null("PauseMenu")
+	if existing:
+		existing.queue_free()
+	
+	var pause_menu = VBoxContainer.new()
+	pause_menu.name = "PauseMenu"
+	pause_menu.position = Vector2(450, 250)
+	pause_menu.add_theme_constant_override("separation", 20)
+	ui.add_child(pause_menu)
+	
+	# Pause title
+	var title = Label.new()
+	title.text = "⏸️ PAUSED"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 42)
+	title.add_theme_color_override("font_color", Color(0.9, 0.9, 1))
+	pause_menu.add_child(title)
+	
+	# Resume button
+	var resume_btn = Button.new()
+	resume_btn.text = "Resume (ESC)"
+	resume_btn.custom_minimum_size = Vector2(200, 50)
+	resume_btn.pressed.connect(func(): toggle_pause())
+	pause_menu.add_child(resume_btn)
+	
+	# Restart button
+	var restart_btn = Button.new()
+	restart_btn.text = "Restart Level"
+	restart_btn.custom_minimum_size = Vector2(200, 50)
+	restart_btn.pressed.connect(func(): restart_current_level())
+	pause_menu.add_child(restart_btn)
+	
+	# Quit button
+	var quit_btn = Button.new()
+	quit_btn.text = "Quit to Menu"
+	quit_btn.custom_minimum_size = Vector2(200, 50)
+	quit_btn.pressed.connect(func(): quit_to_menu())
+	pause_menu.add_child(quit_btn)
+
+func hide_pause_menu():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		var pause_menu = ui.get_node_or_null("PauseMenu")
+		if pause_menu:
+			pause_menu.queue_free()
+
+func restart_current_level():
+	is_paused = false
+	get_tree().paused = false
+	hide_pause_menu()
+	# Reset current level
+	score = max(0, score - 50)  # Penalty for restarting
+	lives = 3  # Reset lives
+	setup_level(current_level)
+
+func quit_to_menu():
+	is_paused = false
+	get_tree().paused = false
+	hide_pause_menu()
+	game_started = false
+	show_start_screen()
 
 func clear_level():
 	for p in platforms:

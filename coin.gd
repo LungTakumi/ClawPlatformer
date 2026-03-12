@@ -31,6 +31,8 @@ func collect():
 		if game and game.has_method("update_achievement_progress"):
 			game.update_achievement_progress("coin_collector", 
 				game.achievements["coin_collector"].get("progress", 0) + 1)
+			# 🏆 First coin achievement
+			game.unlock_achievement("first_coin")
 
 func spawn_particles():
 	# Create particle burst effect using small ColorRects
