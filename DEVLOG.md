@@ -1,5 +1,134 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v3.0 - Cloud Kingdom (2026-03-14)
+
+### 新增功能
+- ✅ **Cloud Kingdom 关卡** - 第22关，梦幻云朵主题关卡
+  - 浅蓝色/白色梦幻云朵主题背景
+  - 13个平台，多条路线
+  - 包含3颗星星和13枚金币
+  - 包含二段跳能力道具
+  - 混合敌人：史莱姆、飞行敌人、水母
+- ✅ 版本号更新为 v3.0
+
+### 关卡列表 (v3.0)
+1. Green Hills
+2. Sky Bridges
+3. Moving Platforms
+4. Mountain Climb
+5. Floating Islands
+6. The Tower
+7. Cave
+8. Rainbow Bridge
+9. Crystal Caverns
+10. Bonus Stage
+11. Sky Fortress
+12. Dragon's Lair (Boss)
+13. Secret Garden ✨
+14. Ice Palace ❄️
+15. Volcano 🔥
+16. Haunted Forest 👻
+17. Desert 🏜️
+18. Underwater Temple 🌊
+19. Space Station 🚀
+20. Neon City 🌃
+21. Matrix Core 🟢
+22. Cloud Kingdom ☁️ 新增
+
+### 构建信息
+- Web Export: ✅ 成功 (2026-03-14)
+- itch.io: ✅ 发布成功 (html channel)
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
+## v2.9 - Matrix Core (2026-03-14)
+
+### 新增功能
+- ✅ **Matrix Core 关卡** - 第21关，黑客帝国/科技主题关卡
+  - 黑色/绿色黑客帝国主题背景
+  - 12个平台，多条路线
+  - 包含3颗星星和12枚金币
+  - 包含二段跳能力道具
+  - 混合敌人：史莱姆、飞行敌人、水母
+- ✅ 版本号更新为 v2.9
+
+### 关卡列表 (v2.9)
+1. Green Hills
+2. Sky Bridges
+3. Moving Platforms
+4. Mountain Climb
+5. Floating Islands
+6. The Tower
+7. Cave
+8. Rainbow Bridge
+9. Crystal Caverns
+10. Bonus Stage
+11. Sky Fortress
+12. Dragon's Lair (Boss)
+13. Secret Garden ✨
+14. Ice Palace ❄️
+15. Volcano 🔥
+16. Haunted Forest 👻
+17. Desert 🏜️
+18. Underwater Temple 🌊
+19. Space Station 🚀
+20. Neon City 🌃
+21. Matrix Core 🟢 新增
+
+### 构建信息
+- Web Export: ✅ 成功 (2026-03-14)
+- itch.io: ✅ 发布成功 (html channel)
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
+## v2.8 - Neon City (2026-03-14)
+
+### 新增功能
+- ✅ **霓虹城市关卡 (Neon City)** - 第20关，赛博朋克霓虹主题关卡
+  - 深紫色/深蓝色赛博朋克主题背景
+  - 13个平台，多条路线
+  - 包含3颗星星和13枚金币
+  - **地面重击能力 (Ground Slam)** - 在关卡中获得此能力
+  - 包含史莱姆敌人和飞行敌人混合
+- ✅ 版本号更新为 v2.8
+
+### 关卡列表 (v2.8)
+1. Green Hills
+2. Sky Bridges
+3. Moving Platforms
+4. Mountain Climb
+5. Floating Islands
+6. The Tower
+7. Cave
+8. Rainbow Bridge
+9. Crystal Caverns
+10. Bonus Stage
+11. Sky Fortress
+12. Dragon's Lair (Boss)
+13. Secret Garden ✨
+14. Ice Palace ❄️
+15. Volcano 🔥
+16. Haunted Forest 👻
+17. Desert 🏜️
+18. Underwater Temple 🌊
+19. Space Station 🚀
+20. Neon City 🌃 新增
+
+### 构建信息
+- Web Export: ✅ 成功 (2026-03-14)
+- itch.io: ✅ 发布成功 (html channel)
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
 ## v2.7 - Space Station (2026-03-14)
 
 ### 新增功能
