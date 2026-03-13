@@ -989,11 +989,11 @@ func create_player_visual(p):
 	sprite.position = Vector2(0, -12)  # Center on player
 	p.add_child(sprite)
 	
-	# Collision
+	# Collision - adjust to sit properly on platforms
 	var col = CollisionShape2D.new()
-	col.position = Vector2(0, -12)
+	col.position = Vector2(0, -10)  # Slightly lower for better platform contact
 	var rect = RectangleShape2D.new()
-	rect.size = Vector2(20, 24)
+	rect.size = Vector2(18, 22)  # Slightly smaller for better feel
 	col.shape = rect
 	p.add_child(col)
 
