@@ -1503,5 +1503,3 @@ func show_victory():
 			tween.tween_property(particle, "position", particle.position + Vector2(randf_range(-100, 100), randf_range(-150, 50)), 2.0)
 			tween.parallel().tween_property(particle, "modulate:a", 0.0, 2.0)
 			tween.tween_callback(particle.queue_free)
-
-
