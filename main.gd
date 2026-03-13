@@ -1010,6 +1010,11 @@ func create_platform(x, y, w, h, move_data = null):
 	
 	platform.position = Vector2(x, y)
 	
+	# Adjust position for CharacterBody2D (origin at center) vs StaticBody2D (origin at top-left)
+	if is_moving:
+		# For moving platforms, offset by half size to align properly
+		platform.position = Vector2(x + w/2, y + h/2)
+	
 	# Use Kenney tile sprites for platforms
 	# Different tiles for different level themes
 	var tile_indices = [
@@ -1034,18 +1039,25 @@ func create_platform(x, y, w, h, move_data = null):
 	sprite.texture = tile_tilesheet
 	sprite.region_enabled = true
 	sprite.region_rect = Rect2(tile_x, tile_y, 18, 18)
-	sprite.position = Vector2(0, 0)
+	# StaticBody2D origin is top-left, CharacterBody2D origin is center
+	if is_moving:
+		sprite.position = Vector2(w/2, h/2)  # Center sprite for CharacterBody2D
+	else:
+		sprite.position = Vector2(0, 0)
 	# Scale to fit platform width
 	sprite.scale = Vector2(w / 18.0, h / 18.0)
 	platform.add_child(sprite)
 	
-	# Collision
+	# Collision - position depends on platform type
 	var collision = CollisionShape2D.new()
 	var rect = RectangleShape2D.new()
 	rect.size = Vector2(w, h)
 	collision.shape = rect
-	# StaticBody2D origin is top-left, so collision should be at (w/2, h/2) to center
-	collision.position = Vector2(w/2, h/2)
+	# StaticBody2D origin is top-left, CharacterBody2D origin is center
+	if is_moving:
+		collision.position = Vector2(0, 0)  # CharacterBody2D centers at origin
+	else:
+		collision.position = Vector2(w/2, h/2)  # StaticBody2D is top-left
 	platform.add_child(collision)
 	
 	add_child(platform)
