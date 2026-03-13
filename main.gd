@@ -46,7 +46,6 @@ func screen_shake_intensity(amount):
 	screen_shake = amount
 
 # Kenney assets - sprite sheets
-var char_tilesheet: Texture2D
 var tile_tilesheet: Texture2D
 var bg_tilesheet: Texture2D
 
@@ -56,7 +55,7 @@ const CHAR_TILE_SIZE = Vector2(24, 24)  # For characters
 
 func _ready():
 	add_to_group("game")
-	load_kenney_assets()
+	# Simple game - no external assets needed
 	load_high_score()  # 💾 Load saved high score
 	load_achievements()  # 🏆 Load achievements
 	RenderingServer.set_default_clear_color(Color(0.1, 0.15, 0.2))
@@ -68,11 +67,6 @@ func _ready():
 	audio_manager.set_script(load("res://audio_manager.gd"))
 	audio_manager.name = "AudioManager"
 	add_child(audio_manager)
-
-func load_kenney_assets():
-	# Use Godot's built-in resource loader (works in exports)
-	char_tilesheet = load("res://sprites/tilemap-characters_packed.png")
-	tile_tilesheet = load("res://sprites/tilemap_packed.png")
 
 # 💾 High score persistence
 func load_high_score():
@@ -980,13 +974,14 @@ func setup_level(level_index):
 	setup_mobile_controls()
 
 func create_player_visual(p):
-	# Use Kenney player sprite (tile 0 in characters sheet)
-	var sprite = Sprite2D.new()
-	sprite.name = "Visual"  # Named for animation functions
-	sprite.texture = char_tilesheet
-	sprite.region_enabled = true
-	sprite.region_rect = Rect2(0, 0, 24, 24)  # First tile
-	sprite.position = Vector2(0, -12)  # Center on player
+	# Simple colored square for player
+	var sprite = Polygon2D.new()
+	var points = PackedVector2Array([
+		Vector2(-10, -22), Vector2(10, -22), Vector2(10, 0), Vector2(-10, 0)
+	])
+	sprite.polygon = points
+	sprite.color = Color(1, 0.5, 0)  # Orange player
+	sprite.name = "Visual"
 	p.add_child(sprite)
 	
 	# Collision - adjust to sit properly on platforms
@@ -1015,34 +1010,22 @@ func create_platform(x, y, w, h, move_data = null):
 		# For moving platforms, offset by half size to align properly
 		platform.position = Vector2(x + w/2, y + h/2)
 	
-	# Use Kenney tile sprites for platforms
-	# Different tiles for different level themes
-	var tile_indices = [
-		0,   # Grass/green
-		6,   # Stone/gray  
-		12,  # Brown/wood
-		18,  # Dark
-		24,  # More grass
-		30,  # Stone variant
-		36,  # Cave
-		42   # Rainbow
-	]
-	var tile_idx = tile_indices[current_level % tile_indices.size()]
-	
-	# Calculate tile position in spritesheet
-	var tiles_per_row = 20  # From tilesheet info
-	var tile_x = (tile_idx % tiles_per_row) * 19 + 1  # 18px + 1px gap
-	var tile_y = (tile_idx / tiles_per_row) * 19 + 1
-	
-	# Create sprite with tiling for the platform
-	var sprite = Sprite2D.new()
-	sprite.texture = tile_tilesheet
-	sprite.region_enabled = true
-	sprite.region_rect = Rect2(tile_x, tile_y, 18, 18)
-	sprite.position = Vector2(0, 0)  # All platforms use (0,0) relative to node position
-	# Scale to fit platform width
-	sprite.scale = Vector2(w / 18.0, h / 18.0)
-	platform.add_child(sprite)
+	# Simple colored rectangle for platform
+	var platform_sprite = Polygon2D.new()
+	var color = Color(0.3, 0.7, 0.3)  # Green grass color
+	if current_level >= 4:
+		color = Color(0.5, 0.5, 0.5)  # Gray stone
+	if current_level >= 13:
+		color = Color(0.2, 0.8, 0.8)  # Ice
+	if current_level >= 15:
+		color = Color(0.8, 0.3, 0.1)  # Volcano
+	# Create rectangle polygon
+	var points = PackedVector2Array([
+		Vector2(0, 0), Vector2(w, 0), Vector2(w, h), Vector2(0, h)
+	])
+	platform_sprite.polygon = points
+	platform_sprite.color = color
+	platform.add_child(platform_sprite)
 	
 	# Collision - position depends on platform type
 	var collision = CollisionShape2D.new()
@@ -1066,20 +1049,22 @@ func create_coin(x, y):
 	coin.position = Vector2(x, y)
 	coin.script = load("res://coin.gd")
 	
-	# Use Kenney coin sprite (tile 18 in characters sheet = yellow/orange)
-	var sprite = Sprite2D.new()
-	sprite.texture = char_tilesheet
-	sprite.region_enabled = true
-	# Tile 18 is the coin in characters sheet
-	sprite.region_rect = Rect2(18 * 25, 0, 24, 24)  # 24px + 1px gap
-	sprite.position = Vector2(0, -12)
+	# Simple yellow circle for coin
+	var sprite = Polygon2D.new()
+	var points = PackedVector2Array()
+	var radius = 10
+	for i in range(12):
+		var angle = i * TAU / 12
+		points.append(Vector2(cos(angle) * radius, sin(angle) * radius - 8))
+	sprite.polygon = points
+	sprite.color = Color(1, 0.85, 0.2)  # Gold color
 	coin.add_child(sprite)
 	
 	var col = CollisionShape2D.new()
 	var circle = CircleShape2D.new()
-	circle.radius = 12
+	circle.radius = 10
 	col.shape = circle
-	col.position = Vector2(0, -12)  # Match sprite position
+	col.position = Vector2(0, -8)
 	coin.add_child(col)
 	
 	add_child(coin)
@@ -1135,11 +1120,11 @@ func create_enemy(x, y, type = "ground", hp = 1) -> CharacterBody2D:
 		# Use Kenney bat/flying monster sprite (tile 12-14 in characters sheet)
 		var sprite = Sprite2D.new()
 		sprite.name = "Visual"
-		sprite.texture = char_tilesheet
-		sprite.region_enabled = true
+		sprite.color = Color(0.8, 0.2, 0.2)
+		# Simple colored rect
 		# Bat/flying enemy is around tile 12-14
-		sprite.region_rect = Rect2(12 * 25, 0, 24, 24)
-		sprite.position = Vector2(0, -12)
+		# Simple shape
+		# Position
 		enemy.add_child(sprite)
 		
 		# Collision
@@ -1165,11 +1150,11 @@ func create_enemy(x, y, type = "ground", hp = 1) -> CharacterBody2D:
 		# Use Kenney enemy/monster sprite (tile 9-11 in characters sheet)
 		var sprite = Sprite2D.new()
 		sprite.name = "Visual"  # Named for animation functions
-		sprite.texture = char_tilesheet
-		sprite.region_enabled = true
+		sprite.color = Color(0.8, 0.2, 0.2)
+		# Simple colored rect
 		# Monster/enemy is around tile 9-12 in characters sheet
-		sprite.region_rect = Rect2(9 * 25, 0, 24, 24)
-		sprite.position = Vector2(0, -12)
+		# Simple shape
+		# Position
 		enemy.add_child(sprite)
 		
 		# Collision
@@ -1221,11 +1206,11 @@ func create_goal(x, y):
 	
 	# Use Kenney portal/door sprite (tile 21-22 in characters sheet)
 	var sprite = Sprite2D.new()
-	sprite.texture = char_tilesheet
-	sprite.region_enabled = true
+	sprite.color = Color(0.8, 0.2, 0.2)
+	# Simple colored rect
 	# Portal/door is around tile 21-23
-	sprite.region_rect = Rect2(21 * 25, 0, 24, 24)
-	sprite.position = Vector2(0, -12)
+	# Simple shape
+	# Position
 	goal.add_child(sprite)
 	
 	var col = CollisionShape2D.new()
