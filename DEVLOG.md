@@ -1,6 +1,6 @@
 # 🦞 Lobster Platformer 开发日志
 
-## v2.4 - Metroidvania Elements (2026-03-13)
+## v2.5 - Abilities & Powerups (2026-03-13)
 
 ### Metroidvania 元素 (C)
 - ✅ **存档系统** - 保存进度、金币、星星、解锁关卡
@@ -8,6 +8,13 @@
 - ✅ **能力通知** - 解锁能力时显示通知
 - ✅ **进度显示** - 首页显示总金币、星星、解锁关卡数
 - ✅ **自动解锁关卡** - 通关后自动解锁下一关
+
+### 新增能力 & Powerups
+- ✅ **冲刺能力 (Dash)** - 按 Shift 键冲刺，有冷却时间
+- ✅ **墙壁攀爬 (Wall Climb)** - 贴着墙可以缓慢下落，再次跳跃可以蹬墙跳
+- ✅ **Powerup 道具** - 在关卡中生成能力道具
+- ✅ **Bonus Stage** - 添加 Dash 和 Double Jump 道具
+- ✅ **Haunted Forest** - 添加 Wall Climb 道具
 
 ### 美观优化 (B)
 - ✅ **UI 样式改进** - 使用 HBoxContainer + 图标，改进分数/生命/关卡显示

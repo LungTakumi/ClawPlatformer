@@ -440,6 +440,10 @@ var levels = [
 		"stars": [
 			{"x": 400, "y": 300}, {"x": 700, "y": 200}, {"x": 1000, "y": 150}
 		],
+		"powerups": [
+			{"x": 600, "y": 300, "type": "dash"},
+			{"x": 900, "y": 200, "type": "double_jump"}
+		],
 		"enemies": [],
 		"goal": {"x": 1350, "y": 250}
 	},
@@ -629,6 +633,9 @@ var levels = [
 		],
 		"stars": [
 			{"x": 400, "y": 280}, {"x": 750, "y": 100}, {"x": 1350, "y": 320}
+		],
+		"powerups": [
+			{"x": 700, "y": 300, "type": "wall_climb"}
 		],
 		"enemies": [
 			{"x": 300, "y": 440, "min_x": 250, "max_x": 350},
@@ -1093,6 +1100,11 @@ func setup_level(level_index):
 		if enemy.has_method("setup_movement"):
 			enemy.platform_bounds = {"min_x": e.get("min_x", 0), "max_x": e.get("max_x", 300)}
 	
+	# Create powerups (if defined in level)
+	if level.has("powerups"):
+		for p in level["powerups"]:
+			create_powerup(p.x, p.y, p.get("type", "dash"))
+	
 	# Create goal
 	if level.has("goal"):
 		create_goal(level.goal.x, level.goal.y)
@@ -1363,10 +1375,14 @@ func create_goal(x, y):
 # 🌀 Create a powerup
 var powerups: Array[Area2D] = []
 
-func create_powerup(x, y):
+func create_powerup(x, y, powerup_type = null):
 	var powerup = Area2D.new()
 	powerup.position = Vector2(x, y)
 	powerup.script = load("res://powerup.gd")
+	# Set specific type if provided
+	if powerup_type != null:
+		# Force specific type by setting it after ready
+		powerup.set_meta("forced_type", powerup_type)
 	add_child(powerup)
 	powerups.append(powerup)
 

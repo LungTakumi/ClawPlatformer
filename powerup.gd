@@ -17,8 +17,25 @@ var colors = {
 }
 
 func _ready():
-	# Random type
-	powerup_type = randi() % PowerupType.size()
+	# Check if forced type
+	if has_meta("forced_type"):
+		var forced = get_meta("forced_type")
+		if forced == "dash":
+			powerup_type = PowerupType.DASH
+		elif forced == "wall_climb":
+			powerup_type = PowerupType.WALL_CLIMB
+		elif forced == "double_jump":
+			powerup_type = PowerupType.DOUBLE_JUMP
+		elif forced == "invincible":
+			powerup_type = PowerupType.INVINCIBLE
+		elif forced == "speed":
+			powerup_type = PowerupType.SPEED_BOOST
+		elif forced == "life":
+			powerup_type = PowerupType.LIFE
+	else:
+		# Random type
+		powerup_type = randi() % PowerupType.size()
+	
 	body_entered.connect(_on_body_entered)
 	
 	# Initial offset
