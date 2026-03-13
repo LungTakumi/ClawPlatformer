@@ -577,13 +577,38 @@ func create_background_stars():
 	add_child(stars_container)
 	stars_container.z_index = -100  # Behind everything
 	
-	# Create 50 stars
-	for i in range(50):
+	# 创建多层星空 - 远景（更小更暗）
+	for i in range(80):
 		var star = ColorRect.new()
-		star.size = Vector2(2, 2)
-		star.color = Color(1, 1, 1, randf_range(0.3, 0.8))
+		star.size = Vector2(1, 1)
+		star.color = Color(0.6, 0.7, 1, randf_range(0.2, 0.4))
 		star.position = Vector2(randf() * 1400, randf() * 800)
 		star.add_to_group("star")
+		star.add_to_group("star_far")
+		stars_container.add_child(star)
+	
+	# 中景星星
+	for i in range(40):
+		var star = ColorRect.new()
+		star.size = Vector2(2, 2)
+		star.color = Color(0.8, 0.9, 1, randf_range(0.4, 0.7))
+		star.position = Vector2(randf() * 1400, randf() * 800)
+		star.add_to_group("star")
+		star.add_to_group("star_mid")
+		stars_container.add_child(star)
+	
+	# 近景星星（更亮）
+	for i in range(20):
+		var star = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(4):
+			var angle = j * TAU / 4
+			pts.append(Vector2(cos(angle), sin(angle)) * 2)
+		star.polygon = pts
+		star.color = Color(1, 1, 0.9)
+		star.position = Vector2(randf() * 1400, randf() * 800)
+		star.add_to_group("star")
+		star.add_to_group("star_near")
 		stars_container.add_child(star)
 
 func show_level_name(level_name):
@@ -593,22 +618,53 @@ func show_level_name(level_name):
 		var existing = ui.get_node_or_null("LevelName")
 		if existing: existing.queue_free()
 		
+		# 创建更大的容器来放置动画
+		var container = Node2D.new()
+		container.name = "LevelName"
+		container.position = Vector2(640, 200)  # 屏幕中心
+		ui.add_child(container)
+		
+		# 背景板
+		var bg = ColorRect.new()
+		bg.color = Color(0, 0, 0, 0.5)
+		bg.size = Vector2(400, 60)
+		bg.position = Vector2(-200, -30)
+		bg.modulate.a = 0
+		container.add_child(bg)
+		
+		# 主标题
 		var name_label = Label.new()
-		name_label.name = "LevelName"
+		name_label.name = "LevelText"
 		name_label.text = "🎮 " + level_name
 		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_label.position = Vector2(300, 150)
-		name_label.add_theme_font_size_override("font_size", 36)
-		name_label.add_theme_color_override("font_color", Color(0.9, 0.9, 1))
-		ui.add_child(name_label)
-		
-		# Fade in and out animation
+		name_label.add_theme_font_size_override("font_size", 42)
+		name_label.add_theme_color_override("font_color", Color(0.2, 0.8, 1))
+		name_label.position = Vector2(-100, -25)
 		name_label.modulate.a = 0
+		container.add_child(name_label)
+		
+		# 入场动画 - 缩放 + 淡入
+		bg.modulate.a = 0
+		name_label.modulate.a = 0
+		container.scale = Vector2(0.5, 0.5)
+		
 		var tween = create_tween()
-		tween.tween_property(name_label, "modulate:a", 1.0, 0.5)
+		# 弹跳入场
+		tween.set_trans(Tween.TRANS_BACK)
+		tween.set_ease(Tween.EASE_OUT)
+		tween.tween_property(container, "scale", Vector2(1.1, 1.1), 0.4)
+		tween.tween_property(container, "scale", Vector2(1, 1), 0.2)
+		# 淡入背景和文字
+		tween.parallel().tween_property(bg, "modulate:a", 0.7, 0.3)
+		tween.parallel().tween_property(name_label, "modulate:a", 1.0, 0.3)
+		# 停留
 		tween.tween_interval(1.5)
-		tween.tween_property(name_label, "modulate:a", 0.0, 0.8)
-		tween.tween_callback(name_label.queue_free)
+		# 退场
+		tween.set_trans(Tween.TRANS_QUAD)
+		tween.set_ease(Tween.EASE_IN)
+		tween.tween_property(container, "modulate:a", 0.0, 0.5)
+		tween.tween_property(container, "position:y", container.position.y - 30, 0.5)
+		tween.tween_callback(container.queue_free)
 
 func update_stars_parallax():
 	if stars_container and player:
@@ -618,15 +674,33 @@ func update_stars_parallax():
 			if cam:
 				cam_offset = cam.offset
 		
-		# Parallax effect - stars move slower than camera
+		var time = Time.get_ticks_msec() / 1000.0
+		
+		# 不同层次的星星不同速度移动
 		for star in stars_container.get_children():
-			if star.is_in_group("star"):
-				star.position.x -= cam_offset.x * 0.1
-				# Wrap around
-				if star.position.x < 0:
-					star.position.x += 1400
-				elif star.position.x > 1400:
-					star.position.x -= 1400
+			if star.is_in_group("star_far"):
+				# 远景 - 最慢
+				star.position.x -= cam_offset.x * 0.02
+				star.modulate.a = 0.3 + 0.2 * sin(time * 2 + star.position.x)
+			elif star.is_in_group("star_mid"):
+				# 中景
+				star.position.x -= cam_offset.x * 0.05
+				star.modulate.a = 0.5 + 0.3 * sin(time * 3 + star.position.y)
+			elif star.is_in_group("star_near"):
+				# 近景 - 稍快
+				star.position.x -= cam_offset.x * 0.08
+				# 旋转效果
+				star.rotation += 0.02
+			
+			# 视差包裹
+			if star.position.x < 0:
+				star.position.x += 1400
+			elif star.position.x > 1400:
+				star.position.x -= 1400
+			if star.position.y < 0:
+				star.position.y += 800
+			elif star.position.y > 800:
+				star.position.y -= 800
 
 func _process(delta):
 	# ⏸️ Handle pause
@@ -1215,56 +1289,98 @@ func setup_ui():
 	canvas.add_to_group("ui")
 	add_child(canvas)
 	
+	# 创建 UI 面板背景
+	var panel = PanelContainer.new()
+	panel.position = Vector2(10, 10)
+	panel.custom_minimum_size = Vector2(180, 0)
+	canvas.add_child(panel)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	panel.add_child(vbox)
+	
+	# 分数 - 带图标的
+	var score_container = HBoxContainer.new()
+	var score_icon = Label.new()
+	score_icon.text = "💰"
+	score_icon.add_theme_font_size_override("font_size", 20)
+	score_container.add_child(score_icon)
+	
 	var score_label = Label.new()
 	score_label.name = "ScoreLabel"
-	score_label.text = "Score: 0"
-	score_label.position = Vector2(20, 20)
-	score_label.add_theme_font_size_override("font_size", 28)
-	score_label.add_theme_color_override("font_color", Color.WHITE)
-	canvas.add_child(score_label)
+	score_label.text = "0"
+	score_label.add_theme_font_size_override("font_size", 22)
+	score_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+	score_container.add_child(score_label)
+	vbox.add_child(score_container)
+	
+	# 生命 - 带图标的
+	var lives_container = HBoxContainer.new()
+	var lives_icon = Label.new()
+	lives_icon.text = "❤️"
+	lives_icon.add_theme_font_size_override("font_size", 20)
+	lives_container.add_child(lives_icon)
 	
 	var lives_label = Label.new()
 	lives_label.name = "LivesLabel"
-	lives_label.text = "Lives: 3"
-	lives_label.position = Vector2(20, 55)
-	lives_label.add_theme_font_size_override("font_size", 24)
-	lives_label.add_theme_color_override("font_color", Color(1, 0.5, 0.5))
-	canvas.add_child(lives_label)
+	lives_label.text = "3"
+	lives_label.add_theme_font_size_override("font_size", 22)
+	lives_label.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
+	lives_container.add_child(lives_label)
+	vbox.add_child(lives_container)
+	
+	# 关卡 - 带图标的
+	var level_container = HBoxContainer.new()
+	var level_icon = Label.new()
+	level_icon.text = "🗺️"
+	level_icon.add_theme_font_size_override("font_size", 20)
+	level_container.add_child(level_icon)
 	
 	var level_label = Label.new()
 	level_label.name = "LevelLabel"
-	level_label.text = "Level: 1"
-	level_label.position = Vector2(20, 85)
-	level_label.add_theme_font_size_override("font_size", 24)
-	level_label.add_theme_color_override("font_color", Color(0.5, 0.8, 1))
-	canvas.add_child(level_label)
+	level_label.text = "1"
+	level_label.add_theme_font_size_override("font_size", 22)
+	level_label.add_theme_color_override("font_color", Color(0.4, 0.8, 1))
+	level_container.add_child(level_label)
+	vbox.add_child(level_container)
 	
 	# ⏱️ Timer label
+	var timer_container = HBoxContainer.new()
+	var timer_icon = Label.new()
+	timer_icon.text = "⏱️"
+	timer_icon.add_theme_font_size_override("font_size", 18)
+	timer_container.add_child(timer_icon)
+	
 	var timer_label = Label.new()
 	timer_label.name = "TimerLabel"
-	timer_label.text = "⏱️ 00:00.00"
-	timer_label.position = Vector2(20, 115)
-	timer_label.add_theme_font_size_override("font_size", 20)
-	timer_label.add_theme_color_override("font_color", Color(0.8, 0.9, 1))
-	canvas.add_child(timer_label)
+	timer_label.text = "00:00"
+	timer_label.add_theme_font_size_override("font_size", 18)
+	timer_label.add_theme_color_override("font_color", Color(0.7, 0.8, 1))
+	timer_container.add_child(timer_label)
+	vbox.add_child(timer_container)
 	
 	# Combo label
 	var combo_label = Label.new()
 	combo_label.name = "ComboLabel"
 	combo_label.text = ""
-	combo_label.position = Vector2(20, 150)
-	combo_label.add_theme_font_size_override("font_size", 22)
-	combo_label.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
-	canvas.add_child(combo_label)
+	combo_label.add_theme_font_size_override("font_size", 24)
+	combo_label.add_theme_color_override("font_color", Color(1, 0.7, 0.1))
+	vbox.add_child(combo_label)
 	
 	# 🌟 Stars collected
+	var star_container = HBoxContainer.new()
+	var star_icon = Label.new()
+	star_icon.text = "⭐"
+	star_icon.add_theme_font_size_override("font_size", 18)
+	star_container.add_child(star_icon)
+	
 	var star_label = Label.new()
 	star_label.name = "StarLabel"
-	star_label.text = "⭐: 0"
-	star_label.position = Vector2(20, 180)
-	star_label.add_theme_font_size_override("font_size", 20)
+	star_label.text = "0"
+	star_label.add_theme_font_size_override("font_size", 18)
 	star_label.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
-	canvas.add_child(star_label)
+	star_container.add_child(star_label)
+	vbox.add_child(star_container)
 
 func setup_mobile_controls():
 	# 只在移动端显示虚拟按钮，Web PC 隐藏
@@ -1382,20 +1498,58 @@ func collect_star():
 	# 🏆 Star achievements
 	update_achievement_progress("star_gatherer", stars_collected)
 
-# Spawn collection particles
+# Spawn collection particles - 华丽版
 func spawn_collection_particles(color: Color, pos: Vector2):
-	for i in range(8):
-		var particle = ColorRect.new()
-		particle.size = Vector2(4, 4)
+	# 创建圆形粒子而不是方形
+	for i in range(12):
+		var particle = Polygon2D.new()
+		# 创建圆形
+		var pts = PackedVector2Array()
+		var radius = randf_range(2, 5)
+		for j in range(8):
+			var angle = j * TAU / 8
+			pts.append(Vector2(cos(angle), sin(angle)) * radius)
+		particle.polygon = pts
 		particle.color = color
-		particle.position = pos + Vector2(randf_range(-10, 10), randf_range(-20, 0))
+		particle.position = pos + Vector2(randf_range(-8, 8), randf_range(-15, 0))
+		particle.z_index = 10
 		add_child(particle)
 		
 		var tween = create_tween()
-		var target = Vector2(randf_range(-40, 40), randf_range(-50, -20))
-		tween.tween_property(particle, "position", particle.position + target, 0.5)
-		tween.parallel().tween_property(particle, "modulate:a", 0.0, 0.5)
+		var target = Vector2(randf_range(-50, 50), randf_range(-60, -30))
+		tween.tween_property(particle, "position", particle.position + target, 0.6)
+		tween.parallel().tween_property(particle, "modulate:a", 0.0, 0.6)
+		tween.parallel().tween_property(particle, "scale", Vector2(0.2, 0.2), 0.6)
 		tween.tween_callback(particle.queue_free)
+	
+	# 添加闪烁星星效果
+	for i in range(6):
+		var star = Polygon2D.new()
+		var pts = PackedVector2Array()
+		var inner_r = 3.0
+		var outer_r = 8.0
+		for j in range(10):
+			var r = inner_r if j % 2 == 0 else outer_r
+			var angle = j * TAU / 10 - TAU / 4
+			pts.append(Vector2(cos(angle), sin(angle)) * r)
+		star.polygon = pts
+		star.color = Color(1, 1, 0.8)
+		star.position = pos + Vector2(randf_range(-15, 15), randf_range(-20, 0))
+		star.modulate.a = 0.9
+		star.z_index = 11
+		add_child(star)
+		
+		var tween = create_tween()
+		tween.tween_property(star, "position", star.position + Vector2(randf_range(-30, 30), randf_range(-40, -20)), 0.5)
+		tween.parallel().tween_property(star, "modulate:a", 0.0, 0.5)
+		tween.parallel().tween_property(star, "scale", Vector2(0.3, 0.3), 0.5)
+		tween.tween_callback(star.queue_free)
+
+# 屏幕震动效果
+func shake_screen(intensity: float, duration: float):
+	screen_shake_intensity(intensity)
+	await get_tree().create_timer(duration).timeout
+	screen_shake = 0.0
 
 func _update_lives():
 	update_ui_labels()
@@ -1426,20 +1580,50 @@ func next_level():
 func show_boss_warning():
 	var ui = get_tree().get_first_node_in_group("ui")
 	if ui:
+		# 屏幕红光闪烁
+		var flash = ColorRect.new()
+		flash.name = "BossFlash"
+		flash.size = Vector2(2000, 2000)
+		flash.position = Vector2(-500, -500)
+		flash.color = Color(1, 0, 0, 0)
+		flash.z_index = 100
+		ui.add_child(flash)
+		
 		var warning = Label.new()
 		warning.name = "BossWarning"
 		warning.text = "⚠️ BOSS BATTLE! ⚠️"
 		warning.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		warning.position = Vector2(250, 200)
-		warning.add_theme_font_size_override("font_size", 48)
-		warning.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
+		warning.position = Vector2(640, 200)
+		warning.add_theme_font_size_override("font_size", 56)
+		warning.add_theme_color_override("font_color", Color(1, 0.2, 0.2))
+		warning.z_index = 101
 		ui.add_child(warning)
 		
-		# Fade out after 2 seconds
+		# 闪烁动画
 		var tween = create_tween()
-		tween.tween_interval(2.0)
-		tween.tween_property(warning, "modulate:a", 0.0, 1.0)
-		tween.tween_callback(warning.queue_free)
+		# 屏幕闪烁
+		tween.set_loops(4)
+		tween.tween_property(flash, "color:a", 0.3, 0.15)
+		tween.tween_property(flash, "color:a", 0.0, 0.15)
+		tween.tween_callback(flash.queue_free)
+		
+		# 文字动画 - 缩放 + 闪烁
+		warning.scale = Vector2(1.5, 1.5)
+		warning.modulate.a = 0
+		var text_tween = create_tween()
+		text_tween.tween_property(warning, "modulate:a", 1.0, 0.2)
+		text_tween.set_trans(Tween.TRANS_ELASTIC)
+		text_tween.set_ease(Tween.EASE_OUT)
+		text_tween.tween_property(warning, "scale", Vector2(1, 1), 0.5)
+		# 闪烁效果
+		text_tween.set_loops(3)
+		text_tween.tween_property(warning, "modulate:a", 0.5, 0.2)
+		text_tween.tween_property(warning, "modulate:a", 1.0, 0.2)
+		# 退场
+		text_tween.tween_interval(1.0)
+		text_tween.tween_property(warning, "modulate:a", 0.0, 0.5)
+		text_tween.tween_property(warning, "position:y", warning.position.y - 30, 0.5)
+		text_tween.tween_callback(warning.queue_free)
 
 func show_game_over():
 	var ui = get_tree().get_first_node_in_group("ui")
