@@ -568,42 +568,6 @@ var levels = [
 			{"x": 1200, "y": 380, "min_x": 1150, "max_x": 1300}
 		],
 		"goal": {"x": 1350, "y": 370}
-	},
-	# NEW! Desert - Sandy themed level (v2.2)
-	{
-		"name": "Desert",
-		"bg_color": Color(0.95, 0.75, 0.45),
-		"platforms": [
-			{"x": 50, "y": 550, "w": 150, "h": 30},
-			{"x": 250, "y": 480, "w": 80, "h": 20},
-			{"x": 380, "y": 400, "w": 100, "h": 20},
-			{"x": 550, "y": 340, "w": 80, "h": 20},
-			{"x": 700, "y": 400, "w": 100, "h": 20},
-			{"x": 850, "y": 320, "w": 80, "h": 20},
-			{"x": 1000, "y": 250, "w": 80, "h": 20},
-			{"x": 850, "y": 180, "w": 80, "h": 20},
-			{"x": 1050, "y": 140, "w": 100, "h": 20},
-			{"x": 1200, "y": 220, "w": 100, "h": 20},
-			{"x": 1350, "y": 320, "w": 120, "h": 20}
-		],
-		"coins": [
-			{"x": 80, "y": 480}, {"x": 270, "y": 420},
-			{"x": 400, "y": 340}, {"x": 570, "y": 280},
-			{"x": 730, "y": 340}, {"x": 870, "y": 260},
-			{"x": 1020, "y": 190}, {"x": 870, "y": 120},
-			{"x": 1080, "y": 80}, {"x": 1230, "y": 160},
-			{"x": 1400, "y": 260}
-		],
-		"stars": [
-			{"x": 380, "y": 280}, {"x": 870, "y": 60}, {"x": 1400, "y": 220}
-		],
-		"enemies": [
-			{"x": 300, "y": 440, "min_x": 250, "max_x": 350},
-			{"x": 600, "y": 360, "min_x": 550, "max_x": 700},
-			{"x": 900, "y": 280, "min_x": 850, "max_x": 1000},
-			{"x": 1250, "y": 180, "min_x": 1200, "max_x": 1350}
-		],
-		"goal": {"x": 1400, "y": 270}
 	}
 ]
 
@@ -715,7 +679,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v2.2 - Desert"
+	version.text = "v2.1 - Haunted Forest"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.position = Vector2(300, 150)
 	version.add_theme_font_size_override("font_size", 16)
@@ -742,7 +706,7 @@ func show_start_screen():
 	
 	# Features list
 	var features = Label.new()
-	features.text = "✨ Features:\n• 18 Exciting Levels\n• Secret Garden Level ✨\n• Ice Palace ❄️\n• Volcano Level 🔥\n• Haunted Forest 👻\n• Desert 🏜️ NEW!\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements\n• ⏸️ Pause Menu (ESC)\n• 🎮 Mobile Controls"
+	features.text = "✨ Features:\n• 17 Exciting Levels\n• Secret Garden Level ✨\n• Ice Palace ❄️\n• Volcano Level 🔥\n• Haunted Forest 👻 NEW!\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements\n• ⏸️ Pause Menu (ESC)\n• 🎮 Mobile Controls"
 	features.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	features.position = Vector2(300, 380)
 	features.add_theme_font_size_override("font_size", 16)
@@ -989,11 +953,11 @@ func create_player_visual(p):
 	sprite.position = Vector2(0, -12)  # Center on player
 	p.add_child(sprite)
 	
-	# Collision - adjust to sit properly on platforms
+	# Collision
 	var col = CollisionShape2D.new()
-	col.position = Vector2(0, -10)  # Slightly lower for better platform contact
+	col.position = Vector2(0, -12)
 	var rect = RectangleShape2D.new()
-	rect.size = Vector2(18, 22)  # Slightly smaller for better feel
+	rect.size = Vector2(20, 24)
 	col.shape = rect
 	p.add_child(col)
 
@@ -1009,11 +973,6 @@ func create_platform(x, y, w, h, move_data = null):
 		platform = StaticBody2D.new()
 	
 	platform.position = Vector2(x, y)
-	
-	# Adjust position for CharacterBody2D (origin at center) vs StaticBody2D (origin at top-left)
-	if is_moving:
-		# For moving platforms, offset by half size to align properly
-		platform.position = Vector2(x + w/2, y + h/2)
 	
 	# Use Kenney tile sprites for platforms
 	# Different tiles for different level themes
@@ -1034,27 +993,22 @@ func create_platform(x, y, w, h, move_data = null):
 	var tile_x = (tile_idx % tiles_per_row) * 19 + 1  # 18px + 1px gap
 	var tile_y = (tile_idx / tiles_per_row) * 19 + 1
 	
-	# Create tiles to fill the platform (not stretched)
-	var tile_size = 18
-	var tiles_x = int(ceil(w / float(tile_size)))
-	var tiles_y = int(ceil(h / float(tile_size)))
+	# Create sprite with tiling for the platform
+	var sprite = Sprite2D.new()
+	sprite.texture = tile_tilesheet
+	sprite.region_enabled = true
+	sprite.region_rect = Rect2(tile_x, tile_y, 18, 18)
+	sprite.position = Vector2(0, 0)
+	# Scale to fit platform width
+	sprite.scale = Vector2(w / 18.0, h / 18.0)
+	platform.add_child(sprite)
 	
-	for ty in range(tiles_y):
-		for tx in range(tiles_x):
-			var tile = Sprite2D.new()
-			tile.texture = tile_tilesheet
-			tile.region_enabled = true
-			tile.region_rect = Rect2(tile_x, tile_y, tile_size, tile_size)
-			# Position each tile
-			tile.position = Vector2(tx * tile_size, ty * tile_size)
-			platform.add_child(tile)
-	
-	# Collision - single shape for the whole platform
+	# Collision
 	var collision = CollisionShape2D.new()
 	var rect = RectangleShape2D.new()
 	rect.size = Vector2(w, h)
 	collision.shape = rect
-	collision.position = Vector2(0, 0)
+	collision.position = Vector2(w/2, h/2)  # Center collision
 	platform.add_child(collision)
 	
 	add_child(platform)
@@ -1083,7 +1037,6 @@ func create_coin(x, y):
 	var circle = CircleShape2D.new()
 	circle.radius = 12
 	col.shape = circle
-	col.position = Vector2(0, -12)  # Match sprite position
 	coin.add_child(col)
 	
 	add_child(coin)
@@ -1120,7 +1073,6 @@ func create_star(x, y):
 	var circle = CircleShape2D.new()
 	circle.radius = 14
 	col.shape = circle
-	col.position = Vector2(0, -8)  # Match sprite position
 	star.add_child(col)
 	
 	# Connect body entered signal manually
@@ -1206,7 +1158,6 @@ func create_checkpoint(x, y):
 	var circle = CircleShape2D.new()
 	circle.radius = 15
 	col.shape = circle
-	col.position = Vector2(0, 0)  # Center on checkpoint position
 	cp.add_child(col)
 	
 	cp.body_entered.connect(func(body):
@@ -1236,7 +1187,6 @@ func create_goal(x, y):
 	var circle = CircleShape2D.new()
 	circle.radius = 16
 	col.shape = circle
-	col.position = Vector2(0, -12)  # Match sprite position
 	goal.add_child(col)
 	
 	add_child(goal)
@@ -1553,3 +1503,5 @@ func show_victory():
 			tween.tween_property(particle, "position", particle.position + Vector2(randf_range(-100, 100), randf_range(-150, 50)), 2.0)
 			tween.parallel().tween_property(particle, "modulate:a", 0.0, 2.0)
 			tween.tween_callback(particle.queue_free)
+
+
