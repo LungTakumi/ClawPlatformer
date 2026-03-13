@@ -1039,11 +1039,7 @@ func create_platform(x, y, w, h, move_data = null):
 	sprite.texture = tile_tilesheet
 	sprite.region_enabled = true
 	sprite.region_rect = Rect2(tile_x, tile_y, 18, 18)
-	# StaticBody2D origin is top-left, CharacterBody2D origin is center
-	if is_moving:
-		sprite.position = Vector2(w/2, h/2)  # Center sprite for CharacterBody2D
-	else:
-		sprite.position = Vector2(0, 0)
+	sprite.position = Vector2(0, 0)  # All platforms use (0,0) relative to node position
 	# Scale to fit platform width
 	sprite.scale = Vector2(w / 18.0, h / 18.0)
 	platform.add_child(sprite)
@@ -1053,11 +1049,8 @@ func create_platform(x, y, w, h, move_data = null):
 	var rect = RectangleShape2D.new()
 	rect.size = Vector2(w, h)
 	collision.shape = rect
-	# StaticBody2D origin is top-left, CharacterBody2D origin is center
-	if is_moving:
-		collision.position = Vector2(0, 0)  # CharacterBody2D centers at origin
-	else:
-		collision.position = Vector2(w/2, h/2)  # StaticBody2D is top-left
+	# All platforms: position (0,0) relative to node position
+	collision.position = Vector2(0, 0)
 	platform.add_child(collision)
 	
 	add_child(platform)
