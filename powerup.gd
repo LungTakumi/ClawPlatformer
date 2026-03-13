@@ -1,6 +1,6 @@
 extends Area2D
 
-enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE }
+enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE, DASH }
 
 var powerup_type: PowerupType = PowerupType.INVINCIBLE
 var rotation_speed = 1.5
@@ -11,7 +11,8 @@ var colors = {
 	PowerupType.INVINCIBLE: Color(1, 0.8, 0.2, 1),      # Gold - star shape
 	PowerupType.SPEED_BOOST: Color(0.2, 0.9, 1, 1),     # Cyan - lightning
 	PowerupType.DOUBLE_JUMP: Color(0.8, 0.4, 1, 1),     # Purple - up arrow
-	PowerupType.LIFE: Color(1, 0.4, 0.4, 1)              # Red - heart
+	PowerupType.LIFE: Color(1, 0.4, 0.4, 1),             # Red - heart
+	PowerupType.DASH: Color(0.3, 1, 0.5, 1)               # Green - dash
 }
 
 func _ready():
@@ -86,6 +87,24 @@ func create_visual():
 		var glow = Polygon2D.new()
 		glow.polygon = pts.duplicate()
 		glow.color = Color(0.9, 0.6, 1, 0.4)
+		add_child(glow)
+	
+	elif powerup_type == PowerupType.DASH:
+		# Dash arrow (horizontal)
+		var dash = Polygon2D.new()
+		var pts = PackedVector2Array([
+			Vector2(-14, 0), Vector2(-4, -8), Vector2(2, -8),
+			Vector2(2, -4), Vector2(14, 0), Vector2(2, 4),
+			Vector2(2, 8), Vector2(-4, 8), Vector2(-14, 0)
+		])
+		dash.polygon = pts
+		dash.color = color
+		add_child(dash)
+		
+		# Glow
+		var glow = Polygon2D.new()
+		glow.polygon = pts.duplicate()
+		glow.color = Color(0.5, 1, 0.6, 0.4)
 		add_child(glow)
 	
 	# Collision
@@ -163,6 +182,10 @@ func apply_powerup():
 		PowerupType.LIFE:
 			player_node.lives += 1
 			get_tree().call_group("game", "_update_lives")
+			get_tree().call_group("game", "add_score", 50)
+		PowerupType.DASH:
+			player_node.can_dash = true
+			get_tree().call_group("game", "unlock_ability", "dash")
 			get_tree().call_group("game", "add_score", 50)
 
 func spawn_particles():

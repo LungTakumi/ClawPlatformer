@@ -21,6 +21,14 @@ var has_permanent_double_jump = false
 var speed_multiplier = 1.0
 var speed_timer = 0.0
 
+# Metroidvania abilities
+var can_dash = false
+var is_dashing = false
+var dash_timer = 0.0
+var dash_cooldown = 0.0
+var can_wall_climb = false
+var is_wall_sliding = false
+
 func _physics_process(delta):
 	if is_dead:
 		return
@@ -66,6 +74,28 @@ func _physics_process(delta):
 			var game = get_tree().get_first_node_in_group("game")
 			if game and game.audio_manager:
 				game.audio_manager.play_jump()
+	
+	# Handle Dash ability
+	if can_dash and dash_cooldown <= 0:
+		if Input.is_action_just_pressed("dash") or Input.is_key_pressed(KEY_SHIFT):
+			is_dashing = true
+			dash_timer = 0.15
+			dash_cooldown = 0.5
+			# Dash in facing direction
+			var dash_speed = 600.0
+			velocity.x = facing_right * dash_speed
+			velocity.y = 0
+			# Dash effect
+			spawn_dash_trail()
+	
+	if is_dashing:
+		dash_timer -= delta
+		if dash_timer <= 0:
+			is_dashing = false
+			velocity.x = 0
+	
+	if dash_cooldown > 0:
+		dash_cooldown -= delta
 
 	# Get input direction
 	var direction = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
@@ -177,6 +207,24 @@ func spawn_trail():
 	var tween = create_tween()
 	tween.tween_property(trail, "modulate:a", 0.0, 0.3)
 	tween.tween_callback(trail.queue_free)
+
+func spawn_dash_trail():
+	if not is_instance_valid(self):
+		return
+	# Create multiple trail copies
+	for i in range(5):
+		var trail = ColorRect.new()
+		trail.size = Vector2(24, 30)
+		trail.position = Vector2(-12, -30)
+		trail.color = Color(0.3, 0.8, 1, 0.4)  # Cyan dash color
+		trail.z_index = -1
+		get_parent().add_child(trail)
+		
+		var offset = Vector2(randf_range(-20, 20), randf_range(-20, 20))
+		var tween = create_tween()
+		tween.tween_property(trail, "position", trail.position + offset, 0.2)
+		tween.parallel().tween_property(trail, "modulate:a", 0.0, 0.2)
+		tween.tween_callback(trail.queue_free)
 
 func die():
 	if is_dead:
