@@ -1,5 +1,94 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v2.7 - Space Station (2026-03-14)
+
+### 新增功能
+- ✅ **太空站关卡 (Space Station)** - 第19关，科幻太空主题关卡
+  - 深紫色太空主题背景
+  - 12个平台，多条路线
+  - 包含3颗星星和12枚金币
+  - **Dash 能力道具** - 在关卡中获得冲刺能力
+  - 包含飞行敌人
+- ✅ **史莱姆敌人 (Slime)** - 新敌人类型
+  - 绿色的弹跳敌人
+  - 会在平台上随机跳跃
+  - 有挤压拉伸动画效果
+- ✅ 版本号更新为 v2.7
+
+### 关卡列表 (v2.7)
+1. Green Hills
+2. Sky Bridges
+3. Moving Platforms
+4. Mountain Climb
+5. Floating Islands
+6. The Tower
+7. Cave
+8. Rainbow Bridge
+9. Crystal Caverns
+10. Bonus Stage
+11. Sky Fortress
+12. Dragon's Lair (Boss)
+13. Secret Garden ✨
+14. Ice Palace ❄️
+15. Volcano 🔥
+16. Haunted Forest 👻
+17. Desert 🏜️
+18. Underwater Temple 🌊
+19. Space Station 🚀 新增
+
+### 构建信息
+- Web Export: ✅ 成功 (2026-03-14)
+- itch.io: ✅ 发布成功 (html channel)
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
+## v2.6 - Underwater Temple (2026-03-14)
+
+### 新增功能
+- ✅ **水下神庙关卡** - 第18关，水下/海洋主题关卡
+  - 深蓝色水下主题背景
+  - 11个平台，多条路线
+  - 包含3颗星星和11枚金币
+  - **水母敌人** - 新敌人类型，在空中漂浮移动
+  - 包含二段跳能力道具
+- ✅ **水母敌人 (Jellyfish)** - 新敌人类型
+  - 优雅的漂浮和弹跳动作
+  - 半透明粉红色外观
+  - 在关卡中作为空中敌人
+- ✅ 版本号更新为 v2.6
+
+### 关卡列表 (v2.6)
+1. Green Hills
+2. Sky Bridges
+3. Moving Platforms
+4. Mountain Climb
+5. Floating Islands
+6. The Tower
+7. Cave
+8. Rainbow Bridge
+9. Crystal Caverns
+10. Bonus Stage
+11. Sky Fortress
+12. Dragon's Lair (Boss)
+13. Secret Garden ✨
+14. Ice Palace ❄️
+15. Volcano 🔥
+16. Haunted Forest 👻
+17. Desert 🏜️
+18. Underwater Temple 🌊 新增
+
+### 构建信息
+- Web Export: ✅ 成功 (2026-03-14)
+- itch.io: ✅ 发布成功 (html channel)
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
 ## v2.5 - Abilities & Powerups (2026-03-13)
 
 ### Metroidvania 元素 (C)

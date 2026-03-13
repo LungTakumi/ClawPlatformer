@@ -644,6 +644,86 @@ var levels = [
 			{"x": 1200, "y": 380, "min_x": 1150, "max_x": 1300}
 		],
 		"goal": {"x": 1350, "y": 370}
+	},
+	# NEW! Underwater Temple - Underwater themed level (v2.6)
+	{
+		"name": "Underwater Temple",
+		"bg_color": Color(0.02, 0.15, 0.25),
+		"platforms": [
+			{"x": 50, "y": 500, "w": 150, "h": 30},
+			{"x": 250, "y": 450, "w": 100, "h": 20},
+			{"x": 100, "y": 350, "w": 80, "h": 20},
+			{"x": 250, "y": 280, "w": 100, "h": 20},
+			{"x": 450, "y": 350, "w": 80, "h": 20},
+			{"x": 600, "y": 420, "w": 100, "h": 20},
+			{"x": 750, "y": 350, "w": 80, "h": 20},
+			{"x": 900, "y": 280, "w": 100, "h": 20},
+			{"x": 1100, "y": 350, "w": 80, "h": 20},
+			{"x": 1250, "y": 280, "w": 100, "h": 20},
+			{"x": 1400, "y": 350, "w": 150, "h": 20}
+		],
+		"coins": [
+			{"x": 80, "y": 430}, {"x": 280, "y": 380},
+			{"x": 120, "y": 280}, {"x": 280, "y": 210},
+			{"x": 470, "y": 280}, {"x": 630, "y": 350},
+			{"x": 770, "y": 280}, {"x": 930, "y": 210},
+			{"x": 1120, "y": 280}, {"x": 1280, "y": 210},
+			{"x": 1450, "y": 280}
+		],
+		"stars": [
+			{"x": 150, "y": 200}, {"x": 650, "y": 180}, {"x": 1450, "y": 200}
+		],
+		"powerups": [
+			{"x": 500, "y": 250, "type": "double_jump"}
+		],
+		"enemies": [
+			{"x": 300, "y": 400, "min_x": 250, "max_x": 350, "type": "jellyfish"},
+			{"x": 650, "y": 350, "min_x": 600, "max_x": 700, "type": "jellyfish"},
+			{"x": 1000, "y": 280, "min_x": 900, "max_x": 1100, "type": "jellyfish"},
+			{"x": 1300, "y": 230, "min_x": 1250, "max_x": 1350, "type": "jellyfish"}
+		],
+		"jellyfish_mode": true,
+		"goal": {"x": 1450, "y": 300}
+	},
+	# NEW! Space Station - Sci-fi space themed level (v2.7)
+	{
+		"name": "Space Station",
+		"bg_color": Color(0.02, 0.02, 0.1),
+		"space_theme": true,
+		"platforms": [
+			{"x": 50, "y": 500, "w": 150, "h": 30},
+			{"x": 250, "y": 450, "w": 80, "h": 20},
+			{"x": 400, "y": 380, "w": 80, "h": 20},
+			{"x": 550, "y": 300, "w": 100, "h": 20},
+			{"x": 400, "y": 220, "w": 80, "h": 20},
+			{"x": 250, "y": 150, "w": 100, "h": 20},
+			{"x": 450, "y": 80, "w": 80, "h": 20},
+			{"x": 650, "y": 150, "w": 100, "h": 20},
+			{"x": 850, "y": 220, "w": 80, "h": 20},
+			{"x": 1000, "y": 300, "w": 100, "h": 20},
+			{"x": 1150, "y": 380, "w": 80, "h": 20},
+			{"x": 1300, "y": 450, "w": 150, "h": 20}
+		],
+		"coins": [
+			{"x": 80, "y": 430}, {"x": 270, "y": 380},
+			{"x": 420, "y": 310}, {"x": 580, "y": 230},
+			{"x": 420, "y": 150}, {"x": 270, "y": 80},
+			{"x": 470, "y": 10}, {"x": 680, "y": 80},
+			{"x": 870, "y": 150}, {"x": 1030, "y": 230},
+			{"x": 1170, "y": 310}, {"x": 1330, "y": 380}
+		],
+		"stars": [
+			{"x": 280, "y": 50}, {"x": 680, "y": 80}, {"x": 1330, "y": 380}
+		],
+		"powerups": [
+			{"x": 900, "y": 150, "type": "dash"}
+		],
+		"enemies": [
+			{"x": 300, "y": 400, "min_x": 250, "max_x": 350, "type": "flying"},
+			{"x": 600, "y": 250, "min_x": 550, "max_x": 650, "type": "flying"},
+			{"x": 1000, "y": 250, "min_x": 950, "max_x": 1100, "type": "flying"}
+		],
+		"goal": {"x": 1350, "y": 400}
 	}
 ]
 
@@ -835,7 +915,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v2.2 - Desert"
+	version.text = "v2.7 - Space Station"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.add_theme_font_size_override("font_size", 16)
 	version.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
@@ -1286,6 +1366,60 @@ func create_enemy(x, y, type = "ground", hp = 1) -> CharacterBody2D:
 		rect.size = Vector2(20, 20)
 		col.shape = rect
 		enemy.add_child(col)
+	elif type == "jellyfish":
+		enemy = CharacterBody2D.new()
+		enemy.script = load("res://jellyfish_enemy.gd")
+		
+		# Jellyfish sprite - semi-transparent pink/purple
+		var sprite = Sprite2D.new()
+		sprite.name = "Visual"
+		sprite.texture = char_tilesheet
+		sprite.region_enabled = true
+		# Use slime/jellyfish tile (tile 15)
+		sprite.region_rect = Rect2(15 * 25, 0, 24, 24)
+		sprite.position = Vector2(0, -12)
+		sprite.modulate = Color(1, 0.6, 0.8, 0.7)  # Pink, semi-transparent
+		enemy.add_child(sprite)
+		
+		# Collision
+		var col = CollisionShape2D.new()
+		col.position = Vector2(0, -12)
+		var rect = RectangleShape2D.new()
+		rect.size = Vector2(18, 18)
+		col.shape = rect
+		enemy.add_child(col)
+		
+		# Set movement bounds
+		enemy.set_meta("min_x", x - 50)
+		enemy.set_meta("max_x", x + 50)
+	elif type == "slime":
+		# Slime enemy - green bouncing enemy
+		enemy = CharacterBody2D.new()
+		enemy.position = Vector2(x, y)
+		enemy.script = load("res://slime_enemy.gd")
+		
+		# Slime sprite - green blob
+		var sprite = Sprite2D.new()
+		sprite.name = "Visual"
+		sprite.texture = char_tilesheet
+		sprite.region_enabled = true
+		# Use slime tile (tile 15)
+		sprite.region_rect = Rect2(15 * 25, 0, 24, 24)
+		sprite.position = Vector2(0, -12)
+		sprite.modulate = Color(0.3, 1, 0.3, 1)  # Green
+		enemy.add_child(sprite)
+		
+		# Collision
+		var col = CollisionShape2D.new()
+		col.position = Vector2(0, -12)
+		var rect = RectangleShape2D.new()
+		rect.size = Vector2(20, 20)
+		col.shape = rect
+		enemy.add_child(col)
+		
+		# Set movement bounds
+		enemy.set_meta("min_x", min_x)
+		enemy.set_meta("max_x", max_x)
 	elif type == "boss":
 		# Boss enemy
 		enemy = CharacterBody2D.new()
