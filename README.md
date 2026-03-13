@@ -19,7 +19,7 @@
 
 ## 🎯 游戏特色
 
-- **22个精心设计的关卡** (包括 Bonus Stage, Secret Garden, Ice Palace, Volcano, Haunted Forest, Underwater Temple, Space Station, Neon City, Matrix Core, Cloud Kingdom)
+- **23个精心设计的关卡** (包括 Bonus Stage, Secret Garden, Ice Palace, Volcano, Haunted Forest, Underwater Temple, Space Station, Neon City, Matrix Core, Cloud Kingdom, Ancient Temple)
 - **连击系统** - 快速收集金币获得分数加成
 - **Boss 战** - 击败红龙获得丰厚奖励
 - **计时挑战** - 更快通关获得时间奖励

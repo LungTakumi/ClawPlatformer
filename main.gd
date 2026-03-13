@@ -854,6 +854,46 @@ var levels = [
 			{"x": 1300, "y": 180, "min_x": 1250, "max_x": 1400, "type": "slime"}
 		],
 		"goal": {"x": 1420, "y": 250}
+	},
+	# NEW! Ancient Temple - Mystical ancient ruins theme (v3.1)
+	{
+		"name": "Ancient Temple",
+		"bg_color": Color(0.25, 0.15, 0.35),
+		"platforms": [
+			{"x": 50, "y": 520, "w": 150, "h": 30},
+			{"x": 250, "y": 480, "w": 100, "h": 25},
+			{"x": 100, "y": 380, "w": 120, "h": 25},
+			{"x": 300, "y": 320, "w": 100, "h": 25},
+			{"x": 480, "y": 400, "w": 80, "h": 25},
+			{"x": 600, "y": 300, "w": 120, "h": 25},
+			{"x": 450, "y": 180, "w": 100, "h": 25},
+			{"x": 650, "y": 120, "w": 100, "h": 25},
+			{"x": 850, "y": 180, "w": 120, "h": 25},
+			{"x": 1000, "y": 280, "w": 100, "h": 25},
+			{"x": 1150, "y": 200, "w": 80, "h": 25},
+			{"x": 1300, "y": 280, "w": 100, "h": 25}
+		],
+		"coins": [
+			{"x": 80, "y": 450}, {"x": 280, "y": 410},
+			{"x": 130, "y": 310}, {"x": 330, "y": 250},
+			{"x": 500, "y": 330}, {"x": 630, "y": 230},
+			{"x": 480, "y": 110}, {"x": 680, "y": 50},
+			{"x": 890, "y": 110}, {"x": 1030, "y": 210},
+			{"x": 1170, "y": 130}, {"x": 1330, "y": 210}
+		],
+		"stars": [
+			{"x": 150, "y": 280}, {"x": 650, "y": 80}, {"x": 1350, "y": 210}
+		],
+		"powerups": [
+			{"x": 1000, "y": 180, "type": "double_jump"}
+		],
+		"enemies": [
+			{"x": 280, "y": 440, "min_x": 250, "max_x": 350, "type": "slime"},
+			{"x": 500, "y": 360, "min_x": 480, "max_x": 580, "type": "flying"},
+			{"x": 700, "y": 80, "min_x": 650, "max_x": 750, "type": "jellyfish"},
+			{"x": 1050, "y": 240, "min_x": 1000, "max_x": 1100, "type": "slime"}
+		],
+		"goal": {"x": 1380, "y": 230}
 	}
 ]
 
@@ -1045,7 +1085,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v3.0 - Cloud Kingdom"
+	version.text = "v3.1 - Ancient Temple"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.add_theme_font_size_override("font_size", 16)
 	version.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
