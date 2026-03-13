@@ -42,6 +42,22 @@ var boss_damage_taken = false
 var level_deaths = 0
 var is_paused = false  # ⏸️ Pause state
 
+# Metroidvania: Save system
+var save_data = {
+	"unlocked_levels": [0],  # 已解锁的关卡
+	"total_coins": 0,       # 总金币
+	"total_stars": 0,        # 总星星
+	"unlocked_abilities": [], # 解锁的能力
+	"best_times": {}         # 最佳时间
+}
+# 可解锁的能力
+const ABILITIES = {
+	"double_jump": {"name": "Double Jump", "desc": "Jump again in mid-air", "icon": "🔺"},
+	"dash": {"name": "Dash", "desc": "Press Shift to dash", "icon": "💨"},
+	"wall_climb": {"name": "Wall Climb", "desc": "Climb walls slowly", "icon": "🧗"},
+	"ground_slam": {"name": "Ground Slam", "desc": "Press Down in air", "icon": "💥"}
+}
+
 func screen_shake_intensity(amount):
 	screen_shake = amount
 
@@ -59,6 +75,7 @@ func _ready():
 	load_kenney_assets()
 	load_high_score()  # 💾 Load saved high score
 	load_achievements()  # 🏆 Load achievements
+	load_save_data()  # 💾 Metroidvania save system
 	RenderingServer.set_default_clear_color(Color(0.1, 0.15, 0.2))
 	create_background_stars()
 	show_start_screen()
@@ -130,6 +147,58 @@ func show_achievement_notification(key):
 		notif.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
 		notif.modulate.a = 0
 		ui.add_child(notif)
+
+# Metroidvania: Save System
+func load_save_data():
+	var save_file = FileAccess.open("user://save_data.dat", FileAccess.READ)
+	if save_file:
+		var data = save_file.get_var()
+		if data and typeof(data) == TYPE_DICTIONARY:
+			save_data = data
+		save_file.close()
+
+func save_save_data():
+	var save_file = FileAccess.open("user://save_data.dat", FileAccess.WRITE)
+	if save_file:
+		save_file.store_var(save_data)
+		save_file.close()
+
+func unlock_level(level_index):
+	if not level_index in save_data["unlocked_levels"]:
+		save_data["unlocked_levels"].append(level_index)
+		save_save_data()
+
+func get_unlocked_levels():
+	return save_data["unlocked_levels"]
+
+func has_ability(ability_name):
+	return ability_name in save_data["unlocked_abilities"]
+
+func unlock_ability(ability_name):
+	if not ability_name in save_data["unlocked_abilities"]:
+		save_data["unlocked_abilities"].append(ability_name)
+		save_save_data()
+		show_ability_notification(ability_name)
+
+func show_ability_notification(ability_name):
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui and ABILITIES.has(ability_name):
+		var ab = ABILITIES[ability_name]
+		var notif = Label.new()
+		notif.text = "✨ New Ability!\n" + ab["icon"] + " " + ab["name"] + "\n" + ab["desc"]
+		notif.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		notif.position = Vector2(200, 150)
+		notif.add_theme_font_size_override("font_size", 22)
+		notif.add_theme_color_override("font_color", Color(0.4, 1, 0.6))
+		notif.modulate.a = 0
+		ui.add_child(notif)
+		
+		var tween = create_tween()
+		tween.tween_property(notif, "modulate:a", 1.0, 0.3)
+		tween.tween_interval(3.0)
+		tween.tween_property(notif, "modulate:a", 0.0, 0.5)
+		tween.tween_property(notif, "position:y", notif.position.y - 30, 0.5)
+		tween.tween_callback(notif.queue_free)
 		
 		var tween = create_tween()
 		tween.tween_property(notif, "modulate:a", 1.0, 0.3)
@@ -789,6 +858,26 @@ func show_start_screen():
 	start.add_theme_font_size_override("font_size", 28)
 	start.add_theme_color_override("font_color", Color(1, 0.85, 0))
 	container.add_child(start)
+	
+	# Metroidvania: 显示进度
+	var progress_text = "💾 Progress:\n"
+	progress_text += "🪙 Coins: " + str(save_data["total_coins"]) + " | "
+	progress_text += "⭐ Stars: " + str(save_data["total_stars"]) + "\n"
+	progress_text += "🔓 Levels: " + str(save_data["unlocked_levels"].size()) + "/" + str(levels.size())
+	
+	# 显示已解锁的能力
+	if save_data["unlocked_abilities"].size() > 0:
+		progress_text += "\n✨ Abilities: "
+		for ab in save_data["unlocked_abilities"]:
+			if ABILITIES.has(ab):
+				progress_text += ABILITIES[ab]["icon"] + " "
+	
+	var progress = Label.new()
+	progress.text = progress_text
+	progress.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	progress.add_theme_font_size_override("font_size", 14)
+	progress.add_theme_color_override("font_color", Color(0.6, 0.9, 0.6))
+	container.add_child(progress)
 	
 	# Show unlocked achievements count
 	var unlocked_count = 0
@@ -1558,6 +1647,14 @@ func track_death():
 	level_deaths += 1
 
 func next_level():
+	# 保存进度到存档
+	save_data["total_coins"] += score
+	save_data["total_stars"] += stars_collected
+	save_data["best_times"][current_level] = current_level_time
+	# 解锁下一关
+	unlock_level(current_level + 1)
+	save_save_data()
+	
 	current_level += 1
 	# Check if player completed all levels (including boss)
 	if current_level >= levels.size():
