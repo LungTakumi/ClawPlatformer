@@ -117,6 +117,25 @@ func _physics_process(delta):
 		if not was_on_floor:
 			animate_land()  # Landing effect
 		jump_count = 0
+		is_wall_sliding = false
+	
+	# Wall climbing ability
+	if can_wall_climb and not is_on_floor():
+		# Check if touching a wall
+		var is_on_wall = is_on_wall()
+		if is_on_wall and velocity.y > 0:  # Falling and touching wall
+			is_wall_sliding = true
+			velocity.y = min(velocity.y, 100)  # Slow fall
+			# Can jump off wall
+			if Input.is_action_just_pressed("jump"):
+				velocity.y = JUMP_VELOCITY * 0.9
+				# Jump away from wall
+				if is_on_wall():
+					for i in get_slide_collision_count():
+						var normal = get_slide_collision(i).get_normal()
+						velocity.x = -normal.x * SPEED * 0.8
+	else:
+		is_wall_sliding = false
 	
 	was_on_floor = is_on_floor()
 	
