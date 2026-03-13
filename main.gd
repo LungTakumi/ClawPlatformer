@@ -568,6 +568,42 @@ var levels = [
 			{"x": 1200, "y": 380, "min_x": 1150, "max_x": 1300}
 		],
 		"goal": {"x": 1350, "y": 370}
+	},
+	# NEW! Desert - Sandy themed level (v2.2)
+	{
+		"name": "Desert",
+		"bg_color": Color(0.95, 0.75, 0.45),
+		"platforms": [
+			{"x": 50, "y": 550, "w": 150, "h": 30},
+			{"x": 250, "y": 480, "w": 80, "h": 20},
+			{"x": 380, "y": 400, "w": 100, "h": 20},
+			{"x": 550, "y": 340, "w": 80, "h": 20},
+			{"x": 700, "y": 400, "w": 100, "h": 20},
+			{"x": 850, "y": 320, "w": 80, "h": 20},
+			{"x": 1000, "y": 250, "w": 80, "h": 20},
+			{"x": 850, "y": 180, "w": 80, "h": 20},
+			{"x": 1050, "y": 140, "w": 100, "h": 20},
+			{"x": 1200, "y": 220, "w": 100, "h": 20},
+			{"x": 1350, "y": 320, "w": 120, "h": 20}
+		],
+		"coins": [
+			{"x": 80, "y": 480}, {"x": 270, "y": 420},
+			{"x": 400, "y": 340}, {"x": 570, "y": 280},
+			{"x": 730, "y": 340}, {"x": 870, "y": 260},
+			{"x": 1020, "y": 190}, {"x": 870, "y": 120},
+			{"x": 1080, "y": 80}, {"x": 1230, "y": 160},
+			{"x": 1400, "y": 260}
+		],
+		"stars": [
+			{"x": 380, "y": 280}, {"x": 870, "y": 60}, {"x": 1400, "y": 220}
+		],
+		"enemies": [
+			{"x": 300, "y": 440, "min_x": 250, "max_x": 350},
+			{"x": 600, "y": 360, "min_x": 550, "max_x": 700},
+			{"x": 900, "y": 280, "min_x": 850, "max_x": 1000},
+			{"x": 1250, "y": 180, "min_x": 1200, "max_x": 1350}
+		],
+		"goal": {"x": 1400, "y": 270}
 	}
 ]
 
@@ -679,7 +715,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v2.1 - Haunted Forest"
+	version.text = "v2.2 - Desert"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.position = Vector2(300, 150)
 	version.add_theme_font_size_override("font_size", 16)
@@ -706,7 +742,7 @@ func show_start_screen():
 	
 	# Features list
 	var features = Label.new()
-	features.text = "✨ Features:\n• 17 Exciting Levels\n• Secret Garden Level ✨\n• Ice Palace ❄️\n• Volcano Level 🔥\n• Haunted Forest 👻 NEW!\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements\n• ⏸️ Pause Menu (ESC)\n• 🎮 Mobile Controls"
+	features.text = "✨ Features:\n• 18 Exciting Levels\n• Secret Garden Level ✨\n• Ice Palace ❄️\n• Volcano Level 🔥\n• Haunted Forest 👻\n• Desert 🏜️ NEW!\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements\n• ⏸️ Pause Menu (ESC)\n• 🎮 Mobile Controls"
 	features.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	features.position = Vector2(300, 380)
 	features.add_theme_font_size_override("font_size", 16)
