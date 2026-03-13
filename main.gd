@@ -1044,7 +1044,8 @@ func create_platform(x, y, w, h, move_data = null):
 	var rect = RectangleShape2D.new()
 	rect.size = Vector2(w, h)
 	collision.shape = rect
-	collision.position = Vector2(w/2, h/2)  # Center collision
+	# StaticBody2D origin is top-left, so collision should be at (w/2, h/2) to center
+	collision.position = Vector2(w/2, h/2)
 	platform.add_child(collision)
 	
 	add_child(platform)
@@ -1073,6 +1074,7 @@ func create_coin(x, y):
 	var circle = CircleShape2D.new()
 	circle.radius = 12
 	col.shape = circle
+	col.position = Vector2(0, -12)  # Match sprite position
 	coin.add_child(col)
 	
 	add_child(coin)
@@ -1109,6 +1111,7 @@ func create_star(x, y):
 	var circle = CircleShape2D.new()
 	circle.radius = 14
 	col.shape = circle
+	col.position = Vector2(0, -8)  # Match sprite position
 	star.add_child(col)
 	
 	# Connect body entered signal manually
@@ -1194,6 +1197,7 @@ func create_checkpoint(x, y):
 	var circle = CircleShape2D.new()
 	circle.radius = 15
 	col.shape = circle
+	col.position = Vector2(0, 0)  # Center on checkpoint position
 	cp.add_child(col)
 	
 	cp.body_entered.connect(func(body):
@@ -1223,6 +1227,7 @@ func create_goal(x, y):
 	var circle = CircleShape2D.new()
 	circle.radius = 16
 	col.shape = circle
+	col.position = Vector2(0, -12)  # Match sprite position
 	goal.add_child(col)
 	
 	add_child(goal)

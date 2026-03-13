@@ -93,6 +93,7 @@ func create_visual():
 	var circle = CircleShape2D.new()
 	circle.radius = 14
 	col.shape = circle
+	col.position = Vector2(0, -8)  # Match visual position roughly
 	add_child(col)
 
 func create_star_shape(color, pos):
