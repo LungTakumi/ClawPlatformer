@@ -668,50 +668,53 @@ func show_start_screen():
 	canvas.add_to_group("ui")
 	add_child(canvas)
 	
+	# Center container for cleaner layout
+	var container = VBoxContainer.new()
+	container.position = Vector2(250, 80)
+	container.add_theme_constant_override("separation", 15)
+	container.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	canvas.add_child(container)
+	
 	# Animated title
 	var title = Label.new()
 	title.text = "🦞 LOBSTER PLATFORMER 🦞"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(300, 100)
 	title.add_theme_font_size_override("font_size", 42)
 	title.add_theme_color_override("font_color", Color(0.2, 0.8, 1))
-	canvas.add_child(title)
+	container.add_child(title)
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v2.1 - Haunted Forest"
+	version.text = "v2.2 - Desert"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	version.position = Vector2(300, 150)
 	version.add_theme_font_size_override("font_size", 16)
 	version.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-	canvas.add_child(version)
+	container.add_child(version)
 	
 	# High score
 	if high_score > 0:
 		var hs = Label.new()
 		hs.text = "🏆 High Score: " + str(high_score)
 		hs.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		hs.position = Vector2(300, 195)
 		hs.add_theme_font_size_override("font_size", 18)
 		hs.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
-		canvas.add_child(hs)
+		container.add_child(hs)
 	
+	# Controls info
 	var instr = Label.new()
-	instr.text = "Arrow Keys / WASD: Move\nSpace: Jump\n\nCollect coins, avoid enemies,\nreach the golden portal!"
+	instr.text = "🎮 Controls:\nArrow Keys / WASD: Move\nSpace: Jump\nESC: Pause"
 	instr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	instr.position = Vector2(300, 240)
-	instr.add_theme_font_size_override("font_size", 20)
+	instr.add_theme_font_size_override("font_size", 18)
 	instr.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-	canvas.add_child(instr)
+	container.add_child(instr)
 	
-	# Features list
-	var features = Label.new()
-	features.text = "✨ Features:\n• 17 Exciting Levels\n• Secret Garden Level ✨\n• Ice Palace ❄️\n• Volcano Level 🔥\n• Haunted Forest 👻 NEW!\n• Boss Battles\n• Power-ups & Combos\n• ⏱️ Timer Challenges\n• 🏆 Achievements\n• ⏸️ Pause Menu (ESC)\n• 🎮 Mobile Controls"
-	features.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	features.position = Vector2(300, 380)
-	features.add_theme_font_size_override("font_size", 16)
-	features.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-	canvas.add_child(features)
+	# Start prompt
+	var start = Label.new()
+	start.text = "Press SPACE to Start"
+	start.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	start.add_theme_font_size_override("font_size", 28)
+	start.add_theme_color_override("font_color", Color(1, 0.85, 0))
+	container.add_child(start)
 	
 	# Show unlocked achievements count
 	var unlocked_count = 0
@@ -723,18 +726,9 @@ func show_start_screen():
 		var ach = Label.new()
 		ach.text = "🏆 Achievements: " + str(unlocked_count) + "/" + str(achievements.size())
 		ach.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		ach.position = Vector2(300, 460)
-		ach.add_theme_font_size_override("font_size", 16)
+		ach.add_theme_font_size_override("font_size", 14)
 		ach.add_theme_color_override("font_color", Color(0.8, 0.9, 1))
-		canvas.add_child(ach)
-	
-	var start = Label.new()
-	start.text = "Press SPACE to Start"
-	start.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	start.position = Vector2(300, 500)
-	start.add_theme_font_size_override("font_size", 28)
-	start.add_theme_color_override("font_color", Color(1, 0.85, 0))
-	canvas.add_child(start)
+		container.add_child(ach)
 
 func toggle_pause():
 	if not game_started:
@@ -950,15 +944,17 @@ func create_player_visual(p):
 	sprite.texture = char_tilesheet
 	sprite.region_enabled = true
 	sprite.region_rect = Rect2(0, 0, 24, 24)  # First tile
-	sprite.position = Vector2(0, -12)  # Center on player
+	# Position sprite so bottom is at player origin
+	sprite.position = Vector2(0, -12)  # Center sprite vertically
+	sprite.offset = Vector2.ZERO
 	p.add_child(sprite)
 	
-	# Collision
+	# Collision - position at center of player body
 	var col = CollisionShape2D.new()
-	col.position = Vector2(0, -12)
 	var rect = RectangleShape2D.new()
-	rect.size = Vector2(20, 24)
+	rect.size = Vector2(20, 24)  # Match sprite size
 	col.shape = rect
+	col.position = Vector2(0, -12)  # Same center as sprite
 	p.add_child(col)
 
 func create_platform(x, y, w, h, move_data = null):
@@ -993,17 +989,27 @@ func create_platform(x, y, w, h, move_data = null):
 	var tile_x = (tile_idx % tiles_per_row) * 19 + 1  # 18px + 1px gap
 	var tile_y = (tile_idx / tiles_per_row) * 19 + 1
 	
-	# Create sprite with tiling for the platform
-	var sprite = Sprite2D.new()
-	sprite.texture = tile_tilesheet
-	sprite.region_enabled = true
-	sprite.region_rect = Rect2(tile_x, tile_y, 18, 18)
-	sprite.position = Vector2(0, 0)
-	# Scale to fit platform width
-	sprite.scale = Vector2(w / 18.0, h / 18.0)
-	platform.add_child(sprite)
+	# Create multiple sprites to tile across the platform
+	var tile_size = 18
+	var tiles_x = ceil(w / float(tile_size))
+	var tiles_y = ceil(h / float(tile_size))
 	
-	# Collision
+	for ty in range(tiles_y):
+		for tx in range(tiles_x):
+			var sprite = Sprite2D.new()
+			sprite.texture = tile_tilesheet
+			sprite.region_enabled = true
+			sprite.region_rect = Rect2(tile_x, tile_y, tile_size, tile_size)
+			# Position sprite - start from top-left
+			sprite.position = Vector2(tx * tile_size, ty * tile_size)
+			# Clip to platform bounds
+			if tx == tiles_x - 1:
+				sprite.scale.x = (w - tx * tile_size) / tile_size
+			if ty == tiles_y - 1:
+				sprite.scale.y = (h - ty * tile_size) / tile_size
+			platform.add_child(sprite)
+	
+	# Collision - position at center of platform
 	var collision = CollisionShape2D.new()
 	var rect = RectangleShape2D.new()
 	rect.size = Vector2(w, h)
@@ -1261,6 +1267,14 @@ func setup_ui():
 	canvas.add_child(star_label)
 
 func setup_mobile_controls():
+	# 只在移动端显示虚拟按钮，Web PC 隐藏
+	var is_mobile = OS.get_name() == "Android" or OS.get_name() == "iOS"
+	var is_web = OS.get_name() == "Web"
+	
+	# Web 平台使用键盘，不需要虚拟按钮（除非检测到触摸设备）
+	if is_web and not is_mobile:
+		return  # Web PC 隐藏虚拟按钮
+	
 	var controls = CanvasLayer.new()
 	controls.name = "MobileControls"
 	add_child(controls)
