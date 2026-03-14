@@ -1991,7 +1991,8 @@ func setup_level(level_index):
 		create_goal(level.goal.x, level.goal.y)
 	
 	setup_ui()
-	setup_mobile_controls()
+	# 注意：虚拟按钮由 virtual_controls.tscn 处理，不需要再次创建
+	# setup_mobile_controls() 已移除以避免重复按钮
 
 func create_player_visual(p):
 	# Use Kenney player sprite (tile 0 in characters sheet)
