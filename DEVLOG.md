@@ -1,5 +1,22 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v3.9 - Virtual Controls Fix (2026-03-14)
+
+### Bug 修复
+- ✅ **虚拟按钮左右键问题修复**
+  - 添加按钮状态跟踪，防止重复触发
+  - 添加触摸事件 (InputEventScreenTouch) 支持
+  - 添加鼠标点击事件支持
+  - 使用 gui_input 捕获更广泛的输入事件
+  - 确保 Web 平台虚拟按钮正常工作
+
+### 构建信息
+- Web Export: ✅ 已构建
+- itch.io: ✅ 已发布 (https://lungtakumi.itch.io/clawplatformer)
+- GitHub: ✅ 已推送
+
+---
+
 ## v3.8 - Level Select (2026-03-14)
 
 ### 新增功能
