@@ -38,8 +38,8 @@
 24. Enchanted Forest 🌲 新增
 
 ### 构建信息
-- Web Export: ⏳ 待构建
-- itch.io: ⏳ 待发布
+- Web Export: ✅ 已构建
+- itch.io: ✅ 已发布 (https://lungtakumi.itch.io/clawplatformer)
 
 ### 游戏链接
 - https://lungtakumi.itch.io/clawplatformer
