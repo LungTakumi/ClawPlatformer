@@ -200,12 +200,12 @@ func show_ability_notification(ability_name):
 		tween.tween_property(notif, "position:y", notif.position.y - 30, 0.5)
 		tween.tween_callback(notif.queue_free)
 		
-		var tween = create_tween()
-		tween.tween_property(notif, "modulate:a", 1.0, 0.3)
-		tween.tween_interval(2.0)
-		tween.tween_property(notif, "modulate:a", 0.0, 0.5)
-		tween.tween_property(notif, "position:y", 50, 0.5)
-		tween.tween_callback(notif.queue_free)
+		var fade_tween = create_tween()
+		fade_tween.tween_property(notif, "modulate:a", 1.0, 0.3)
+		fade_tween.tween_interval(2.0)
+		fade_tween.tween_property(notif, "modulate:a", 0.0, 0.5)
+		fade_tween.tween_property(notif, "position:y", 50, 0.5)
+		fade_tween.tween_callback(notif.queue_free)
 
 # ⏱️ Timer functions
 func start_level_timer():
@@ -1125,6 +1125,48 @@ func create_background_stars():
 		star.add_to_group("star_near")
 		stars_container.add_child(star)
 
+# ❄️ Ice crystal effect for Crystal Palace level
+var ice_crystals_container: Node2D = null
+
+func create_ice_crystals():
+	# Remove existing ice crystals if any
+	if ice_crystals_container:
+		ice_crystals_container.queue_free()
+	
+	ice_crystals_container = Node2D.new()
+	ice_crystals_container.name = "IceCrystals"
+	add_child(ice_crystals_container)
+	ice_crystals_container.z_index = -50  # Behind platforms but above background
+	
+	# Create floating ice crystals
+	for i in range(30):
+		var crystal = Polygon2D.new()
+		# Diamond shape
+		var pts = PackedVector2Array([
+			Vector2(0, -8),    # Top
+			Vector2(5, 0),     # Right
+			Vector2(0, 8),     # Bottom
+			Vector2(-5, 0)     # Left
+		])
+		crystal.polygon = pts
+		crystal.color = Color(0.7, 0.9, 1.0, randf_range(0.3, 0.6))
+		crystal.position = Vector2(randf() * 1400, randf() * 800)
+		crystal.add_to_group("ice_crystal")
+		ice_crystals_container.add_child(crystal)
+		
+		# Add gentle float animation
+		var tween = create_tween()
+		var start_pos = crystal.position
+		var float_offset = randf_range(-20, 20)
+		tween.set_loops()
+		tween.tween_property(crystal, "position:y", start_pos.y + float_offset, randf_range(2.0, 4.0))
+		tween.tween_property(crystal, "position:y", start_pos.y, randf_range(2.0, 4.0))
+
+func clear_ice_crystals():
+	if ice_crystals_container:
+		ice_crystals_container.queue_free()
+		ice_crystals_container = null
+
 func show_level_name(level_name):
 	var ui = get_tree().get_first_node_in_group("ui")
 	if ui:
@@ -1273,7 +1315,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v3.4 - Digital Realm"
+	version.text = "v3.5 - Crystal Palace"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.add_theme_font_size_override("font_size", 16)
 	version.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
@@ -1487,6 +1529,12 @@ func setup_level(level_index):
 	var level = levels[level_index]
 	RenderingServer.set_default_clear_color(level.get("bg_color", Color(0.1, 0.12, 0.18)))
 	
+	# ❄️ Create ice crystal effect for Crystal Palace
+	if level.get("crystal_theme", false):
+		create_ice_crystals()
+	else:
+		clear_ice_crystals()
+	
 	# ⏱️ Start level timer
 	start_level_timer()
 	level_deaths = 0
@@ -1519,7 +1567,9 @@ func setup_level(level_index):
 		var move_data = null
 		if p.has("move_x") or p.has("move_y"):
 			move_data = {"move_x": p.get("move_x", 0), "move_y": p.get("move_y", 0)}
-		create_platform(p.x, p.y, p.w, p.h, move_data)
+		# Check for crystal platform
+		var crystal_type = p.get("crystal", null)
+		create_platform(p.x, p.y, p.w, p.h, move_data, crystal_type)
 	
 	# Create coins
 	for c in level["coins"]:
@@ -1534,7 +1584,9 @@ func setup_level(level_index):
 	for e in level["enemies"]:
 		var enemy_type = e.get("type", "ground")
 		var enemy_hp = e.get("hp", 1)
-		var enemy = create_enemy(e.x, e.y, enemy_type, enemy_hp)
+		var enemy_min_x = e.get("min_x", 0)
+		var enemy_max_x = e.get("max_x", 300)
+		var enemy = create_enemy(e.x, e.y, enemy_type, enemy_hp, enemy_min_x, enemy_max_x)
 		if enemy.has_method("setup_movement"):
 			enemy.platform_bounds = {"min_x": e.get("min_x", 0), "max_x": e.get("max_x", 300)}
 	
@@ -1570,7 +1622,7 @@ func create_player_visual(p):
 	col.position = Vector2(0, -12)  # Same center as sprite
 	p.add_child(col)
 
-func create_platform(x, y, w, h, move_data = null):
+func create_platform(x, y, w, h, move_data = null, crystal_type = null):
 	var platform: Node2D
 	var is_moving = move_data != null
 	
@@ -1583,44 +1635,90 @@ func create_platform(x, y, w, h, move_data = null):
 	
 	platform.position = Vector2(x, y)
 	
-	# Use Kenney tile sprites for platforms
-	# Different tiles for different level themes
-	var tile_indices = [
-		0,   # Grass/green
-		6,   # Stone/gray  
-		12,  # Brown/wood
-		18,  # Dark
-		24,  # More grass
-		30,  # Stone variant
-		36,  # Cave
-		42   # Rainbow
-	]
-	var tile_idx = tile_indices[current_level % tile_indices.size()]
+	# Crystal platform rendering (Ice crystal theme)
+	if crystal_type != null:
+		var crystal_colors = {
+			"cyan": Color(0.4, 0.9, 1.0, 0.85),   # Cyan ice
+			"blue": Color(0.3, 0.5, 1.0, 0.85),   # Blue ice
+			"purple": Color(0.7, 0.4, 1.0, 0.85), # Purple crystal
+			"white": Color(0.9, 0.95, 1.0, 0.9)    # White crystal
+		}
+		var crystal_color = crystal_colors.get(crystal_type, Color(0.5, 0.8, 1.0, 0.8))
+		
+		# Create crystal-like platform using gradient
+		var gradient = Gradient.new()
+		gradient.set_color(0, crystal_color)
+		gradient.set_color(1, Color(crystal_color.r, crystal_color.g, crystal_color.b, crystal_color.a * 0.6))
+		
+		var gradient_texture = GradientTexture2D.new()
+		gradient_texture.gradient = gradient
+		gradient_texture.fill = 1  # Vertical fill
+		gradient_texture.fill_from = Vector2(0, 0)
+		gradient_texture.fill_to = Vector2(1, 1)
+		gradient_texture.width = int(w)
+		gradient_texture.height = int(h)
+		
+		var sprite = Sprite2D.new()
+		sprite.texture = gradient_texture
+		sprite.position = Vector2(w/2, h/2)
+		platform.add_child(sprite)
+		
+		# Add shimmer effect (light edge)
+		var edge_sprite = Sprite2D.new()
+		var edge_gradient = Gradient.new()
+		var edge_color = Color(1, 1, 1, 0.6)
+		edge_gradient.set_color(0, Color(1, 1, 1, 0))
+		edge_gradient.set_color(1, edge_color)
+		
+		var edge_texture = GradientTexture2D.new()
+		edge_texture.gradient = edge_gradient
+		edge_texture.fill = 1  # Vertical fill
+		edge_texture.width = int(w)
+		edge_texture.height = 4
+		
+		edge_sprite.texture = edge_texture
+		edge_sprite.position = Vector2(w/2, 2)
+		platform.add_child(edge_sprite)
 	
-	# Calculate tile position in spritesheet
-	var tiles_per_row = 20  # From tilesheet info
-	var tile_x = (tile_idx % tiles_per_row) * 19 + 1  # 18px + 1px gap
-	var tile_y = (tile_idx / tiles_per_row) * 19 + 1
-	
-	# Create multiple sprites to tile across the platform
-	var tile_size = 18
-	var tiles_x = ceil(w / float(tile_size))
-	var tiles_y = ceil(h / float(tile_size))
-	
-	for ty in range(tiles_y):
-		for tx in range(tiles_x):
-			var sprite = Sprite2D.new()
-			sprite.texture = tile_tilesheet
-			sprite.region_enabled = true
-			sprite.region_rect = Rect2(tile_x, tile_y, tile_size, tile_size)
-			# Position sprite - start from top-left
-			sprite.position = Vector2(tx * tile_size, ty * tile_size)
-			# Clip to platform bounds
-			if tx == tiles_x - 1:
-				sprite.scale.x = (w - tx * tile_size) / tile_size
-			if ty == tiles_y - 1:
-				sprite.scale.y = (h - ty * tile_size) / tile_size
-			platform.add_child(sprite)
+	# Use Kenney tile sprites for platforms (non-crystal)
+	else:
+		# Different tiles for different level themes
+		var tile_indices = [
+			0,   # Grass/green
+			6,   # Stone/gray  
+			12,  # Brown/wood
+			18,  # Dark
+			24,  # More grass
+			30,  # Stone variant
+			36,  # Cave
+			42   # Rainbow
+		]
+		var tile_idx = tile_indices[current_level % tile_indices.size()]
+		
+		# Calculate tile position in spritesheet
+		var tiles_per_row = 20  # From tilesheet info
+		var tile_x = (tile_idx % tiles_per_row) * 19 + 1  # 18px + 1px gap
+		var tile_y = (tile_idx / tiles_per_row) * 19 + 1
+		
+		# Create multiple sprites to tile across the platform
+		var tile_size = 18
+		var tiles_x = ceil(w / float(tile_size))
+		var tiles_y = ceil(h / float(tile_size))
+		
+		for ty in range(tiles_y):
+			for tx in range(tiles_x):
+				var sprite = Sprite2D.new()
+				sprite.texture = tile_tilesheet
+				sprite.region_enabled = true
+				sprite.region_rect = Rect2(tile_x, tile_y, tile_size, tile_size)
+				# Position sprite - start from top-left
+				sprite.position = Vector2(tx * tile_size, ty * tile_size)
+				# Clip to platform bounds
+				if tx == tiles_x - 1:
+					sprite.scale.x = (w - tx * tile_size) / tile_size
+				if ty == tiles_y - 1:
+					sprite.scale.y = (h - ty * tile_size) / tile_size
+				platform.add_child(sprite)
 	
 	# Collision - position at center of platform
 	var collision = CollisionShape2D.new()
@@ -1700,7 +1798,7 @@ func create_star(x, y):
 	add_child(star)
 	stars.append(star)
 
-func create_enemy(x, y, type = "ground", hp = 1) -> CharacterBody2D:
+func create_enemy(x, y, type = "ground", hp = 1, min_x = 0, max_x = 300) -> CharacterBody2D:
 	var enemy: CharacterBody2D
 	
 	if type == "flying":
