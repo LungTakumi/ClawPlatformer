@@ -47,6 +47,7 @@ var save_data = {
 	"unlocked_levels": [0, 1, 2],  # 已解锁的关卡
 	"total_coins": 0,       # 总金币
 	"total_stars": 0,        # 总星星
+	"level_stars": {},       # 每个关卡的星星数 {level_index: stars_count}
 	"unlocked_abilities": [], # 解锁的能力
 	"best_times": {}         # 最佳时间
 }
@@ -1709,6 +1710,30 @@ func show_level_select():
 		lock.add_theme_font_size_override("font_size", 12)
 		level_container.add_child(lock)
 		
+		# 🌟 Star collect status
+		var star_display = Label.new()
+		var level_star_count = save_data["level_stars"].get(i, 0)
+		var max_stars = level.get("stars", []).size()
+		if max_stars > 0:
+			# Show stars with icons
+			var star_str = ""
+			for s in range(max_stars):
+				if s < level_star_count:
+					star_str += "⭐"
+				else:
+					star_str += "☆"
+			star_display.text = star_str + " (" + str(level_star_count) + "/" + str(max_stars) + ")"
+		else:
+			# No stars in this level
+			star_display.text = "⭐ " + str(level_star_count)
+		star_display.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		star_display.add_theme_font_size_override("font_size", 14)
+		if level_star_count > 0:
+			star_display.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+		else:
+			star_display.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		level_container.add_child(star_display)
+		
 		# Play button
 		var play_btn = Button.new()
 		if is_unlocked:
@@ -2650,6 +2675,10 @@ func next_level():
 	# 保存进度到存档
 	save_data["total_coins"] += score
 	save_data["total_stars"] += stars_collected
+	# 保存每个关卡的星星数量（取最大值）
+	if not save_data["level_stars"].has(current_level):
+		save_data["level_stars"][current_level] = 0
+	save_data["level_stars"][current_level] = max(save_data["level_stars"][current_level], stars_collected)
 	save_data["best_times"][current_level] = current_level_time
 	# 解锁下一关
 	unlock_level(current_level + 1)
