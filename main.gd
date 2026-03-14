@@ -1558,7 +1558,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v3.7 - Void Dimension"
+	version.text = "v3.8 - Level Select"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.add_theme_font_size_override("font_size", 16)
 	version.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
