@@ -942,6 +942,53 @@ var levels = [
 			{"x": 1150, "y": 110, "min_x": 1050, "max_x": 1200, "type": "flying"}
 		],
 		"goal": {"x": 1450, "y": 250}
+	},
+	# NEW! Cyberpunk City - Neon city theme (v3.3)
+	{
+		"name": "Cyberpunk City",
+		"bg_color": Color(0.02, 0.02, 0.08),
+		"cyberpunk_theme": true,
+		"platforms": [
+			{"x": 50, "y": 550, "w": 150, "h": 30},
+			{"x": 250, "y": 500, "w": 100, "h": 25, "neon": "cyan"},
+			{"x": 400, "y": 440, "w": 80, "h": 20, "neon": "pink"},
+			{"x": 550, "y": 380, "w": 100, "h": 25, "neon": "cyan"},
+			{"x": 350, "y": 300, "w": 80, "h": 20, "neon": "yellow"},
+			{"x": 500, "y": 220, "w": 100, "h": 25, "neon": "pink"},
+			{"x": 700, "y": 280, "w": 80, "h": 20, "neon": "cyan"},
+			{"x": 850, "y": 350, "w": 100, "h": 25, "neon": "yellow"},
+			{"x": 1000, "y": 280, "w": 80, "h": 20, "neon": "pink"},
+			{"x": 1150, "y": 220, "w": 100, "h": 25, "neon": "cyan"},
+			{"x": 1300, "y": 300, "w": 80, "h": 20, "neon": "yellow"},
+			{"x": 1150, "y": 400, "w": 100, "h": 25, "neon": "pink"},
+			{"x": 1350, "y": 450, "w": 80, "h": 20, "neon": "cyan"},
+			{"x": 1200, "y": 520, "w": 100, "h": 25, "neon": "yellow"},
+			{"x": 1400, "y": 400, "w": 150, "h": 25, "neon": "pink"}
+		],
+		"coins": [
+			{"x": 80, "y": 480}, {"x": 280, "y": 430},
+			{"x": 420, "y": 370}, {"x": 580, "y": 310},
+			{"x": 370, "y": 230}, {"x": 530, "y": 150},
+			{"x": 720, "y": 210}, {"x": 880, "y": 280},
+			{"x": 1020, "y": 210}, {"x": 1170, "y": 150},
+			{"x": 1320, "y": 230}, {"x": 1170, "y": 330},
+			{"x": 1370, "y": 380}, {"x": 1220, "y": 450},
+			{"x": 1450, "y": 330}
+		],
+		"stars": [
+			{"x": 500, "y": 100}, {"x": 850, "y": 380}, {"x": 1450, "y": 330}
+		],
+		"powerups": [
+			{"x": 1300, "y": 150, "type": "double_jump"}
+		],
+		"enemies": [
+			{"x": 280, "y": 460, "min_x": 250, "max_x": 350, "type": "electric"},
+			{"x": 550, "y": 340, "min_x": 500, "max_x": 600, "type": "electric"},
+			{"x": 700, "y": 240, "min_x": 650, "max_x": 750, "type": "flying"},
+			{"x": 1000, "y": 240, "min_x": 950, "max_x": 1050, "type": "jellyfish"},
+			{"x": 1200, "y": 170, "min_x": 1100, "max_x": 1250, "type": "electric"}
+		],
+		"goal": {"x": 1500, "y": 350}
 	}
 ]
 
@@ -1632,6 +1679,34 @@ func create_enemy(x, y, type = "ground", hp = 1) -> CharacterBody2D:
 		col.position = Vector2(0, -12)
 		var rect = RectangleShape2D.new()
 		rect.size = Vector2(20, 20)
+		col.shape = rect
+		enemy.add_child(col)
+		
+		# Set movement bounds
+		enemy.set_meta("min_x", min_x)
+		enemy.set_meta("max_x", max_x)
+	elif type == "electric":
+		# Electric Eel - fast horizontal movement with electric discharge
+		enemy = CharacterBody2D.new()
+		enemy.position = Vector2(x, y)
+		enemy.script = load("res://electric_enemy.gd")
+		
+		# Electric eel sprite - yellow/cyan
+		var sprite = Sprite2D.new()
+		sprite.name = "Visual"
+		sprite.texture = char_tilesheet
+		sprite.region_enabled = true
+		# Use monster tile
+		sprite.region_rect = Rect2(10 * 25, 0, 24, 24)
+		sprite.position = Vector2(0, -12)
+		sprite.modulate = Color(1, 0.9, 0.3, 1)  # Yellow eel
+		enemy.add_child(sprite)
+		
+		# Collision
+		var col = CollisionShape2D.new()
+		col.position = Vector2(0, -12)
+		var rect = RectangleShape2D.new()
+		rect.size = Vector2(18, 18)
 		col.shape = rect
 		enemy.add_child(col)
 		

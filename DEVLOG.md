@@ -1,5 +1,65 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v3.3 - Cyberpunk City (2026-03-14)
+
+### 新增功能
+- ✅ **Cyberpunk City 关卡** - 第25关，赛博朋克城市主题
+  - 深蓝紫色霓虹主题背景
+  - 15个平台，多条上升路线
+  - 包含3颗星星和15枚金币
+  - 包含二段跳能力道具 (Double Jump)
+  - 混合敌人：电鳗(新!)、飞行敌人、水母
+- ✅ **Electric Eel (电鳗) 敌人** - 新敌人类型
+  - 快速水平移动
+  - 转向时释放电流特效
+  - 死亡时更大的电火花爆炸
+  - 击败获得35分(更高奖励!)
+- ✅ 版本号更新为 v3.3
+
+### 关卡列表 (v3.3)
+1. Green Hills
+2. Sky Bridges
+3. Moving Platforms
+4. Mountain Climb
+5. Floating Islands
+6. The Tower
+7. Cave
+8. Rainbow Bridge
+9. Crystal Caverns
+10. Bonus Stage
+11. Sky Fortress
+12. Dragon's Lair (Boss)
+13. Secret Garden ✨
+14. Ice Palace ❄️
+15. Volcano 🔥
+16. Haunted Forest 👻
+17. Desert 🏜️
+18. Underwater Temple 🌊
+19. Space Station 🚀
+20. Neon City 🌃
+21. Matrix Core 🟢
+22. Cloud Kingdom ☁️
+23. Ancient Temple 🏛️
+24. Enchanted Forest 🌲
+25. Cyberpunk City 🌃 新增
+
+### 敌人类型 (v3.3)
+- 🟣 Ground Enemy - 地面敌人
+- 🦇 Flying Enemy - 飞行敌人
+- 💧 Jellyfish - 水母敌人
+- 🟢 Slime - 史莱姆
+- ⚡ **Electric Eel - 电鳗** 新增!
+- 🐉 Boss - Boss敌人
+
+### 构建信息
+- Web Export: ✅ 已构建
+- itch.io: ✅ 已发布 (https://lungtakumi.itch.io/clawplatformer)
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
 ## v3.2 - Enchanted Forest (2026-03-14)
 
 ### 新增功能
