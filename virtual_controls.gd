@@ -6,35 +6,33 @@ extends CanvasLayer
 
 func _ready():
 	# Web平台总是显示虚拟按钮
-	# 移动端也显示
 	if OS.get_name() == "Web":
-		pass  # 总是显示
+		pass
 	elif OS.get_name() != "Android" and OS.get_name() != "iOS":
 		visible = false
 	
-	# 连接按钮信号 - 使用 pressed/released 确保触摸响应
-	# 注意：button_down/button_up 在某些平台上触摸事件可能不触发
-	left_btn.pressed.connect(_on_left_pressed)
-	left_btn.released.connect(_on_left_released)
-	right_btn.pressed.connect(_on_right_pressed)
-	right_btn.released.connect(_on_right_released)
-	jump_btn.pressed.connect(_on_jump_pressed)
-	jump_btn.released.connect(_on_jump_released)
+	# 使用 button_down/button_up 确保正确响应
+	left_btn.button_down.connect(_on_left_down)
+	left_btn.button_up.connect(_on_left_up)
+	right_btn.button_down.connect(_on_right_down)
+	right_btn.button_up.connect(_on_right_up)
+	jump_btn.button_down.connect(_on_jump_down)
+	jump_btn.button_up.connect(_on_jump_up)
 
-func _on_left_pressed():
+func _on_left_down():
 	Input.action_press("move_left")
 
-func _on_left_released():
+func _on_left_up():
 	Input.action_release("move_left")
 
-func _on_right_pressed():
+func _on_right_down():
 	Input.action_press("move_right")
 
-func _on_right_released():
+func _on_right_up():
 	Input.action_release("move_right")
 
-func _on_jump_pressed():
+func _on_jump_down():
 	Input.action_press("jump")
 
-func _on_jump_released():
+func _on_jump_up():
 	Input.action_release("jump")

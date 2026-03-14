@@ -1864,29 +1864,38 @@ func clear_level():
 		player.queue_free()
 
 func _input(event):
+	# 处理跳跃键
 	if event.is_action_pressed("jump"):
-		if not game_started:
-			start_game()
-		else:
-			var ui = get_tree().get_first_node_in_group("ui")
-			if ui:
-				# Check for game over or victory and restart
-				if ui.has_node("GameOverOverlay") or ui.has_node("GameOverText"):
-					# Reset game
-					current_level = 0
-					score = 0
-					lives = 3
-					stars_collected = 0
-					game_started = true
-					setup_level(0)
-				elif ui.has_node("VictoryOverlay") or ui.has_node("VictoryText"):
-					# Reset game
-					current_level = 0
-					score = 0
-					lives = 3
-					stars_collected = 0
-					game_started = true
-					setup_level(0)
+		_handle_continue_or_start()
+	# 处理触摸/点击事件（移动端替代空格键）
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		_handle_continue_or_start()
+	elif event is InputEventScreenTouch and event.pressed:
+		_handle_continue_or_start()
+
+func _handle_continue_or_start():
+	if not game_started:
+		start_game()
+	else:
+		var ui = get_tree().get_first_node_in_group("ui")
+		if ui:
+			# Check for game over or victory and restart
+			if ui.has_node("GameOverOverlay") or ui.has_node("GameOverText"):
+				# Reset game
+				current_level = 0
+				score = 0
+				lives = 3
+				stars_collected = 0
+				game_started = true
+				setup_level(0)
+			elif ui.has_node("VictoryOverlay") or ui.has_node("VictoryText"):
+				# Reset game
+				current_level = 0
+				score = 0
+				lives = 3
+				stars_collected = 0
+				game_started = true
+				setup_level(0)
 
 func start_game():
 	game_started = true
