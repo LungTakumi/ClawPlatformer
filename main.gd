@@ -894,6 +894,54 @@ var levels = [
 			{"x": 1050, "y": 240, "min_x": 1000, "max_x": 1100, "type": "slime"}
 		],
 		"goal": {"x": 1380, "y": 230}
+	},
+	# NEW! Enchanted Forest - Magical forest theme (v3.2)
+	{
+		"name": "Enchanted Forest",
+		"bg_color": Color(0.05, 0.2, 0.1),
+		"forest_theme": true,
+		"platforms": [
+			{"x": 50, "y": 520, "w": 150, "h": 30},
+			{"x": 250, "y": 460, "w": 100, "h": 25},
+			{"x": 100, "y": 380, "w": 120, "h": 25},
+			{"x": 300, "y": 300, "w": 100, "h": 25},
+			{"x": 150, "y": 220, "w": 80, "h": 25},
+			{"x": 350, "y": 150, "w": 100, "h": 25},
+			{"x": 550, "y": 220, "w": 80, "h": 25},
+			{"x": 700, "y": 300, "w": 100, "h": 25},
+			{"x": 550, "y": 400, "w": 80, "h": 25},
+			{"x": 700, "y": 480, "w": 100, "h": 25},
+			{"x": 900, "y": 400, "w": 80, "h": 25},
+			{"x": 1050, "y": 320, "w": 100, "h": 25},
+			{"x": 900, "y": 220, "w": 80, "h": 25},
+			{"x": 1050, "y": 150, "w": 100, "h": 25},
+			{"x": 1200, "y": 220, "w": 80, "h": 25},
+			{"x": 1350, "y": 300, "w": 150, "h": 25}
+		],
+		"coins": [
+			{"x": 80, "y": 450}, {"x": 280, "y": 390},
+			{"x": 130, "y": 310}, {"x": 330, "y": 230},
+			{"x": 170, "y": 150}, {"x": 380, "y": 80},
+			{"x": 570, "y": 150}, {"x": 730, "y": 230},
+			{"x": 570, "y": 330}, {"x": 730, "y": 410},
+			{"x": 930, "y": 330}, {"x": 1080, "y": 250},
+			{"x": 930, "y": 150}, {"x": 1080, "y": 80},
+			{"x": 1220, "y": 150}, {"x": 1400, "y": 230}
+		],
+		"stars": [
+			{"x": 150, "y": 100}, {"x": 700, "y": 350}, {"x": 1400, "y": 230}
+		],
+		"powerups": [
+			{"x": 550, "y": 100, "type": "dash"}
+		],
+		"enemies": [
+			{"x": 280, "y": 420, "min_x": 250, "max_x": 350, "type": "slime"},
+			{"x": 500, "y": 170, "min_x": 450, "max_x": 550, "type": "flying"},
+			{"x": 750, "y": 260, "min_x": 700, "max_x": 800, "type": "jellyfish"},
+			{"x": 950, "y": 360, "min_x": 900, "max_x": 1000, "type": "slime"},
+			{"x": 1150, "y": 110, "min_x": 1050, "max_x": 1200, "type": "flying"}
+		],
+		"goal": {"x": 1450, "y": 250}
 	}
 ]
 
@@ -1085,7 +1133,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v3.1 - Ancient Temple"
+	version.text = "v3.2 - Enchanted Forest"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.add_theme_font_size_override("font_size", 16)
 	version.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
