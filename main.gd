@@ -1082,6 +1082,54 @@ var levels = [
 			{"x": 1350, "y": 240, "min_x": 1300, "max_x": 1450, "type": "electric"}
 		],
 		"goal": {"x": 1520, "y": 150}
+	},
+	
+	# NEW! Nebula Nexus - Cosmic nebula theme (v3.6)
+	{
+		"name": "Nebula Nexus",
+		"bg_color": Color(0.05, 0.02, 0.15),
+		"nebula_theme": true,
+		"platforms": [
+			{"x": 50, "y": 550, "w": 120, "h": 30, "nebula": "purple"},
+			{"x": 220, "y": 480, "w": 100, "h": 25, "nebula": "pink"},
+			{"x": 80, "y": 380, "w": 100, "h": 25, "nebula": "purple"},
+			{"x": 280, "y": 320, "w": 80, "h": 25, "nebula": "pink"},
+			{"x": 450, "y": 400, "w": 100, "h": 25, "nebula": "purple"},
+			{"x": 600, "y": 300, "w": 80, "h": 25, "nebula": "pink"},
+			{"x": 780, "y": 380, "w": 100, "h": 25, "nebula": "purple"},
+			{"x": 950, "y": 280, "w": 80, "h": 25, "nebula": "pink"},
+			{"x": 750, "y": 150, "w": 100, "h": 25, "nebula": "purple"},
+			{"x": 950, "y": 100, "w": 80, "h": 25, "nebula": "pink"},
+			{"x": 1150, "y": 180, "w": 100, "h": 25, "nebula": "purple"},
+			{"x": 1350, "y": 250, "w": 80, "h": 25, "nebula": "pink"},
+			{"x": 1200, "y": 80, "w": 80, "h": 25, "nebula": "purple"},
+			{"x": 1400, "y": 120, "w": 100, "h": 25, "nebula": "pink"},
+			{"x": 1580, "y": 200, "w": 120, "h": 25, "nebula": "purple"}
+		],
+		"coins": [
+			{"x": 70, "y": 480}, {"x": 250, "y": 410},
+			{"x": 110, "y": 310}, {"x": 300, "y": 250},
+			{"x": 480, "y": 330}, {"x": 620, "y": 230},
+			{"x": 810, "y": 310}, {"x": 970, "y": 210},
+			{"x": 780, "y": 80}, {"x": 980, "y": 30},
+			{"x": 1180, "y": 110}, {"x": 1370, "y": 180},
+			{"x": 1230, "y": 10}, {"x": 1430, "y": 50},
+			{"x": 1620, "y": 130}
+		],
+		"stars": [
+			{"x": 280, "y": 250}, {"x": 950, "y": 50}, {"x": 1620, "y": 130}
+		],
+		"powerups": [
+			{"x": 1350, "y": 150, "type": "dash"}
+		],
+		"enemies": [
+			{"x": 250, "y": 440, "min_x": 220, "max_x": 320, "type": "jellyfish"},
+			{"x": 480, "y": 360, "min_x": 450, "max_x": 550, "type": "slime"},
+			{"x": 620, "y": 260, "min_x": 600, "max_x": 680, "type": "flying"},
+			{"x": 980, "y": 230, "min_x": 950, "max_x": 1030, "type": "electric"},
+			{"x": 1400, "y": 200, "min_x": 1350, "max_x": 1430, "type": "jellyfish"}
+		],
+		"goal": {"x": 1640, "y": 150}
 	}
 ]
 
@@ -1166,6 +1214,71 @@ func clear_ice_crystals():
 	if ice_crystals_container:
 		ice_crystals_container.queue_free()
 		ice_crystals_container = null
+
+# 🌌 Nebula effect for Nebula Nexus level
+var nebula_container: Node2D = null
+
+func create_nebula_effect():
+	if nebula_container:
+		nebula_container.queue_free()
+	
+	nebula_container = Node2D.new()
+	nebula_container.name = "NebulaEffect"
+	add_child(nebula_container)
+	nebula_container.z_index = -60
+	
+	# Create nebula clouds (colored gradients)
+	for i in range(15):
+		var nebula = Polygon2D.new()
+		var center = Vector2(randf() * 1400, randf() * 700)
+		var pts = PackedVector2Array()
+		var num_points = 12
+		for j in range(num_points):
+			var angle = j * TAU / num_points
+			var radius = randf_range(60, 120)
+			pts.append(Vector2(cos(angle), sin(angle)) * radius)
+		nebula.polygon = pts
+		
+		# Random purple/pink colors
+		var color_choice = randi() % 3
+		if color_choice == 0:
+			nebula.color = Color(0.4, 0.1, 0.5, randf_range(0.1, 0.25))
+		elif color_choice == 1:
+			nebula.color = Color(0.6, 0.2, 0.4, randf_range(0.1, 0.25))
+		else:
+			nebula.color = Color(0.2, 0.1, 0.4, randf_range(0.1, 0.25))
+		
+		nebula.position = center
+		nebula.add_to_group("nebula")
+		nebula_container.add_child(nebula)
+		
+		# Gentle rotation animation
+		var tween = create_tween()
+		tween.set_loops()
+		tween.tween_property(nebula, "rotation", randf_range(-0.1, 0.1), randf_range(8.0, 12.0))
+		tween.tween_property(nebula, "rotation", -randf_range(-0.1, 0.1), randf_range(8.0, 12.0))
+	
+	# Add floating cosmic dust
+	for i in range(40):
+		var dust = ColorRect.new()
+		dust.size = Vector2(randf_range(2, 4), randf_range(2, 4))
+		dust.color = Color(0.8, 0.6, 1.0, randf_range(0.2, 0.5))
+		dust.position = Vector2(randf() * 1400, randf() * 800)
+		dust.add_to_group("cosmic_dust")
+		nebula_container.add_child(dust)
+		
+		# Float animation
+		var tween = create_tween()
+		var start_pos = dust.position
+		var float_offset = randf_range(-30, 30)
+		tween.set_loops()
+		tween.tween_property(dust, "position:y", start_pos.y + float_offset, randf_range(3.0, 5.0))
+		tween.tween_property(dust, "position:y", start_pos.y, randf_range(3.0, 5.0))
+
+func clear_nebula_effect():
+	if nebula_container:
+		nebula_container.queue_free()
+		nebula_container = null
 
 func show_level_name(level_name):
 	var ui = get_tree().get_first_node_in_group("ui")
@@ -1315,7 +1428,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v3.5 - Crystal Palace"
+	version.text = "v3.6 - Nebula Nexus"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.add_theme_font_size_override("font_size", 16)
 	version.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
@@ -1534,6 +1647,12 @@ func setup_level(level_index):
 		create_ice_crystals()
 	else:
 		clear_ice_crystals()
+	
+	# 🌌 Create nebula effect for Nebula Nexus
+	if level.get("nebula_theme", false):
+		create_nebula_effect()
+	else:
+		clear_nebula_effect()
 	
 	# ⏱️ Start level timer
 	start_level_timer()

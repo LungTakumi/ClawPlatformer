@@ -1,5 +1,67 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v3.6 - Nebula Nexus (2026-03-14)
+
+### 新增功能
+- ✅ **Nebula Nexus 关卡** - 第28关，星云宇宙主题
+  - 深紫/粉红星云主题背景
+  - 15个平台，多条上升路线
+  - 包含3颗星星和15枚金币
+  - 包含冲刺能力道具 (Dash)
+  - 混合敌人：水母、史莱姆、飞行敌人、电鳗
+- ✅ **星云粒子效果** - Nebula Nexus 专属背景
+  - 彩色星云云团
+  - 漂浮的宇宙尘埃粒子
+  - 缓慢旋转动画
+- ✅ 版本号更新为 v3.6
+
+### 关卡列表 (v3.6)
+1. Green Hills
+2. Sky Bridges
+3. Moving Platforms
+4. Mountain Climb
+5. Floating Islands
+6. The Tower
+7. Cave
+8. Rainbow Bridge
+9. Crystal Caverns
+10. Bonus Stage
+11. Sky Fortress
+12. Dragon's Lair (Boss)
+13. Secret Garden ✨
+14. Ice Palace ❄️
+15. Volcano 🔥
+16. Haunted Forest 👻
+17. Desert 🏜️
+18. Underwater Temple 🌊
+19. Space Station 🚀
+20. Neon City 🌃
+21. Matrix Core 🟢
+22. Cloud Kingdom ☁️
+23. Ancient Temple 🏛️
+24. Enchanted Forest 🌲
+25. Cyberpunk City 🌃
+26. Digital Realm 💻
+27. Crystal Palace ❄️
+28. Nebula Nexus 🌌 新增
+
+### 敌人类型 (v3.6)
+- 🟣 Ground Enemy - 地面敌人
+- 🦇 Flying Enemy - 飞行敌人
+- 💧 Jellyfish - 水母敌人
+- 🟢 Slime - 史莱姆
+- ⚡ Electric Eel - 电鳗
+- 🐉 Boss - Boss敌人
+
+### 构建信息
+- Web Export: ✅ 已构建
+- itch.io: ✅ 已发布 (https://lungtakumi.itch.io/clawplatformer)
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
 ## v3.5 - Crystal Palace (2026-03-14)
 
 ### 新增功能
