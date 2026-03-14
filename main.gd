@@ -1036,6 +1036,52 @@ var levels = [
 			{"x": 1150, "y": 80, "min_x": 1100, "max_x": 1250, "type": "electric"}
 		],
 		"goal": {"x": 1500, "y": 230}
+	},
+	# NEW! Crystal Palace - Crystalline ice palace theme (v3.5)
+	{
+		"name": "Crystal Palace",
+		"bg_color": Color(0.2, 0.4, 0.6),
+		"crystal_theme": true,
+		"platforms": [
+			{"x": 50, "y": 550, "w": 150, "h": 30, "crystal": "cyan"},
+			{"x": 250, "y": 480, "w": 100, "h": 25, "crystal": "blue"},
+			{"x": 100, "y": 380, "w": 120, "h": 25, "crystal": "cyan"},
+			{"x": 320, "y": 320, "w": 100, "h": 25, "crystal": "blue"},
+			{"x": 500, "y": 400, "w": 80, "h": 25, "crystal": "cyan"},
+			{"x": 650, "y": 300, "w": 120, "h": 25, "crystal": "blue"},
+			{"x": 480, "y": 180, "w": 100, "h": 25, "crystal": "cyan"},
+			{"x": 680, "y": 120, "w": 100, "h": 25, "crystal": "blue"},
+			{"x": 880, "y": 180, "w": 120, "h": 25, "crystal": "cyan"},
+			{"x": 1050, "y": 280, "w": 100, "h": 25, "crystal": "blue"},
+			{"x": 1200, "y": 200, "w": 80, "h": 25, "crystal": "cyan"},
+			{"x": 1350, "y": 280, "w": 100, "h": 25, "crystal": "blue"},
+			{"x": 1100, "y": 100, "w": 80, "h": 20, "crystal": "cyan"},
+			{"x": 1300, "y": 120, "w": 100, "h": 25, "crystal": "blue"},
+			{"x": 1480, "y": 200, "w": 120, "h": 25, "crystal": "cyan"}
+		],
+		"coins": [
+			{"x": 80, "y": 480}, {"x": 280, "y": 410},
+			{"x": 130, "y": 310}, {"x": 350, "y": 250},
+			{"x": 520, "y": 330}, {"x": 680, "y": 230},
+			{"x": 510, "y": 110}, {"x": 710, "y": 50},
+			{"x": 910, "y": 110}, {"x": 1080, "y": 210},
+			{"x": 1230, "y": 130}, {"x": 1130, "y": 30},
+			{"x": 1330, "y": 50}, {"x": 1510, "y": 130}
+		],
+		"stars": [
+			{"x": 250, "y": 380}, {"x": 680, "y": 80}, {"x": 1510, "y": 130}
+		],
+		"powerups": [
+			{"x": 1050, "y": 180, "type": "double_jump"}
+		],
+		"enemies": [
+			{"x": 280, "y": 440, "min_x": 250, "max_x": 350, "type": "jellyfish"},
+			{"x": 520, "y": 360, "min_x": 500, "max_x": 600, "type": "slime"},
+			{"x": 700, "y": 260, "min_x": 650, "max_x": 750, "type": "flying"},
+			{"x": 1080, "y": 240, "min_x": 1000, "max_x": 1150, "type": "jellyfish"},
+			{"x": 1350, "y": 240, "min_x": 1300, "max_x": 1450, "type": "electric"}
+		],
+		"goal": {"x": 1520, "y": 150}
 	}
 ]
 
