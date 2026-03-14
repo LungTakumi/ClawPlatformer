@@ -1,5 +1,61 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v3.4 - Digital Realm (2026-03-14)
+
+### 新增功能
+- ✅ **Digital Realm 关卡** - 第26关，矩阵/二进制主题
+  - 深黑绿色矩阵风格背景
+  - 15个平台，多条上升路线
+  - 包含3颗星星和15枚金币
+  - 包含冲刺能力道具 (Dash)
+  - 混合敌人：电鳗、史莱姆、飞行敌人、水母
+- ✅ 版本号更新为 v3.4
+
+### 关卡列表 (v3.4)
+1. Green Hills
+2. Sky Bridges
+3. Moving Platforms
+4. Mountain Climb
+5. Floating Islands
+6. The Tower
+7. Cave
+8. Rainbow Bridge
+9. Crystal Caverns
+10. Bonus Stage
+11. Sky Fortress
+12. Dragon's Lair (Boss)
+13. Secret Garden ✨
+14. Ice Palace ❄️
+15. Volcano 🔥
+16. Haunted Forest 👻
+17. Desert 🏜️
+18. Underwater Temple 🌊
+19. Space Station 🚀
+20. Neon City 🌃
+21. Matrix Core 🟢
+22. Cloud Kingdom ☁️
+23. Ancient Temple 🏛️
+24. Enchanted Forest 🌲
+25. Cyberpunk City 🌃
+26. Digital Realm 💻 新增
+
+### 敌人类型 (v3.4)
+- 🟣 Ground Enemy - 地面敌人
+- 🦇 Flying Enemy - 飞行敌人
+- 💧 Jellyfish - 水母敌人
+- 🟢 Slime - 史莱姆
+- ⚡ Electric Eel - 电鳗
+- 🐉 Boss - Boss敌人
+
+### 构建信息
+- Web Export: ✅ 构建中
+- itch.io: ⏳ 待发布
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
 ## v3.3 - Cyberpunk City (2026-03-14)
 
 ### 新增功能

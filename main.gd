@@ -989,6 +989,53 @@ var levels = [
 			{"x": 1200, "y": 170, "min_x": 1100, "max_x": 1250, "type": "electric"}
 		],
 		"goal": {"x": 1500, "y": 350}
+	},
+	# NEW! Digital Realm - Matrix/binary theme (v3.4)
+	{
+		"name": "Digital Realm",
+		"bg_color": Color(0.0, 0.05, 0.0),
+		"matrix_theme": true,
+		"platforms": [
+			{"x": 50, "y": 550, "w": 120, "h": 30, "matrix": "green"},
+			{"x": 220, "y": 480, "w": 100, "h": 25, "matrix": "lime"},
+			{"x": 380, "y": 400, "w": 80, "h": 20, "matrix": "green"},
+			{"x": 550, "y": 450, "w": 100, "h": 25, "matrix": "lime"},
+			{"x": 700, "y": 380, "w": 80, "h": 20, "matrix": "green"},
+			{"x": 500, "y": 280, "w": 80, "h": 20, "matrix": "lime"},
+			{"x": 650, "y": 200, "w": 100, "h": 25, "matrix": "green"},
+			{"x": 820, "y": 280, "w": 80, "h": 20, "matrix": "lime"},
+			{"x": 980, "y": 350, "w": 100, "h": 25, "matrix": "green"},
+			{"x": 1150, "y": 280, "w": 80, "h": 20, "matrix": "lime"},
+			{"x": 1000, "y": 180, "w": 80, "h": 20, "matrix": "green"},
+			{"x": 1150, "y": 120, "w": 100, "h": 25, "matrix": "lime"},
+			{"x": 1320, "y": 200, "w": 80, "h": 20, "matrix": "green"},
+			{"x": 1300, "y": 350, "w": 100, "h": 25, "matrix": "lime"},
+			{"x": 1450, "y": 280, "w": 120, "h": 25, "matrix": "green"}
+		],
+		"coins": [
+			{"x": 80, "y": 480}, {"x": 250, "y": 410},
+			{"x": 400, "y": 330}, {"x": 580, "y": 380},
+			{"x": 720, "y": 310}, {"x": 520, "y": 210},
+			{"x": 680, "y": 130}, {"x": 840, "y": 210},
+			{"x": 1000, "y": 280}, {"x": 1170, "y": 210},
+			{"x": 1020, "y": 110}, {"x": 1180, "y": 50},
+			{"x": 1340, "y": 130}, {"x": 1320, "y": 280},
+			{"x": 1480, "y": 210}
+		],
+		"stars": [
+			{"x": 650, "y": 80}, {"x": 1000, "y": 250}, {"x": 1480, "y": 210}
+		],
+		"powerups": [
+			{"x": 1320, "y": 80, "type": "dash"}
+		],
+		"enemies": [
+			{"x": 250, "y": 440, "min_x": 220, "max_x": 320, "type": "slime"},
+			{"x": 550, "y": 400, "min_x": 500, "max_x": 600, "type": "electric"},
+			{"x": 700, "y": 340, "min_x": 650, "max_x": 750, "type": "flying"},
+			{"x": 980, "y": 310, "min_x": 900, "max_x": 1050, "type": "jellyfish"},
+			{"x": 1150, "y": 80, "min_x": 1100, "max_x": 1250, "type": "electric"}
+		],
+		"goal": {"x": 1500, "y": 230}
 	}
 ]
 
@@ -1180,7 +1227,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v3.3 - Cyberpunk City"
+	version.text = "v3.4 - Digital Realm"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.add_theme_font_size_override("font_size", 16)
 	version.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
