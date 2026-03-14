@@ -12,13 +12,14 @@ func _ready():
 	elif OS.get_name() != "Android" and OS.get_name() != "iOS":
 		visible = false
 	
-	# 连接按钮信号 - 使用 button_up 代替 released
+	# 连接按钮信号 - 使用 pressed/released 确保触摸响应
+	# 注意：button_down/button_up 在某些平台上触摸事件可能不触发
 	left_btn.pressed.connect(_on_left_pressed)
-	left_btn.button_up.connect(_on_left_released)
+	left_btn.released.connect(_on_left_released)
 	right_btn.pressed.connect(_on_right_pressed)
-	right_btn.button_up.connect(_on_right_released)
+	right_btn.released.connect(_on_right_released)
 	jump_btn.pressed.connect(_on_jump_pressed)
-	jump_btn.button_up.connect(_on_jump_released)
+	jump_btn.released.connect(_on_jump_released)
 
 func _on_left_pressed():
 	Input.action_press("move_left")
