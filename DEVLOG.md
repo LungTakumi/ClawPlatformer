@@ -1,5 +1,84 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v3.8 - Level Select (2026-03-14)
+
+### 新增功能
+- ✅ **选关页面 (Level Select Screen)** - 玩家可以在开始游戏后选择关卡
+  - 网格布局展示所有29个关卡
+  - 显示关卡编号、名称和解锁状态
+  - 已解锁关卡显示 ✅，未解锁显示 🔒
+  - 点击已解锁关卡即可开始游戏
+  - 支持返回主菜单
+
+### 优化
+- 开始界面新增"Level Select"按钮
+- 选关页面支持滚动查看所有关卡
+
+---
+
+## v3.7 - Void Dimension (2026-03-14)
+
+### 新增功能
+- ✅ **Void Dimension 关卡** - 第29关，黑暗虚空主题
+  - 深黑/紫色虚空主题背景
+  - 15个平台，多条上升路线
+  - 包含3颗星星和14枚金币
+  - 包含二段跳能力道具 (Double Jump)
+  - 混合敌人：水母、史莱姆、飞行敌人、电鳗
+- ✅ **虚空粒子效果** - Void Dimension 专属背景
+  - 黑暗虚空漩涡
+  - 漂浮的虚空粒子
+  - 暗能量飘带动画
+- ✅ 版本号更新为 v3.7
+
+### 关卡列表 (v3.7)
+1. Green Hills
+2. Sky Bridges
+3. Moving Platforms
+4. Mountain Climb
+5. Floating Islands
+6. The Tower
+7. Cave
+8. Rainbow Bridge
+9. Crystal Caverns
+10. Bonus Stage
+11. Sky Fortress
+12. Dragon's Lair (Boss)
+13. Secret Garden ✨
+14. Ice Palace ❄️
+15. Volcano 🔥
+16. Haunted Forest 👻
+17. Desert 🏜️
+18. Underwater Temple 🌊
+19. Space Station 🚀
+20. Neon City 🌃
+21. Matrix Core 🟢
+22. Cloud Kingdom ☁️
+23. Ancient Temple 🏛️
+24. Enchanted Forest 🌲
+25. Cyberpunk City 🌃
+26. Digital Realm 💻
+27. Crystal Palace ❄️
+28. Nebula Nexus 🌌
+29. Void Dimension 🌑 新增
+
+### 敌人类型 (v3.7)
+- 🟣 Ground Enemy - 地面敌人
+- 🦇 Flying Enemy - 飞行敌人
+- 💧 Jellyfish - 水母敌人
+- 🟢 Slime - 史莱姆
+- ⚡ Electric Eel - 电鳗
+- 🐉 Boss - Boss敌人
+
+### 构建信息
+- Web Export: ✅ 已构建
+- itch.io: ✅ 已发布 (https://lungtakumi.itch.io/clawplatformer)
+
+### 游戏链接
+- https://lungtakumi.itch.io/clawplatformer
+
+---
+
 ## v3.6 - Nebula Nexus (2026-03-14)
 
 ### 新增功能

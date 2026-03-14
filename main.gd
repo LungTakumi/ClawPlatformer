@@ -44,7 +44,7 @@ var is_paused = false  # ⏸️ Pause state
 
 # Metroidvania: Save system
 var save_data = {
-	"unlocked_levels": [0],  # 已解锁的关卡
+	"unlocked_levels": [0, 1, 2],  # 已解锁的关卡
 	"total_coins": 0,       # 总金币
 	"total_stars": 0,        # 总星星
 	"unlocked_abilities": [], # 解锁的能力
@@ -1130,6 +1130,54 @@ var levels = [
 			{"x": 1400, "y": 200, "min_x": 1350, "max_x": 1430, "type": "jellyfish"}
 		],
 		"goal": {"x": 1640, "y": 150}
+	},
+	
+	# NEW! Void Dimension - Dark void theme (v3.7)
+	{
+		"name": "Void Dimension",
+		"bg_color": Color(0.02, 0.02, 0.05),
+		"void_theme": true,
+		"platforms": [
+			{"x": 50, "y": 550, "w": 100, "h": 25, "void": true},
+			{"x": 200, "y": 480, "w": 80, "h": 25, "void": true},
+			{"x": 80, "y": 380, "w": 80, "h": 25, "void": true},
+			{"x": 250, "y": 320, "w": 80, "h": 25, "void": true},
+			{"x": 400, "y": 400, "w": 100, "h": 25, "void": true},
+			{"x": 550, "y": 300, "w": 80, "h": 25, "void": true},
+			{"x": 700, "y": 380, "w": 80, "h": 25, "void": true},
+			{"x": 850, "y": 280, "w": 80, "h": 25, "void": true},
+			{"x": 680, "y": 150, "w": 100, "h": 25, "void": true},
+			{"x": 880, "y": 100, "w": 80, "h": 25, "void": true},
+			{"x": 1050, "y": 180, "w": 100, "h": 25, "void": true},
+			{"x": 1200, "y": 250, "w": 80, "h": 25, "void": true},
+			{"x": 1100, "y": 80, "w": 80, "h": 25, "void": true},
+			{"x": 1300, "y": 120, "w": 100, "h": 25, "void": true},
+			{"x": 1450, "y": 200, "w": 100, "h": 25, "void": true}
+		],
+		"coins": [
+			{"x": 60, "y": 480}, {"x": 220, "y": 410},
+			{"x": 100, "y": 310}, {"x": 270, "y": 250},
+			{"x": 420, "y": 330}, {"x": 570, "y": 230},
+			{"x": 720, "y": 310}, {"x": 870, "y": 210},
+			{"x": 710, "y": 80}, {"x": 900, "y": 30},
+			{"x": 1080, "y": 110}, {"x": 1220, "y": 180},
+			{"x": 1130, "y": 10}, {"x": 1330, "y": 50},
+			{"x": 1480, "y": 130}
+		],
+		"stars": [
+			{"x": 250, "y": 250}, {"x": 880, "y": 50}, {"x": 1480, "y": 130}
+		],
+		"powerups": [
+			{"x": 1100, "y": 30, "type": "double_jump"}
+		],
+		"enemies": [
+			{"x": 220, "y": 440, "min_x": 200, "max_x": 280, "type": "jellyfish"},
+			{"x": 420, "y": 360, "min_x": 400, "max_x": 500, "type": "slime"},
+			{"x": 570, "y": 260, "min_x": 550, "max_x": 630, "type": "flying"},
+			{"x": 870, "y": 230, "min_x": 850, "max_x": 930, "type": "electric"},
+			{"x": 1300, "y": 200, "min_x": 1250, "max_x": 1350, "type": "jellyfish"}
+		],
+		"goal": {"x": 1500, "y": 150}
 	}
 ]
 
@@ -1280,6 +1328,87 @@ func clear_nebula_effect():
 		nebula_container.queue_free()
 		nebula_container = null
 
+# 🌑 Void effect for Void Dimension level
+var void_container: Node2D = null
+
+func create_void_effect():
+	if void_container:
+		void_container.queue_free()
+	
+	void_container = Node2D.new()
+	void_container.name = "VoidEffect"
+	add_child(void_container)
+	void_container.z_index = -60
+	
+	# Create void portals (dark swirling areas)
+	for i in range(10):
+		var portal = Polygon2D.new()
+		var center = Vector2(randf() * 1400, randf() * 700)
+		var pts = PackedVector2Array()
+		var num_points = 16
+		for j in range(num_points):
+			var angle = j * TAU / num_points
+			var radius = randf_range(40, 80)
+			pts.append(Vector2(cos(angle), sin(angle)) * radius)
+		portal.polygon = pts
+		
+		# Dark void colors with subtle purple/blue glow
+		var color_choice = randi() % 3
+		if color_choice == 0:
+			portal.color = Color(0.1, 0.05, 0.15, randf_range(0.15, 0.3))
+		elif color_choice == 1:
+			portal.color = Color(0.05, 0.1, 0.2, randf_range(0.15, 0.3))
+		else:
+			portal.color = Color(0.15, 0.05, 0.1, randf_range(0.15, 0.3))
+		
+		portal.position = center
+		portal.add_to_group("void_portal")
+		void_container.add_child(portal)
+		
+		# Swirling rotation animation
+		var tween = create_tween()
+		tween.set_loops()
+		tween.tween_property(portal, "rotation", randf_range(0.2, 0.4), randf_range(10.0, 15.0))
+		tween.tween_property(portal, "rotation", -randf_range(0.2, 0.4), randf_range(10.0, 15.0))
+	
+	# Add floating void particles
+	for i in range(50):
+		var particle = ColorRect.new()
+		particle.size = Vector2(randf_range(1, 3), randf_range(1, 3))
+		particle.color = Color(0.4, 0.3, 0.6, randf_range(0.15, 0.4))
+		particle.position = Vector2(randf() * 1400, randf() * 800)
+		particle.add_to_group("void_particle")
+		void_container.add_child(particle)
+		
+		# Float animation
+		var tween = create_tween()
+		var start_pos = particle.position
+		var float_offset = randf_range(-40, 40)
+		tween.set_loops()
+		tween.tween_property(particle, "position:y", start_pos.y + float_offset, randf_range(4.0, 6.0))
+		tween.tween_property(particle, "position:y", start_pos.y, randf_range(4.0, 6.0))
+	
+	# Add dark energy wisps
+	for i in range(20):
+		var wisp = ColorRect.new()
+		wisp.size = Vector2(randf_range(2, 5), randf_range(2, 5))
+		wisp.color = Color(0.2, 0.1, 0.3, randf_range(0.2, 0.5))
+		wisp.position = Vector2(randf() * 1400, randf() * 800)
+		wisp.add_to_group("void_wisp")
+		void_container.add_child(wisp)
+		
+		# Drift animation
+		var tween = create_tween()
+		var start_pos = wisp.position
+		tween.set_loops()
+		tween.tween_property(wisp, "position:x", start_pos.x + randf_range(-20, 20), randf_range(5.0, 8.0))
+		tween.tween_property(wisp, "position:x", start_pos.x, randf_range(5.0, 8.0))
+
+func clear_void_effect():
+	if void_container:
+		void_container.queue_free()
+		void_container = null
+
 func show_level_name(level_name):
 	var ui = get_tree().get_first_node_in_group("ui")
 	if ui:
@@ -1428,7 +1557,7 @@ func show_start_screen():
 	
 	# Version info
 	var version = Label.new()
-	version.text = "v3.6 - Nebula Nexus"
+	version.text = "v3.7 - Void Dimension"
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	version.add_theme_font_size_override("font_size", 16)
 	version.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
@@ -1451,13 +1580,19 @@ func show_start_screen():
 	instr.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	container.add_child(instr)
 	
-	# Start prompt
-	var start = Label.new()
-	start.text = "Press SPACE to Start"
-	start.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	start.add_theme_font_size_override("font_size", 28)
-	start.add_theme_color_override("font_color", Color(1, 0.85, 0))
-	container.add_child(start)
+	# Start button
+	var start_btn = Button.new()
+	start_btn.text = "🎮 Start Game"
+	start_btn.custom_minimum_size = Vector2(200, 50)
+	start_btn.pressed.connect(func(): start_game())
+	container.add_child(start_btn)
+	
+	# Level Select button
+	var level_select_btn = Button.new()
+	level_select_btn.text = "🗺️ Level Select"
+	level_select_btn.custom_minimum_size = Vector2(200, 50)
+	level_select_btn.pressed.connect(func(): show_level_select())
+	container.add_child(level_select_btn)
 	
 	# Metroidvania: 显示进度
 	var progress_text = "💾 Progress:\n"
@@ -1492,6 +1627,112 @@ func show_start_screen():
 		ach.add_theme_font_size_override("font_size", 14)
 		ach.add_theme_color_override("font_color", Color(0.8, 0.9, 1))
 		container.add_child(ach)
+
+# 🆕 Level Select Screen
+func show_level_select():
+	# Clear existing UI
+	var old_canvas = get_tree().get_first_node_in_group("ui")
+	if old_canvas: old_canvas.queue_free()
+	
+	var canvas = CanvasLayer.new()
+	canvas.add_to_group("ui")
+	add_child(canvas)
+	
+	# Title
+	var title = Label.new()
+	title.text = "🗺️ SELECT LEVEL"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.position = Vector2(0, 20)
+	title.add_theme_font_size_override("font_size", 38)
+	title.add_theme_color_override("font_color", Color(0.2, 0.8, 1))
+	canvas.add_child(title)
+	
+	# Back button
+	var back_btn = Button.new()
+	back_btn.text = "⬅️ Back"
+	back_btn.position = Vector2(20, 20)
+	back_btn.custom_minimum_size = Vector2(120, 40)
+	back_btn.pressed.connect(func(): show_start_screen())
+	canvas.add_child(back_btn)
+	
+	# Scroll container for levels
+	var scroll = ScrollContainer.new()
+	scroll.position = Vector2(50, 100)
+	scroll.size = Vector2(700, 500)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	canvas.add_child(scroll)
+	
+	# Grid container for level buttons
+	var grid = GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 20)
+	grid.add_theme_constant_override("v_separation", 20)
+	scroll.add_child(grid)
+	
+	# Get unlocked levels
+	var unlocked = get_unlocked_levels()
+	
+	# Create level buttons
+	for i in range(levels.size()):
+		var level = levels[i]
+		var is_unlocked = i in unlocked
+		
+		# Level button container
+		var level_container = VBoxContainer.new()
+		level_container.custom_minimum_size = Vector2(200, 100)
+		
+		# Level number
+		var level_num = Label.new()
+		level_num.text = "Level " + str(i + 1)
+		level_num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		level_num.add_theme_font_size_override("font_size", 18)
+		level_num.add_theme_color_override("font_color", Color.WHITE)
+		level_container.add_child(level_num)
+		
+		# Level name
+		var level_name = Label.new()
+		level_name.text = level["name"]
+		level_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		level_name.add_theme_font_size_override("font_size", 14)
+		level_name.add_theme_color_override("font_color", Color(0.8, 0.9, 1))
+		level_container.add_child(level_name)
+		
+		# Lock indicator
+		var lock = Label.new()
+		if is_unlocked:
+			lock.text = "✅ UNLOCKED"
+			lock.add_theme_color_override("font_color", Color(0.4, 1, 0.4))
+		else:
+			lock.text = "🔒 LOCKED"
+			lock.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+		lock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lock.add_theme_font_size_override("font_size", 12)
+		level_container.add_child(lock)
+		
+		# Play button
+		var play_btn = Button.new()
+		if is_unlocked:
+			play_btn.text = "▶️ PLAY"
+			play_btn.pressed.connect(func(): start_selected_level(i))
+		else:
+			play_btn.text = "🔒 LOCKED"
+			play_btn.disabled = true
+		play_btn.custom_minimum_size = Vector2(180, 35)
+		level_container.add_child(play_btn)
+		
+		grid.add_child(level_container)
+	
+	# Update grid size
+	grid.custom_minimum_size.y = ceil(levels.size() / 3.0) * 120 + 20
+
+func start_selected_level(level_index):
+	game_started = true
+	current_level = level_index
+	score = 0
+	lives = 3
+	total_play_time = 0.0
+	level_deaths = 0
+	setup_level(current_level)
 
 func toggle_pause():
 	if not game_started:
@@ -1653,6 +1894,12 @@ func setup_level(level_index):
 		create_nebula_effect()
 	else:
 		clear_nebula_effect()
+	
+	# 🌑 Create void effect for Void Dimension
+	if level.get("void_theme", false):
+		create_void_effect()
+	else:
+		clear_void_effect()
 	
 	# ⏱️ Start level timer
 	start_level_timer()
