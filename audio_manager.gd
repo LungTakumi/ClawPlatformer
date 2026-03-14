@@ -12,7 +12,14 @@ var enemy_player: AudioStreamPlayer
 var boss_player: AudioStreamPlayer
 var checkpoint_player: AudioStreamPlayer
 
+# Volume control (0.0 to 1.0)
+var master_volume: float = 0.7
+var sfx_volume: float = 0.8
+var music_volume: float = 0.5
+
 func _ready():
+	load_volume_settings()
+	
 	jump_player = AudioStreamPlayer.new()
 	coin_player = AudioStreamPlayer.new()
 	hurt_player = AudioStreamPlayer.new()
@@ -40,6 +47,53 @@ func _ready():
 	enemy_player.stream = generate_tone(300, 0.1, 0.3)  # Enemy defeated
 	boss_player.stream = generate_tone(150, 0.3, 0.4)  # Boss warning - ominous
 	checkpoint_player.stream = generate_tone(700, 0.15, 0.4)  # Checkpoint - ding
+	
+	# Apply volume settings
+	update_volumes()
+
+func load_volume_settings():
+	var save_file = FileAccess.open("user://volume.dat", FileAccess.READ)
+	if save_file:
+		master_volume = save_file.get_var()
+		sfx_volume = save_file.get_var()
+		music_volume = save_file.get_var()
+		save_file.close()
+
+func save_volume_settings():
+	var save_file = FileAccess.open("user://volume.dat", FileAccess.WRITE)
+	if save_file:
+		save_file.store_var(master_volume)
+		save_file.store_var(sfx_volume)
+		save_file.store_var(music_volume)
+		save_file.close()
+
+func set_master_volume(value: float):
+	master_volume = clamp(value, 0.0, 1.0)
+	update_volumes()
+	save_volume_settings()
+
+func set_sfx_volume(value: float):
+	sfx_volume = clamp(value, 0.0, 1.0)
+	update_volumes()
+	save_volume_settings()
+
+func set_music_volume(value: float):
+	music_volume = clamp(value, 0.0, 1.0)
+	update_volumes()
+	save_volume_settings()
+
+func update_volumes():
+	var sfx_vol = linear_to_db(master_volume * sfx_volume)
+	var music_vol = linear_to_db(master_volume * music_volume)
+	
+	jump_player.volume_db = sfx_vol
+	coin_player.volume_db = sfx_vol
+	hurt_player.volume_db = sfx_vol
+	win_player.volume_db = sfx_vol
+	powerup_player.volume_db = sfx_vol
+	enemy_player.volume_db = sfx_vol
+	boss_player.volume_db = sfx_vol
+	checkpoint_player.volume_db = sfx_vol
 
 func generate_tone(freq: float, duration: float, volume: float) -> AudioStreamWAV:
 	var stream = AudioStreamWAV.new()
