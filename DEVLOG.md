@@ -1,5 +1,25 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v4.0 - Volume Control System (2026-03-14)
+
+### 新增功能
+- ✅ **音量控制系统** - audio_manager.gd 添加完整的音量控制
+  - Master 主音量控制
+  - SFX 音效音量控制  
+  - 设置自动保存到本地 (user://volume.dat)
+  - 使用分贝 (dB) 转换实现平滑音量调节
+  - 暂停菜单中添加音量滑块（需要手动更新 main.gd，详见 VOLUME_PATCH.md）
+
+### 手动更新
+- main.gd 需要应用 VOLUME_PATCH.md 中的补丁来显示音量滑块
+
+### 构建信息
+- Web Export: ✅ 已构建
+- itch.io: ⚠️ 需要手动推送 (butler 认证问题)
+- GitHub: ✅ 已推送
+
+---
+
 ## v3.9 - Virtual Controls Fix (2026-03-14)
 
 ### Bug 修复
