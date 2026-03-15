@@ -1556,13 +1556,12 @@ func show_start_screen():
 	title.add_theme_color_override("font_color", Color(0.2, 0.8, 1))
 	container.add_child(title)
 	
-	# Version info
-	var version = Label.new()
-	version.text = "v3.9 - Level Select Ready"
-	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	version.add_theme_font_size_override("font_size", 16)
-	version.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-	container.add_child(version)
+	# Skip Shop button
+	var skip_shop_btn = Button.new()
+	skip_shop_btn.text = "⚡ Skip Shop"
+	skip_shop_btn.custom_minimum_size = Vector2(200, 50)
+	skip_shop_btn.pressed.connect(func(): skip_shop())
+	container.add_child(skip_shop_btn)
 	
 	# High score
 	if high_score > 0:
@@ -1628,6 +1627,14 @@ func show_start_screen():
 		ach.add_theme_font_size_override("font_size", 14)
 		ach.add_theme_color_override("font_color", Color(0.8, 0.9, 1))
 		container.add_child(ach)
+	
+	# Version in bottom right
+	var version = Label.new()
+	version.text = "v3.9"
+	version.position = Vector2(650, 550)
+	version.add_theme_font_size_override("font_size", 14)
+	version.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	canvas.add_child(version)
 
 # 🆕 Level Select Screen
 func show_level_select():
@@ -1939,6 +1946,16 @@ func _handle_continue_or_start():
 				stars_collected = 0
 				game_started = true
 				setup_level(0)
+
+func skip_shop():
+	# Skip shop - go directly to level 1
+	game_started = true
+	current_level = 0
+	score = 0
+	lives = 3
+	total_play_time = 0.0
+	level_deaths = 0
+	setup_level(current_level)
 
 func start_game():
 	game_started = true
