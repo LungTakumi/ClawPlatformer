@@ -28,6 +28,9 @@ var dash_timer = 0.0
 var dash_cooldown = 0.0
 var can_wall_climb = false
 var is_wall_sliding = false
+var can_ground_slam = false
+var is_ground_slamming = false
+var ground_slam_velocity = 0.0
 
 func _physics_process(delta):
 	if is_dead:
@@ -96,6 +99,25 @@ func _physics_process(delta):
 	
 	if dash_cooldown > 0:
 		dash_cooldown -= delta
+	
+	# Handle Ground Slam ability
+	if can_ground_slam and not is_on_floor() and not is_dashing:
+		if Input.is_action_just_pressed("move_down") or Input.is_key_pressed(KEY_S):
+			is_ground_slamming = true
+			ground_slam_velocity = 1200.0
+			spawn_ground_slam_effect()
+	
+	# Apply ground slam
+	if is_ground_slamming:
+		velocity.y = ground_slam_velocity
+		velocity.x = 0
+		if is_on_floor():
+			is_ground_slamming = false
+			spawn_ground_slam_impact()
+			# Screen shake
+			var game = get_tree().get_first_node_in_group("game")
+			if game:
+				game.screen_shake_intensity(8.0)
 
 	# Get input direction
 	var direction = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
@@ -321,3 +343,46 @@ func activate_double_jump():
 	tw.tween_property(label, "position", label.position + Vector2(0, -30), 1.0)
 	tw.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
 	tw.tween_callback(label.queue_free)
+
+func activate_ground_slam():
+	can_ground_slam = true
+	# Visual feedback
+	var label = Label.new()
+	label.text = "GROUND SLAM!"
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", Color(1, 0.5, 0.2))
+	label.position = global_position + Vector2(-50, -50)
+	get_parent().add_child(label)
+	var tw = create_tween()
+	tw.tween_property(label, "position", label.position + Vector2(0, -30), 1.0)
+	tw.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
+	tw.tween_callback(label.queue_free)
+
+func spawn_ground_slam_effect():
+	# Create trail effect while falling
+	for i in range(8):
+		var trail = ColorRect.new()
+		trail.size = Vector2(16, 16)
+		trail.color = Color(1, 0.6, 0.2, 0.5)
+		trail.position = Vector2(-8, -8)
+		trail.z_index = -1
+		get_parent().add_child(trail)
+		
+		var tw = create_tween()
+		tw.tween_property(trail, "modulate:a", 0.0, 0.3)
+		tw.tween_callback(trail.queue_free)
+
+func spawn_ground_slam_impact():
+	# Impact effect when hitting ground
+	for i in range(12):
+		var particle = ColorRect.new()
+		particle.size = Vector2(6, 6)
+		particle.color = Color(1, 0.4, 0.1, 0.8)
+		particle.position = global_position + Vector2(randf_range(-20, 20), 0)
+		get_parent().add_child(particle)
+		
+		var tw = create_tween()
+		var target = Vector2(randf_range(-60, 60), randf_range(-40, -10))
+		tw.tween_property(particle, "position", particle.position + target, 0.4)
+		tw.parallel().tween_property(particle, "modulate:a", 0.0, 0.4)
+		tw.tween_callback(particle.queue_free)

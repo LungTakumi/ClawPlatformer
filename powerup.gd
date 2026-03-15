@@ -1,6 +1,6 @@
 extends Area2D
 
-enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE, DASH, WALL_CLIMB }
+enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE, DASH, WALL_CLIMB, GROUND_SLAM }
 
 var powerup_type: PowerupType = PowerupType.INVINCIBLE
 var rotation_speed = 1.5
@@ -13,7 +13,8 @@ var colors = {
 	PowerupType.DOUBLE_JUMP: Color(0.8, 0.4, 1, 1),     # Purple - up arrow
 	PowerupType.LIFE: Color(1, 0.4, 0.4, 1),             # Red - heart
 	PowerupType.DASH: Color(0.3, 1, 0.5, 1),             # Green - dash
-	PowerupType.WALL_CLIMB: Color(1, 0.5, 0.8, 1)         # Pink - wall climb
+	PowerupType.WALL_CLIMB: Color(1, 0.5, 0.8, 1),        # Pink - wall climb
+	PowerupType.GROUND_SLAM: Color(1, 0.4, 0.1, 1)        # Orange - ground slam
 }
 
 func _ready():
@@ -32,6 +33,8 @@ func _ready():
 			powerup_type = PowerupType.SPEED_BOOST
 		elif forced == "life":
 			powerup_type = PowerupType.LIFE
+		elif forced == "ground_slam":
+			powerup_type = PowerupType.GROUND_SLAM
 	else:
 		# Random type
 		powerup_type = randi() % PowerupType.size()
@@ -145,6 +148,27 @@ func create_visual():
 		glow.color = Color(1, 0.7, 0.9, 0.4)
 		add_child(glow)
 	
+	elif powerup_type == PowerupType.GROUND_SLAM:
+		# Explosion/impact shape
+		var slam = Polygon2D.new()
+		var pts = PackedVector2Array([
+			Vector2(0, -14), Vector2(6, -8), Vector2(12, -10),
+			Vector2(10, -4), Vector2(14, 0), Vector2(10, 4),
+			Vector2(12, 10), Vector2(6, 8), Vector2(0, 14),
+			Vector2(-6, 8), Vector2(-12, 10), Vector2(-10, 4),
+			Vector2(-14, 0), Vector2(-10, -4), Vector2(-12, -10),
+			Vector2(-6, -8)
+		])
+		slam.polygon = pts
+		slam.color = color
+		add_child(slam)
+		
+		# Glow
+		var glow = Polygon2D.new()
+		glow.polygon = pts.duplicate()
+		glow.color = Color(1, 0.6, 0.3, 0.4)
+		add_child(glow)
+	
 	# Collision
 	var col = CollisionShape2D.new()
 	var circle = CircleShape2D.new()
@@ -228,6 +252,10 @@ func apply_powerup():
 		PowerupType.WALL_CLIMB:
 			player_node.can_wall_climb = true
 			get_tree().call_group("game", "unlock_ability", "wall_climb")
+			get_tree().call_group("game", "add_score", 50)
+		PowerupType.GROUND_SLAM:
+			player_node.activate_ground_slam()
+			get_tree().call_group("game", "unlock_ability", "ground_slam")
 			get_tree().call_group("game", "add_score", 50)
 
 func spawn_particles():
