@@ -1,0 +1,95 @@
+[gd_scene load_steps=2 format=3 uid="uid://b8q1x2y3z4a5b"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1280.0
+offset_bottom = 720.0
+color = Color(0.1, 0.1, 0.15, 1)
+
+[node name="Lobster" type="Node2D" parent="."]
+position = Vector2(640, 380)
+
+[node name="Sprite2D" type="Node2D" parent="Lobster"]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="PhaseLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 600.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 28
+text = "Day 1 - MORNING_SCHEDULE"
+
+[node name="StatsLabel" type="Label" parent="UI"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 20.0
+offset_right = 300.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Money: $0 | Stress: 20 | Resentment: 10 | Productivity: 10
+Evolution: normal"
+horizontal_alignment = 1
+
+[node name="DialogueBox" type="PanelContainer" parent="UI"]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = -220.0
+offset_right = 400.0
+offset_bottom = -50.0
+
+[node name="DialogueLabel" type="Label" parent="UI/DialogueBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "Lobster says: ..."
+autowrap_mode = 2
+
+[node name="ChoiceButtons" type="Node2D" parent="UI"]
+position = Vector2(440, 280)
+
+[node name="ShopPanel" type="PanelContainer" parent="UI"]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -250.0
+offset_right = 350.0
+offset_bottom = 250.0
+
+[node name="ShopTitle" type="Label" parent="UI/ShopPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.8, 1)
+theme_override_font_sizes/font_size = 24
+text = "🛒 NIGHT MARKET"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UI/ShopPanel"]
+custom_minimum_size = Vector2(600, 400)
+layout_mode = 2
+offset_left = 10.0
+offset_top = 40.0
+offset_right = 690.0
+offset_bottom = 470.0
+
+[node name="ShopGrid" type="Node2D" parent="UI/ShopPanel/ScrollContainer"]

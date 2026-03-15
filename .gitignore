@@ -1,0 +1,7 @@
+.godot/
+*.pck
+*.zip
+*.exe
+*.dmg
+*.app
+build/
