@@ -1545,7 +1545,6 @@ func show_start_screen():
 	var container = VBoxContainer.new()
 	container.position = Vector2(250, 80)
 	container.add_theme_constant_override("separation", 15)
-	container.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	canvas.add_child(container)
 	
 	# Animated title
@@ -1630,7 +1629,7 @@ func show_start_screen():
 	
 	# Version in bottom right
 	var version = Label.new()
-	version.text = "v3.9"
+	version.text = "v4.0"
 	version.position = Vector2(650, 550)
 	version.add_theme_font_size_override("font_size", 14)
 	version.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
@@ -1864,12 +1863,181 @@ func show_pause_menu():
 	sfx_row.add_child(sfx_slider)
 	pause_menu.add_child(sfx_row)
 	
+	# Quick Warp button - Teleport to unlocked levels
+	var warp_btn = Button.new()
+	warp_btn.text = "🌀 Quick Warp"
+	warp_btn.custom_minimum_size = Vector2(200, 45)
+	warp_btn.pressed.connect(func(): 
+		hide_pause_menu()
+		show_warp_menu()
+	)
+	pause_menu.add_child(warp_btn)
+	
 	# Quit button
 	var quit_btn = Button.new()
 	quit_btn.text = "Quit to Menu"
 	quit_btn.custom_minimum_size = Vector2(200, 45)
 	quit_btn.pressed.connect(func(): quit_to_menu())
 	pause_menu.add_child(quit_btn)
+
+# 🌀 Quick Warp Menu - Teleport to unlocked levels
+func show_warp_menu():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if not ui:
+		return
+	
+	is_paused = false
+	get_tree().paused = false
+	
+	# Remove existing warp menu if any
+	var existing = ui.get_node_or_null("WarpMenu")
+	if existing:
+		existing.queue_free()
+	
+	var warp_menu = VBoxContainer.new()
+	warp_menu.name = "WarpMenu"
+	warp_menu.position = Vector2(400, 120)
+	warp_menu.add_theme_constant_override("separation", 10)
+	ui.add_child(warp_menu)
+	
+	# Title
+	var title = Label.new()
+	title.text = "🌀 QUICK WARP"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color(0.4, 0.8, 1))
+	warp_menu.add_child(title)
+	
+	# Subtitle
+	var subtitle = Label.new()
+	subtitle.text = "Teleport to unlocked levels"
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_size_override("font_size", 14)
+	subtitle.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	warp_menu.add_child(subtitle)
+	
+	# Level buttons grid
+	var grid = GridContainer.new()
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	warp_menu.add_child(grid)
+	
+	var unlocked = get_unlocked_levels()
+	
+	# Create level warp buttons
+	for i in range(min(levels.size(), 20)):  # Show first 20 levels
+		var level = levels[i]
+		var is_unlocked = i in unlocked
+		
+		var btn = Button.new()
+		btn.custom_minimum_size = Vector2(80, 50)
+		
+		if is_unlocked:
+			btn.text = str(i + 1)
+			btn.tooltip_text = level["name"]
+			btn.pressed.connect(func(): warp_to_level(i))
+		else:
+			btn.text = "🔒"
+			btn.disabled = true
+		
+		grid.add_child(btn)
+	
+	# More levels button if there are more
+	if levels.size() > 20:
+		var more_btn = Button.new()
+		more_btn.text = "More..."
+		more_btn.custom_minimum_size = Vector2(200, 40)
+		more_btn.pressed.connect(func(): 
+			ui.get_node("WarpMenu").queue_free()
+			show_warp_menu_more()
+		)
+		warp_menu.add_child(more_btn)
+	
+	# Back button
+	var back_btn = Button.new()
+	back_btn.text = "⬅️ Back to Game"
+	back_btn.custom_minimum_size = Vector2(200, 40)
+	back_btn.pressed.connect(func(): 
+		ui.get_node("WarpMenu").queue_free()
+		toggle_pause()
+	)
+	warp_menu.add_child(back_btn)
+
+func show_warp_menu_more():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if not ui:
+		return
+	
+	# Remove existing warp menu if any
+	var existing = ui.get_node_or_null("WarpMenu")
+	if existing:
+		existing.queue_free()
+	
+	var warp_menu = VBoxContainer.new()
+	warp_menu.name = "WarpMenu"
+	warp_menu.position = Vector2(350, 80)
+	warp_menu.add_theme_constant_override("separation", 8)
+	ui.add_child(warp_menu)
+	
+	# Title
+	var title = Label.new()
+	title.text = "🌀 MORE LEVELS"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_color_override("font_color", Color(0.4, 0.8, 1))
+	warp_menu.add_child(title)
+	
+	# Level buttons grid
+	var grid = GridContainer.new()
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	warp_menu.add_child(grid)
+	
+	var unlocked = get_unlocked_levels()
+	
+	# Create level warp buttons (20-40)
+	for i in range(20, levels.size()):
+		var level = levels[i]
+		var is_unlocked = i in unlocked
+		
+		var btn = Button.new()
+		btn.custom_minimum_size = Vector2(80, 50)
+		
+		if is_unlocked:
+			btn.text = str(i + 1)
+			btn.tooltip_text = level["name"]
+			btn.pressed.connect(func(): warp_to_level(i))
+		else:
+			btn.text = "🔒"
+			btn.disabled = true
+		
+		grid.add_child(btn)
+	
+	# Back button
+	var back_btn = Button.new()
+	back_btn.text = "⬅️ Back"
+	back_btn.custom_minimum_size = Vector2(200, 40)
+	back_btn.pressed.connect(func(): 
+		ui.get_node("WarpMenu").queue_free()
+		show_warp_menu()
+	)
+	warp_menu.add_child(back_btn)
+
+func warp_to_level(level_index):
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		var warp_menu = ui.get_node_or_null("WarpMenu")
+		if warp_menu:
+			warp_menu.queue_free()
+	
+	is_paused = false
+	get_tree().paused = false
+	
+	# Warp to selected level
+	current_level = level_index
+	setup_level(current_level)
 
 func hide_pause_menu():
 	var ui = get_tree().get_first_node_in_group("ui")
@@ -2399,7 +2567,6 @@ func create_enemy(x, y, type = "ground", hp = 1, min_x = 0, max_x = 300) -> Char
 	add_child(enemy)
 	enemies.append(enemy)
 	return enemy
-	return enemy
 
 func create_checkpoint(x, y):
 	var cp = Area2D.new()
@@ -2464,6 +2631,47 @@ func create_powerup(x, y, powerup_type = null):
 		powerup.set_meta("forced_type", powerup_type)
 	add_child(powerup)
 	powerups.append(powerup)
+
+# 🌀 Create a warp portal - teleports to unlocked levels
+var warp_portals: Array[Area2D] = []
+
+func create_warp_portal(x, y):
+	var portal = Area2D.new()
+	portal.position = Vector2(x, y)
+	portal.script = load("res://warp_portal.gd")
+	
+	# Create visual - swirling portal effect
+	var sprite = Polygon2D.new()
+	var pts = PackedVector2Array()
+	var num_points = 8
+	for i in range(num_points):
+		var angle = i * TAU / num_points
+		pts.append(Vector2(cos(angle), sin(angle)) * 16)
+	sprite.polygon = pts
+	sprite.color = Color(0.4, 0.8, 1, 0.8)
+	portal.add_child(sprite)
+	
+	# Inner glow
+	var inner = Polygon2D.new()
+	inner.polygon = pts.duplicate()
+	inner.scale = Vector2(0.6, 0.6)
+	inner.color = Color(0.6, 0.9, 1, 0.6)
+	portal.add_child(inner)
+	
+	# Collision
+	var col = CollisionShape2D.new()
+	var circle = CircleShape2D.new()
+	circle.radius = 18
+	col.shape = circle
+	portal.add_child(col)
+	
+	portal.body_entered.connect(func(body):
+		if body.is_in_group("player"):
+			portal.collect()
+	)
+	
+	add_child(portal)
+	warp_portals.append(portal)
 
 func setup_ui():
 	var old = get_tree().get_first_node_in_group("ui")

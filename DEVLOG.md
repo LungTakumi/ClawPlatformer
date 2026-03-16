@@ -1,5 +1,28 @@
 # 🦞 Lobster Platformer 开发日志
 
+## v4.1 - Quick Warp System (2026-03-16)
+
+### 新增功能
+- ✅ **快速传送 (Quick Warp) 系统** - Metroidvania 风格的关卡快速切换
+  - 暂停菜单中添加"🌀 Quick Warp"按钮
+  - 显示已解锁关卡列表
+  - 支持传送到所有已解锁关卡
+  - 两页布局支持 20+ 关卡
+- ✅ **世界地图传送门 (Warp Portal)** - 新的可收集物品
+  - 玩家可以在关卡中收集传送门
+  - 收集后打开快速传送菜单
+  - 旋转 + 上下浮动动画效果
+- ✅ **代码优化** - 修复重复 return 语句
+
+### Bug 修复
+- ✅ 修复 main.gd 中重复的 `return enemy` 语句
+
+### 构建信息
+- Web Export: ⚠️ 待构建
+- GitHub: ⚠️ 待推送
+
+---
+
 ## v4.0 - Volume Control System (2026-03-14)
 
 ### 新增功能
@@ -8,10 +31,7 @@
   - SFX 音效音量控制  
   - 设置自动保存到本地 (user://volume.dat)
   - 使用分贝 (dB) 转换实现平滑音量调节
-  - 暂停菜单中添加音量滑块（需要手动更新 main.gd，详见 VOLUME_PATCH.md）
-
-### 手动更新
-- main.gd 需要应用 VOLUME_PATCH.md 中的补丁来显示音量滑块
+  - 暂停菜单中添加音量滑块
 
 ### 构建信息
 - Web Export: ✅ 已构建
