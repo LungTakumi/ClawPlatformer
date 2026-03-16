@@ -72,6 +72,14 @@ var can_combo_finale = false
 var is_combo_finale_active = false
 var finale_timer = 0.0
 
+# Time Rewind ability - go back in time
+var can_time_rewind = false
+var time_rewind_cooldown = 0.0
+var is_time_rewinding = false
+var time_rewind_timer = 0.0
+var time_rewind_buffer = []
+var max_rewind_frames = 60
+
 func _physics_process(delta):
 	if is_dead:
 		return
@@ -214,6 +222,33 @@ func _physics_process(delta):
 	if can_combo_finale and not is_combo_finale_active:
 		if Input.is_key_pressed(KEY_V):
 			activate_combo_finale()
+	
+	# Handle Time Rewind ability (Press R to rewind time)
+	if can_time_rewind and time_rewind_cooldown <= 0 and time_rewind_buffer.size() > 10:
+		if Input.is_key_pressed(KEY_R):
+			is_time_rewinding = true
+			time_rewind_timer = 1.5
+			perform_time_rewind()
+	
+	if is_time_rewinding:
+		time_rewind_timer -= delta
+		if time_rewind_timer <= 0 or time_rewind_buffer.size() == 0:
+			is_time_rewinding = false
+		else:
+			perform_time_rewind()
+	
+	if time_rewind_cooldown > 0:
+		time_rewind_cooldown -= delta
+	
+	# Record position for time rewind buffer (every frame when not rewinding)
+	if not is_time_rewinding and can_time_rewind:
+		time_rewind_buffer.append({
+			"position": position,
+			"velocity": velocity,
+			"facing_right": facing_right
+		})
+		if time_rewind_buffer.size() > max_rewind_frames:
+			time_rewind_buffer.pop_front()
 
 	# Get input direction
 	var direction = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
@@ -891,4 +926,51 @@ func spawn_combo_finale_effect():
 	ring_tw.tween_property(ring, "scale", Vector2(3, 3), 0.5)
 	ring_tw.parallel().tween_property(ring, "modulate:a", 0.0, 0.5)
 	ring_tw.tween_callback(ring.queue_free)
+
+func activate_time_rewind():
+	can_time_rewind = true
+	time_rewind_cooldown = 15.0
+	time_rewind_buffer.clear()
+	var label = Label.new()
+	label.text = "TIME REWIND!"
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", Color(0.3, 0.8, 1))
+	label.position = global_position + Vector2(-50, -50)
+	get_parent().add_child(label)
+	var tw = create_tween()
+	tw.tween_property(label, "position", label.position + Vector2(0, -30), 1.0)
+	tw.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
+	tw.tween_callback(label.queue_free)
+
+func perform_time_rewind():
+	if time_rewind_buffer.size() == 0:
+		is_time_rewinding = false
+		return
+	
+	var state = time_rewind_buffer.pop_back()
+	position = state["position"]
+	velocity = state["velocity"]
+	facing_right = state["facing_right"]
+	update_facing()
+	
+	modulate = Color(0.3, 0.8, 1, 0.7 + 0.3 * sin(Time.get_ticks_msec() / 50.0))
+	
+	spawn_time_rewind_effect()
+	
+	if time_rewind_buffer.size() == 0:
+		time_rewind_cooldown = 15.0
+		is_time_rewinding = false
+		modulate = Color.WHITE
+
+func spawn_time_rewind_effect():
+	for i in range(3):
+		var particle = ColorRect.new()
+		particle.size = Vector2(randf_range(3, 6), randf_range(3, 6))
+		particle.color = Color(0.3, 0.8, 1, 0.6)
+		particle.position = position + Vector2(randf_range(-10, 10), randf_range(-15, 5))
+		get_parent().add_child(particle)
+		
+		var tw = create_tween()
+		tw.tween_property(particle, "modulate:a", 0.0, 0.2)
+		tw.tween_callback(particle.queue_free)
 
