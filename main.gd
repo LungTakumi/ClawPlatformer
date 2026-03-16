@@ -49,7 +49,12 @@ var achievements = {
 	"gem_collector": {"name": "Gem Collector", "desc": "Collect 50 gems", "unlocked": false, "progress": 0, "target": 50},
 	"explorer": {"name": "Explorer", "desc": "Find all secrets in 5 levels", "unlocked": false, "progress": 0, "target": 5},
 	"perfectionist": {"name": "Perfectionist", "desc": "Get 3 stars in 10 levels", "unlocked": false, "progress": 0, "target": 10},
-	"time_trialist": {"name": "Time Trialist", "desc": "Complete 5 levels under best time", "unlocked": false, "progress": 0, "target": 5}
+	"time_trialist": {"name": "Time Trialist", "desc": "Complete 5 levels under best time", "unlocked": false, "progress": 0, "target": 5},
+	"ultimate_collector": {"name": "Ultimate Collector", "desc": "Collect all power-ups in one run", "unlocked": false, "progress": 0, "target": 10},
+	"endurance_master": {"name": "Endurance Master", "desc": "Complete 5 endless levels", "unlocked": false, "progress": 0, "target": 5},
+	"gladiator": {"name": "Gladiator", "desc": "Defeat 50 enemies", "unlocked": false, "progress": 0, "target": 50},
+	"vault_breaker": {"name": "Vault Breaker", "desc": "Collect 1000 total coins", "unlocked": false, "progress": 0, "target": 1000},
+	"combo_god": {"name": "Combo God", "desc": "Get a 20x combo", "unlocked": false, "progress": 0, "target": 20}
 }
 var boss_damage_taken = false
 var level_deaths = 0
@@ -1405,6 +1410,130 @@ var levels = [
 			{"x": 1050, "y": 260, "min_x": 1000, "max_x": 1100, "type": "jellyfish"}
 		],
 		"goal": {"x": 1450, "y": 250}
+	},
+	# NEW! Twilight Temple - Mystical twilight themed level (v4.5)
+	{
+		"name": "Twilight Temple",
+		"bg_color": Color(0.15, 0.08, 0.2),
+		"platforms": [
+			{"x": 50, "y": 520, "w": 150, "h": 30},
+			{"x": 250, "y": 460, "w": 100, "h": 25},
+			{"x": 100, "y": 380, "w": 80, "h": 25},
+			{"x": 300, "y": 300, "w": 100, "h": 25},
+			{"x": 480, "y": 380, "w": 80, "h": 25},
+			{"x": 620, "y": 300, "w": 100, "h": 25},
+			{"x": 480, "y": 180, "w": 100, "h": 25},
+			{"x": 680, "y": 120, "w": 100, "h": 25},
+			{"x": 880, "y": 200, "w": 120, "h": 25},
+			{"x": 1050, "y": 280, "w": 100, "h": 25},
+			{"x": 1200, "y": 200, "w": 80, "h": 25},
+			{"x": 1350, "y": 280, "w": 100, "h": 25}
+		],
+		"coins": [
+			{"x": 80, "y": 450}, {"x": 280, "y": 390},
+			{"x": 130, "y": 310}, {"x": 330, "y": 230},
+			{"x": 500, "y": 310}, {"x": 650, "y": 230},
+			{"x": 510, "y": 110}, {"x": 710, "y": 50},
+			{"x": 910, "y": 130}, {"x": 1080, "y": 210},
+			{"x": 1220, "y": 130}, {"x": 1380, "y": 210}
+		],
+		"stars": [
+			{"x": 150, "y": 280}, {"x": 700, "y": 80}, {"x": 1400, "y": 210}
+		],
+		"powerups": [
+			{"x": 500, "y": 180, "type": "time_slow"}
+		],
+		"enemies": [
+			{"x": 280, "y": 420, "min_x": 250, "max_x": 350, "type": "jellyfish"},
+			{"x": 500, "y": 340, "min_x": 450, "max_x": 550, "type": "slime"},
+			{"x": 700, "y": 80, "min_x": 650, "max_x": 750, "type": "flying"},
+			{"x": 1050, "y": 240, "min_x": 1000, "max_x": 1100, "type": "electric"}
+		],
+		"goal": {"x": 1430, "y": 230}
+	},
+	# NEW! Solar Core - Bright sun/light themed level (v4.6)
+	{
+		"name": "Solar Core",
+		"bg_color": Color(0.3, 0.2, 0.05),
+		"platforms": [
+			{"x": 50, "y": 500, "w": 120, "h": 30},
+			{"x": 220, "y": 440, "w": 80, "h": 25},
+			{"x": 100, "y": 360, "w": 80, "h": 25},
+			{"x": 280, "y": 280, "w": 100, "h": 25},
+			{"x": 450, "y": 350, "w": 80, "h": 25},
+			{"x": 600, "y": 270, "w": 100, "h": 25},
+			{"x": 450, "y": 160, "w": 80, "h": 25},
+			{"x": 620, "y": 100, "w": 100, "h": 25},
+			{"x": 820, "y": 180, "w": 80, "h": 25},
+			{"x": 980, "y": 260, "w": 100, "h": 25},
+			{"x": 1150, "y": 180, "w": 80, "h": 25},
+			{"x": 1300, "y": 260, "w": 100, "h": 25}
+		],
+		"coins": [
+			{"x": 80, "y": 430}, {"x": 240, "y": 370},
+			{"x": 130, "y": 290}, {"x": 310, "y": 210},
+			{"x": 470, "y": 280}, {"x": 630, "y": 200},
+			{"x": 480, "y": 90}, {"x": 650, "y": 30},
+			{"x": 850, "y": 110}, {"x": 1010, "y": 190},
+			{"x": 1170, "y": 110}, {"x": 1330, "y": 190}
+		],
+		"stars": [
+			{"x": 280, "y": 180}, {"x": 650, "y": 60}, {"x": 1350, "y": 190}
+		],
+		"powerups": [
+			{"x": 450, "y": 80, "type": "speed"}
+		],
+		"enemies": [
+			{"x": 250, "y": 400, "min_x": 200, "max_x": 300, "type": "slime"},
+			{"x": 500, "y": 310, "min_x": 450, "max_x": 550, "type": "flying"},
+			{"x": 800, "y": 140, "min_x": 750, "max_x": 850, "type": "fireball"},
+			{"x": 1100, "y": 240, "min_x": 1050, "max_x": 1150, "type": "slime"}
+		],
+		"goal": {"x": 1380, "y": 210}
+	},
+	# NEW! Storm Peak - Lightning storm themed level (v4.7)
+	{
+		"name": "Storm Peak",
+		"bg_color": Color(0.05, 0.08, 0.15),
+		"weather": "storm",
+		"platforms": [
+			{"x": 50, "y": 550, "w": 100, "h": 25},
+			{"x": 200, "y": 480, "w": 80, "h": 25},
+			{"x": 80, "y": 380, "w": 80, "h": 25},
+			{"x": 250, "y": 320, "w": 80, "h": 25},
+			{"x": 400, "y": 400, "w": 100, "h": 25},
+			{"x": 550, "y": 300, "w": 80, "h": 25},
+			{"x": 700, "y": 380, "w": 80, "h": 25},
+			{"x": 850, "y": 280, "w": 80, "h": 25},
+			{"x": 680, "y": 150, "w": 100, "h": 25},
+			{"x": 880, "y": 100, "w": 80, "h": 25},
+			{"x": 1050, "y": 180, "w": 100, "h": 25},
+			{"x": 1200, "y": 250, "w": 80, "h": 25},
+			{"x": 1350, "y": 350, "w": 100, "h": 25}
+		],
+		"coins": [
+			{"x": 60, "y": 480}, {"x": 220, "y": 410},
+			{"x": 100, "y": 310}, {"x": 270, "y": 250},
+			{"x": 420, "y": 330}, {"x": 570, "y": 230},
+			{"x": 720, "y": 310}, {"x": 870, "y": 210},
+			{"x": 710, "y": 80}, {"x": 900, "y": 30},
+			{"x": 1080, "y": 110}, {"x": 1220, "y": 180},
+			{"x": 1380, "y": 280}
+		],
+		"stars": [
+			{"x": 250, "y": 250}, {"x": 880, "y": 50}, {"x": 1400, "y": 280}
+		],
+		"powerups": [
+			{"x": 680, "y": 80, "type": "shield"}
+		],
+		"enemies": [
+			{"x": 220, "y": 440, "min_x": 200, "max_x": 280, "type": "electric"},
+			{"x": 420, "y": 360, "min_x": 400, "max_x": 500, "type": "slime"},
+			{"x": 570, "y": 260, "min_x": 550, "max_x": 630, "type": "flying"},
+			{"x": 870, "y": 230, "min_x": 850, "max_x": 930, "type": "electric"},
+			{"x": 1200, "y": 210, "min_x": 1150, "max_x": 1250, "type": "jellyfish"}
+		],
+		"goal": {"x": 1430, "y": 300}
 	}
 ]
 
@@ -1498,6 +1627,105 @@ func clear_effects():
 	clear_abyss_effect()
 	clear_aurora_effect()
 	clear_weather_effect()
+	clear_twilight_effect()
+	clear_solar_effect()
+
+# 🌅 Twilight effect for Twilight Temple level
+var twilight_container: Node2D = null
+
+func create_twilight_effect():
+	if twilight_container:
+		twilight_container.queue_free()
+	
+	twilight_container = Node2D.new()
+	twilight_container.name = "TwilightEffect"
+	add_child(twilight_container)
+	twilight_container.z_index = -60
+	
+	# Create floating spirit orbs
+	for i in range(25):
+		var orb = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(6):
+			var angle = j * TAU / 6
+			pts.append(Vector2(cos(angle), sin(angle)) * randf_range(3, 6))
+		orb.polygon = pts
+		# Twilight colors - purple, pink, orange
+		var color_choice = randi() % 3
+		if color_choice == 0:
+			orb.color = Color(0.6, 0.3, 0.7, randf_range(0.3, 0.6))
+		elif color_choice == 1:
+			orb.color = Color(0.9, 0.4, 0.5, randf_range(0.3, 0.6))
+		else:
+			orb.color = Color(0.8, 0.5, 0.3, randf_range(0.3, 0.6))
+		orb.position = Vector2(randf() * 1400, randf() * 800)
+		twilight_container.add_child(orb)
+		
+		# Gentle float animation
+		var tween = create_tween()
+		var start_pos = orb.position
+		tween.set_loops()
+		tween.tween_property(orb, "position:y", start_pos.y - randf_range(20, 40), randf_range(3.0, 5.0))
+		tween.tween_property(orb, "position:y", start_pos.y, randf_range(3.0, 5.0))
+		
+		# Pulse animation
+		var pulse_tween = create_tween()
+		pulse_tween.set_loops()
+		pulse_tween.tween_property(orb, "scale", Vector2(1.2, 1.2), randf_range(1.5, 2.5))
+		pulse_tween.tween_property(orb, "scale", Vector2(0.8, 0.8), randf_range(1.5, 2.5))
+
+func clear_twilight_effect():
+	if twilight_container:
+		twilight_container.queue_free()
+		twilight_container = null
+
+# ☀️ Solar effect for Solar Core level
+var solar_container: Node2D = null
+
+func create_solar_effect():
+	if solar_container:
+		solar_container.queue_free()
+	
+	solar_container = Node2D.new()
+	solar_container.name = "SolarEffect"
+	add_child(solar_container)
+	solar_container.z_index = -60
+	
+	# Create sun rays
+	for i in range(12):
+		var ray = ColorRect.new()
+		ray.size = Vector2(4, randf_range(60, 100))
+		ray.color = Color(1, 0.9, 0.4, randf_range(0.1, 0.25))
+		ray.position = Vector2(randf() * 1400, randf() * 200)
+		ray.rotation = randf() * TAU
+		solar_container.add_child(ray)
+		
+		# Rotate animation
+		var tween = create_tween()
+		tween.set_loops()
+		var rotation_dir = 1 if randf() > 0.5 else -1
+		tween.tween_property(ray, "rotation", ray.rotation + rotation_dir * 0.1, randf_range(5.0, 8.0))
+		tween.tween_property(ray, "rotation", ray.rotation, randf_range(5.0, 8.0))
+	
+	# Create floating light particles
+	for i in range(40):
+		var particle = ColorRect.new()
+		particle.size = Vector2(randf_range(3, 6), randf_range(3, 6))
+		particle.color = Color(1, 0.9, 0.5, randf_range(0.4, 0.7))
+		particle.position = Vector2(randf() * 1400, randf() * 800)
+		solar_container.add_child(particle)
+		
+		# Float animation
+		var tween = create_tween()
+		var start_pos = particle.position
+		tween.set_loops()
+		tween.tween_property(particle, "position:y", start_pos.y - randf_range(30, 60), randf_range(2.0, 4.0))
+		tween.tween_property(particle, "position:y", start_pos.y, randf_range(2.0, 4.0))
+
+func clear_solar_effect():
+	if solar_container:
+		solar_container.queue_free()
+		solar_container = null
 
 # 🌈 Aurora effect for special levels
 var aurora_container: Node2D = null
@@ -2267,7 +2495,7 @@ func show_start_screen():
 	
 	# Version in bottom right
 	var version = Label.new()
-	version.text = "v4.3"
+	version.text = "v4.8"
 	version.position = Vector2(650, 550)
 	version.add_theme_font_size_override("font_size", 14)
 	version.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
@@ -3221,6 +3449,18 @@ func setup_level(level_index):
 	else:
 		clear_weather_effect()
 	
+	# 🌅 Create twilight effect for Twilight Temple
+	if level.get("name", "").find("Twilight") != -1:
+		create_twilight_effect()
+	else:
+		clear_twilight_effect()
+	
+	# ☀️ Create solar effect for Solar Core
+	if level.get("name", "").find("Solar") != -1:
+		create_solar_effect()
+	else:
+		clear_solar_effect()
+	
 	# ⏱️ Start level timer
 	start_level_timer()
 	level_deaths = 0
@@ -3311,23 +3551,114 @@ func setup_level(level_index):
 	# setup_mobile_controls() 已移除以避免重复按钮
 
 func create_player_visual(p):
-	# Use Kenney player sprite (tile 0 in characters sheet)
-	var sprite = Sprite2D.new()
-	sprite.name = "Visual"  # Named for animation functions
-	sprite.texture = char_tilesheet
-	sprite.region_enabled = true
-	sprite.region_rect = Rect2(0, 0, 24, 24)  # First tile
-	# Position sprite so bottom is at player origin
-	sprite.position = Vector2(0, -12)  # Center sprite vertically
-	sprite.offset = Vector2.ZERO
-	p.add_child(sprite)
+	# Create lobster character using polygons
+	var visual = Node2D.new()
+	visual.name = "Visual"
+	p.add_child(visual)
+	
+	# Body - main lobster shell
+	var body = Polygon2D.new()
+	var body_pts = PackedVector2Array([
+		Vector2(-8, -18), Vector2(8, -18),
+		Vector2(10, -12), Vector2(10, -4),
+		Vector2(8, 2), Vector2(4, 6),
+		Vector2(-4, 6), Vector2(-8, 2),
+		Vector2(-10, -4), Vector2(-10, -12)
+	])
+	body.polygon = body_pts
+	body.color = Color(0.9, 0.3, 0.3)  # Red lobster color
+	visual.add_child(body)
+	
+	# Shell highlight
+	var highlight = Polygon2D.new()
+	var hl_pts = PackedVector2Array([
+		Vector2(-4, -16), Vector2(4, -16),
+		Vector2(5, -10), Vector2(3, -6),
+		Vector2(-3, -6), Vector2(-5, -10)
+	])
+	highlight.polygon = hl_pts
+	highlight.color = Color(1, 0.5, 0.5)
+	visual.add_child(highlight)
+	
+	# Left claw
+	var claw_l = Polygon2D.new()
+	var claw_l_pts = PackedVector2Array([
+		Vector2(-10, -14), Vector2(-14, -12),
+		Vector2(-16, -8), Vector2(-14, -4),
+		Vector2(-10, -6), Vector2(-10, -10)
+	])
+	claw_l.polygon = claw_l_pts
+	claw_l.color = Color(0.85, 0.25, 0.25)
+	visual.add_child(claw_l)
+	
+	# Right claw
+	var claw_r = Polygon2D.new()
+	var claw_r_pts = PackedVector2Array([
+		Vector2(10, -14), Vector2(14, -12),
+		Vector2(16, -8), Vector2(14, -4),
+		Vector2(10, -6), Vector2(10, -10)
+	])
+	claw_r.polygon = claw_r_pts
+	claw_r.color = Color(0.85, 0.25, 0.25)
+	visual.add_child(claw_r)
+	
+	# Eyes
+	var eye_l = ColorRect.new()
+	eye_l.size = Vector2(3, 3)
+	eye_l.color = Color(0.1, 0.1, 0.1)
+	eye_l.position = Vector2(-4, -14)
+	visual.add_child(eye_l)
+	
+	var eye_r = ColorRect.new()
+	eye_r.size = Vector2(3, 3)
+	eye_r.color = Color(0.1, 0.1, 0.1)
+	eye_r.position = Vector2(2, -14)
+	visual.add_child(eye_r)
+	
+	# Antennae
+	var ant_l = Polygon2D.new()
+	ant_l.polygon = PackedVector2Array([Vector2(-4, -18), Vector2(-8, -24), Vector2(-2, -22)])
+	ant_l.color = Color(0.7, 0.2, 0.2)
+	visual.add_child(ant_l)
+	
+	var ant_r = Polygon2D.new()
+	ant_r.polygon = PackedVector2Array([Vector2(4, -18), Vector2(8, -24), Vector2(2, -22)])
+	ant_r.color = Color(0.7, 0.2, 0.2)
+	visual.add_child(ant_r)
+	
+	# Tail segments
+	for i in range(3):
+		var tail = Polygon2D.new()
+		var tail_pts = PackedVector2Array()
+		var y_pos = 6 + i * 5
+		tail_pts.append(Vector2(-4 - i, y_pos))
+		tail_pts.append(Vector2(4 + i, y_pos))
+		tail_pts.append(Vector2(3 + i, y_pos + 4))
+		tail_pts.append(Vector2(-3 - i, y_pos + 4))
+		tail.polygon = tail_pts
+		tail.color = Color(0.8, 0.25, 0.25)
+		visual.add_child(tail)
+	
+	# Legs (small dots)
+	for i in range(3):
+		var leg_l = ColorRect.new()
+		leg_l.size = Vector2(2, 2)
+		leg_l.color = Color(0.7, 0.2, 0.2)
+		leg_l.position = Vector2(-8 - i * 2, 4 + i * 3)
+		visual.add_child(leg_l)
+		
+		var leg_r = ColorRect.new()
+		leg_r.size = Vector2(2, 2)
+		leg_r.color = Color(0.7, 0.2, 0.2)
+		leg_r.position = Vector2(6 + i * 2, 4 + i * 3)
+		visual.add_child(leg_r)
 	
 	# Collision - position at center of player body
 	var col = CollisionShape2D.new()
 	var rect = RectangleShape2D.new()
-	rect.size = Vector2(20, 24)  # Match sprite size
+	rect.size = Vector2(20, 28)  # Match visual size
 	col.shape = rect
-	col.position = Vector2(0, -12)  # Same center as sprite
+	col.position = Vector2(0, -14)  # Same center as visual
 	p.add_child(col)
 
 func create_platform(x, y, w, h, move_data = null, crystal_type = null, fire_type = null):
