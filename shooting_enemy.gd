@@ -104,14 +104,8 @@ func shoot():
 	# Animate projectile movement
 	var proj_velocity = shoot_dir * projectile_speed
 	var move_tween = create_tween()
-	move_tween.tween_property(projectile, "position", projectile.position + proj_dir * 3.0, 3.0)
+	move_tween.tween_property(projectile, "position", projectile.position + proj_velocity * 3.0, 3.0)
 	move_tween.tween_callback(projectile.queue_free)
-
-var proj_dir = Vector2.ZERO
-
-func _physics_process_projectile(delta):
-	proj_dir = get_meta("velocity", Vector2.ZERO)
-	position += proj_dir * delta
 	
 	# Remove after 3 seconds
 	await get_tree().create_timer(3.0).timeout

@@ -31,6 +31,11 @@ var is_wall_sliding = false
 var can_ground_slam = false
 var is_ground_slamming = false
 var ground_slam_velocity = 0.0
+var can_time_slow = false
+var is_time_slowed = false
+var time_slow_timer = 0.0
+var time_slow_cooldown = 0.0
+var time_scale = 1.0
 
 func _physics_process(delta):
 	if is_dead:
@@ -118,6 +123,25 @@ func _physics_process(delta):
 			var game = get_tree().get_first_node_in_group("game")
 			if game:
 				game.screen_shake_intensity(8.0)
+	
+	# Handle Time Slow ability
+	if can_time_slow and time_slow_cooldown <= 0:
+		if Input.is_key_pressed(KEY_Z):
+			is_time_slowed = true
+			time_slow_timer = 3.0
+			time_slow_cooldown = 8.0
+			time_scale = 0.3
+			Engine.time_scale = 0.3
+	
+	if is_time_slowed:
+		time_slow_timer -= delta
+		if time_slow_timer <= 0:
+			is_time_slowed = false
+			time_scale = 1.0
+			Engine.time_scale = 1.0
+	
+	if time_slow_cooldown > 0:
+		time_slow_cooldown -= delta
 
 	# Get input direction
 	var direction = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")

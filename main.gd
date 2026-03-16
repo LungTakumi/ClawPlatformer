@@ -72,7 +72,8 @@ const ABILITIES = {
 	"double_jump": {"name": "Double Jump", "desc": "Jump again in mid-air", "icon": "🔺"},
 	"dash": {"name": "Dash", "desc": "Press Shift to dash", "icon": "💨"},
 	"wall_climb": {"name": "Wall Climb", "desc": "Climb walls slowly", "icon": "🧗"},
-	"ground_slam": {"name": "Ground Slam", "desc": "Press Down in air", "icon": "💥"}
+	"ground_slam": {"name": "Ground Slam", "desc": "Press Down in air", "icon": "💥"},
+	"time_slow": {"name": "Time Slow", "desc": "Press Z to slow time", "icon": "⏱️"}
 }
 
 func screen_shake_intensity(amount):
@@ -1249,7 +1250,8 @@ var levels = [
 			{"x": 250, "y": 250}, {"x": 880, "y": 50}, {"x": 1480, "y": 130}
 		],
 		"powerups": [
-			{"x": 1100, "y": 30, "type": "double_jump"}
+			{"x": 1100, "y": 30, "type": "double_jump"},
+			{"x": 700, "y": 200, "type": "time_slow"}
 		],
 		"enemies": [
 			{"x": 220, "y": 440, "min_x": 200, "max_x": 280, "type": "jellyfish"},
@@ -1434,6 +1436,80 @@ func clear_ice_crystals():
 	if ice_crystals_container:
 		ice_crystals_container.queue_free()
 		ice_crystals_container = null
+
+func clear_effects():
+	clear_ice_crystals()
+	clear_nebula_effect()
+	clear_void_effect()
+	clear_phoenix_effect()
+	clear_abyss_effect()
+	clear_aurora_effect()
+
+# 🌈 Aurora effect for special levels
+var aurora_container: Node2D = null
+
+func create_aurora_effect():
+	if aurora_container:
+		aurora_container.queue_free()
+	
+	aurora_container = Node2D.new()
+	aurora_container.name = "AuroraEffect"
+	add_child(aurora_container)
+	aurora_container.z_index = -60
+	
+	# Create aurora curtains (colored waves)
+	for i in range(8):
+		var aurora = Polygon2D.new()
+		var center = Vector2(randf() * 1400, randf() * 200 + 50)
+		var pts = PackedVector2Array()
+		var num_points = 20
+		for j in range(num_points):
+			var angle = j * TAU / num_points
+			var radius = randf_range(80, 150)
+			pts.append(Vector2(cos(angle), sin(angle)) * radius)
+		aurora.polygon = pts
+		
+		# Random aurora colors - green, cyan, pink, purple
+		var color_choice = randi() % 4
+		if color_choice == 0:
+			aurora.color = Color(0.2, 0.9, 0.4, randf_range(0.1, 0.25))
+		elif color_choice == 1:
+			aurora.color = Color(0.2, 0.8, 0.7, randf_range(0.1, 0.25))
+		elif color_choice == 2:
+			aurora.color = Color(0.9, 0.3, 0.6, randf_range(0.1, 0.25))
+		else:
+			aurora.color = Color(0.5, 0.3, 0.9, randf_range(0.1, 0.25))
+		
+		aurora.position = center
+		aurora.add_to_group("aurora")
+		aurora_container.add_child(aurora)
+		
+		# Wave animation
+		var tween = create_tween()
+		tween.set_loops()
+		var wave_offset = randf_range(0.5, 1.5)
+		tween.tween_property(aurora, "position:y", center.y + randf_range(-20, 20), wave_offset)
+		tween.tween_property(aurora, "position:y", center.y, wave_offset)
+	
+	# Add floating light particles
+	for i in range(30):
+		var particle = ColorRect.new()
+		particle.size = Vector2(randf_range(2, 4), randf_range(2, 4))
+		particle.color = Color(0.6, 1.0, 0.8, randf_range(0.3, 0.6))
+		particle.position = Vector2(randf() * 1400, randf() * 300)
+		aurora_container.add_child(particle)
+		
+		# Float animation
+		var tween = create_tween()
+		var start_pos = particle.position
+		tween.set_loops()
+		tween.tween_property(particle, "position:y", start_pos.y - randf_range(30, 60), randf_range(2.0, 4.0))
+		tween.tween_property(particle, "position:y", start_pos.y, randf_range(2.0, 4.0))
+
+func clear_aurora_effect():
+	if aurora_container:
+		aurora_container.queue_free()
+		aurora_container = null
 
 # 🌌 Nebula effect for Nebula Nexus level
 var nebula_container: Node2D = null
@@ -1952,6 +2028,13 @@ func show_start_screen():
 	time_trial_btn.pressed.connect(func(): start_time_trial())
 	container.add_child(time_trial_btn)
 	
+	# Endless Mode button
+	var endless_btn = Button.new()
+	endless_btn.text = "♾️ Endless Mode"
+	endless_btn.custom_minimum_size = Vector2(200, 50)
+	endless_btn.pressed.connect(func(): start_endless_mode())
+	container.add_child(endless_btn)
+	
 	# Metroidvania: 显示进度
 	var progress_text = "💾 Progress:\n"
 	progress_text += "🪙 Coins: " + str(save_data["total_coins"]) + " | "
@@ -2410,10 +2493,19 @@ func restart_current_level():
 	is_paused = false
 	get_tree().paused = false
 	hide_pause_menu()
-	# Reset current level
-	score = max(0, score - 50)  # Penalty for restarting
-	lives = 3  # Reset lives
-	setup_level(current_level)
+	
+	if endless_mode:
+		# Reset endless mode
+		endless_score = 0
+		endless_difficulty = 1.0
+		score = 0
+		lives = 3
+		setup_endless_level()
+	else:
+		# Reset current level
+		score = max(0, score - 50)  # Penalty for restarting
+		lives = 3  # Reset lives
+		setup_level(current_level)
 
 func quit_to_menu():
 	is_paused = false
@@ -2549,6 +2641,164 @@ func show_time_trial_intro():
 	if intro and is_instance_valid(intro):
 		intro.queue_free()
 	setup_level(current_level)
+
+var endless_mode = false
+var endless_score = 0
+var endless_difficulty = 1.0
+var endless_platform_count = 0
+var endless_coin_count = 0
+
+func start_endless_mode():
+	endless_mode = true
+	endless_score = 0
+	endless_difficulty = 1.0
+	game_started = true
+	current_level = -1  # Special value for endless
+	score = 0
+	lives = 3
+	total_play_time = 0.0
+	level_deaths = 0
+	show_endless_intro()
+
+func show_endless_intro():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if not ui:
+		return
+	
+	var intro = Node2D.new()
+	intro.name = "EndlessIntro"
+	intro.position = Vector2(640, 360)
+	ui.add_child(intro)
+	
+	var bg = ColorRect.new()
+	bg.color = Color(0, 0, 0, 0.8)
+	bg.size = Vector2(500, 200)
+	bg.position = Vector2(-250, -100)
+	intro.add_child(bg)
+	
+	var title = Label.new()
+	title.text = "♾️ ENDLESS MODE"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 36)
+	title.add_theme_color_override("font_color", Color(0.8, 0.4, 1))
+	title.position = Vector2(-120, -60)
+	intro.add_child(title)
+	
+	var info = Label.new()
+	info.text = "Survive as long as you can!\nPlatforms get harder over time."
+	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info.add_theme_font_size_override("font_size", 16)
+	info.add_theme_color_override("font_color", Color(0.9, 0.9, 1))
+	info.position = Vector2(-120, 0)
+	intro.add_child(info)
+	
+	await get_tree().create_timer(2.5).timeout
+	if intro and is_instance_valid(intro):
+		intro.queue_free()
+	setup_endless_level()
+
+func setup_endless_level():
+	clear_level()
+	clear_checkpoints()
+	
+	# Set background
+	RenderingServer.set_default_clear_color(Color(0.05, 0.05, 0.1))
+	clear_effects()
+	
+	# Create player
+	create_player()
+	
+	# Generate endless platforms
+	endless_platform_count = 0
+	endless_coin_count = 0
+	generate_endless_platforms()
+	
+	# Create goal
+	create_goal(1200, 200)
+	
+	# Show level name
+	show_level_name("ENDLESS - Score: " + str(endless_score))
+	
+	# Start timer
+	start_level_timer()
+
+func generate_endless_platforms():
+	var start_x = 50.0
+	var start_y = 500.0
+	
+	# Starting platform
+	create_platform(start_x, start_y, 150, 30)
+	endless_platform_count += 1
+	
+	# Generate platforms progressively
+	var current_x = start_x + 200
+	var current_y = start_y
+	var num_platforms = 15 + int(endless_difficulty * 5)
+	
+	for i in range(num_platforms):
+		var platform_width = randf_range(60, 120)
+		var gap = randf_range(80, 150) + (endless_difficulty * 10)
+		var height_change = randf_range(-80, 60)
+		
+		current_x += gap
+		current_y += height_change
+		
+		# Keep within bounds
+		current_y = clamp(current_y, 100, 550)
+		current_x = clamp(current_x, 100, 1800)
+		
+		create_platform(current_x, current_y, platform_width, 20)
+		endless_platform_count += 1
+		
+		# Add coins on some platforms
+		if randf() < 0.7:
+			var coin_x = current_x + randf_range(-20, 20)
+			var coin_y = current_y - 40 - randf() * 30
+			create_coin(coin_x, coin_y)
+			endless_coin_count += 1
+		
+		# Add enemies based on difficulty
+		if endless_difficulty > 0.5 and randf() < 0.3 * endless_difficulty:
+			var enemy_x = current_x
+			var enemy_y = current_y - 30
+			create_enemy(enemy_x, enemy_y, current_x - 30, current_x + 30)
+		
+		# Add mimic enemies at higher difficulty
+		if endless_difficulty > 1.0 and randf() < 0.15 * (endless_difficulty - 1.0):
+			var mimic_x = current_x + randf_range(-20, 20)
+			var mimic_y = current_y - 20
+			create_mimic(mimic_x, mimic_y)
+		
+		# Add powerups occasionally
+		if randf() < 0.05:
+			var powerup_x = current_x
+			var powerup_y = current_y - 50
+			create_powerup(powerup_x, powerup_y)
+	
+	# Create final goal
+	create_goal(current_x + 100, current_y - 50)
+
+func advance_endless_level():
+	endless_score += 100 + (endless_platform_count * 10) + (endless_coin_count * 5)
+	endless_difficulty += 0.15
+	score += endless_score
+	
+	# Show level complete
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		var msg = Label.new()
+		msg.text = "Level Complete!\nScore: " + str(endless_score)
+		msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		msg.add_theme_font_size_override("font_size", 28)
+		msg.add_theme_color_override("font_color", Color(0.8, 1, 0.8))
+		msg.position = Vector2(500, 250)
+		ui.add_child(msg)
+		
+		await get_tree().create_timer(2.0).timeout
+		msg.queue_free()
+	
+	# Setup next level
+	setup_endless_level()
 
 func setup_level(level_index):
 	clear_level()
@@ -3259,6 +3509,14 @@ func create_checkpoint(x, y):
 	
 	add_child(cp)
 
+func create_mimic(x, y):
+	var mimic = CharacterBody2D.new()
+	mimic.position = Vector2(x, y)
+	mimic.script = load("res://mimic_enemy.gd")
+	mimic.add_to_group("enemy")
+	add_child(mimic)
+	enemies.append(mimic)
+
 func create_goal(x, y):
 	goal = Area2D.new()
 	goal.position = Vector2(x, y)
@@ -3688,6 +3946,11 @@ func track_death():
 	level_deaths += 1
 
 func next_level():
+	# Handle endless mode
+	if endless_mode:
+		advance_endless_level()
+		return
+	
 	# 保存进度到存档
 	save_data["total_coins"] += score
 	save_data["total_stars"] += stars_collected
@@ -3879,7 +4142,12 @@ func show_game_over():
 		
 		var game_over = Label.new()
 		game_over.name = "GameOverText"
-		game_over.text = "GAME OVER\n\nScore: " + str(score) + "\n\nPress SPACE to Restart"
+		
+		if endless_mode:
+			game_over.text = "GAME OVER\n\nEndless Score: " + str(endless_score) + "\nDifficulty: " + str(round(endless_difficulty * 10) / 10) + "x\n\nPress SPACE to Restart"
+		else:
+			game_over.text = "GAME OVER\n\nScore: " + str(score) + "\n\nPress SPACE to Restart"
+		
 		game_over.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		game_over.position = Vector2(300, 280)
 		game_over.add_theme_font_size_override("font_size", 42)

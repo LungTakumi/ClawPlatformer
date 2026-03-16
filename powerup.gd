@@ -1,6 +1,6 @@
 extends Area2D
 
-enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE, DASH, WALL_CLIMB, GROUND_SLAM }
+enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE, DASH, WALL_CLIMB, GROUND_SLAM, TIME_SLOW }
 
 var powerup_type: PowerupType = PowerupType.INVINCIBLE
 var rotation_speed = 1.5
@@ -14,7 +14,8 @@ var colors = {
 	PowerupType.LIFE: Color(1, 0.4, 0.4, 1),             # Red - heart
 	PowerupType.DASH: Color(0.3, 1, 0.5, 1),             # Green - dash
 	PowerupType.WALL_CLIMB: Color(1, 0.5, 0.8, 1),        # Pink - wall climb
-	PowerupType.GROUND_SLAM: Color(1, 0.4, 0.1, 1)        # Orange - ground slam
+	PowerupType.GROUND_SLAM: Color(1, 0.4, 0.1, 1),        # Orange - ground slam
+	PowerupType.TIME_SLOW: Color(0.5, 0.3, 0.8, 1)       # Purple - time slow
 }
 
 func _ready():
@@ -35,6 +36,8 @@ func _ready():
 			powerup_type = PowerupType.LIFE
 		elif forced == "ground_slam":
 			powerup_type = PowerupType.GROUND_SLAM
+		elif forced == "time_slow":
+			powerup_type = PowerupType.TIME_SLOW
 	else:
 		# Random type
 		powerup_type = randi() % PowerupType.size()
@@ -169,6 +172,23 @@ func create_visual():
 		glow.color = Color(1, 0.6, 0.3, 0.4)
 		add_child(glow)
 	
+	elif powerup_type == PowerupType.TIME_SLOW:
+		# Hourglass shape
+		var hourglass = Polygon2D.new()
+		var pts = PackedVector2Array([
+			Vector2(-8, -12), Vector2(8, -12), Vector2(-4, 0),
+			Vector2(4, 0), Vector2(8, 12), Vector2(-8, 12), Vector2(-4, 0)
+		])
+		hourglass.polygon = pts
+		hourglass.color = color
+		add_child(hourglass)
+		
+		# Glow
+		var glow = Polygon2D.new()
+		glow.polygon = pts.duplicate()
+		glow.color = Color(0.7, 0.5, 1, 0.4)
+		add_child(glow)
+	
 	# Collision
 	var col = CollisionShape2D.new()
 	var circle = CircleShape2D.new()
@@ -256,6 +276,10 @@ func apply_powerup():
 		PowerupType.GROUND_SLAM:
 			player_node.activate_ground_slam()
 			get_tree().call_group("game", "unlock_ability", "ground_slam")
+			get_tree().call_group("game", "add_score", 50)
+		PowerupType.TIME_SLOW:
+			player_node.can_time_slow = true
+			get_tree().call_group("game", "unlock_ability", "time_slow")
 			get_tree().call_group("game", "add_score", 50)
 
 func spawn_particles():
