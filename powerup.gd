@@ -1,6 +1,6 @@
 extends Area2D
 
-enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE, DASH, WALL_CLIMB, GROUND_SLAM, TIME_SLOW, FREEZE, INVISIBLE, PHOENIX, SHIELD, MAGNET, BOUNCE }
+enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE, DASH, WALL_CLIMB, GROUND_SLAM, TIME_SLOW, FREEZE, INVISIBLE, PHOENIX, SHIELD, MAGNET, BOUNCE, CLONE }
 
 var powerup_type: PowerupType = PowerupType.INVINCIBLE
 var rotation_speed = 1.5
@@ -21,7 +21,8 @@ var colors = {
 	PowerupType.PHOENIX: Color(1, 0.5, 0.1, 1),           # Orange-red - phoenix
 	PowerupType.SHIELD: Color(0.3, 0.6, 1, 1),            # Blue - shield
 	PowerupType.MAGNET: Color(0.9, 0.3, 0.9, 1),          # Pink-purple - magnet
-	PowerupType.BOUNCE: Color(1, 0.2, 0.6, 1)             # Pink-red - bounce
+	PowerupType.BOUNCE: Color(1, 0.2, 0.6, 1),             # Pink-red - bounce
+	PowerupType.CLONE: Color(0.4, 0.8, 0.4, 1)              # Green - clone
 }
 
 func _ready():
@@ -50,6 +51,8 @@ func _ready():
 			powerup_type = PowerupType.INVISIBLE
 		elif forced == "bounce":
 			powerup_type = PowerupType.BOUNCE
+		elif forced == "clone":
+			powerup_type = PowerupType.CLONE
 	else:
 		# Random type
 		powerup_type = randi() % PowerupType.size()
@@ -276,6 +279,44 @@ func create_visual():
 		bounce.tween_property(spring, "scale", Vector2(1.1, 0.9), 0.2)
 		bounce.tween_property(spring, "scale", Vector2(1.0, 1.0), 0.2)
 	
+	elif powerup_type == PowerupType.CLONE:
+		# Clone/double shape - two connected circles
+		var clone = Polygon2D.new()
+		var pts = PackedVector2Array([
+			Vector2(-8, -8), Vector2(0, -12), Vector2(8, -8),
+			Vector2(12, 0), Vector2(8, 8), Vector2(0, 12),
+			Vector2(-8, 8), Vector2(-12, 0)
+		])
+		clone.polygon = pts
+		clone.color = color
+		add_child(clone)
+		
+		# Inner circles to look like double
+		var inner1 = Polygon2D.new()
+		var inner_pts1 = PackedVector2Array()
+		for i in range(8):
+			var angle = i * TAU / 8
+			inner_pts1.append(Vector2(cos(angle), sin(angle)) * 5)
+		inner1.polygon = inner_pts1
+		inner1.color = Color(0.6, 1, 0.6, 0.8)
+		inner1.position = Vector2(-4, -4)
+		add_child(inner1)
+		
+		var inner2 = Polygon2D.new()
+		var inner_pts2 = PackedVector2Array()
+		for i in range(8):
+			var angle = i * TAU / 8
+			inner_pts2.append(Vector2(cos(angle), sin(angle)) * 5)
+		inner2.polygon = inner_pts2
+		inner2.color = Color(0.6, 1, 0.6, 0.8)
+		inner2.position = Vector2(4, -4)
+		add_child(inner2)
+		
+		var glow = Polygon2D.new()
+		glow.polygon = pts.duplicate()
+		glow.color = Color(0.5, 1, 0.5, 0.4)
+		add_child(glow)
+	
 	# Collision
 	var col = CollisionShape2D.new()
 	var circle = CircleShape2D.new()
@@ -395,6 +436,11 @@ func apply_powerup():
 			player_node.max_bounces = 2
 			get_tree().call_group("game", "unlock_ability", "bounce")
 			get_tree().call_group("game", "add_score", 50)
+		PowerupType.CLONE:
+			player_node.spawn_pet("bird")
+			player_node.spawn_pet("cat")
+			get_tree().call_group("game", "add_score", 75)
+			get_tree().call_group("game", "screen_shake_intensity", 5)
 
 func spawn_phoenix_effect(pos: Vector2):
 	for i in range(20):

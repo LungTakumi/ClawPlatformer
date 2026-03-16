@@ -1698,6 +1698,85 @@ var levels = [
 			{"x": 1100, "y": 240, "min_x": 1000, "max_x": 1200, "type": "slime"}
 		],
 		"goal": {"x": 1450, "y": 230}
+	},
+	# NEW! Mirror World - Upside down themed level (v5.1)
+	{
+		"name": "Mirror World",
+		"bg_color": Color(0.15, 0.05, 0.2),
+		"mirror_theme": true,
+		"platforms": [
+			{"x": 50, "y": 550, "w": 150, "h": 30},
+			{"x": 250, "y": 480, "w": 100, "h": 25},
+			{"x": 400, "y": 550, "w": 80, "h": 25},
+			{"x": 550, "y": 480, "w": 100, "h": 25},
+			{"x": 700, "y": 400, "w": 100, "h": 25},
+			{"x": 850, "y": 480, "w": 80, "h": 25},
+			{"x": 1000, "y": 400, "w": 100, "h": 25},
+			{"x": 1150, "y": 320, "w": 80, "h": 25},
+			{"x": 1300, "y": 400, "w": 100, "h": 25}
+		],
+		"coins": [
+			{"x": 80, "y": 480}, {"x": 280, "y": 410},
+			{"x": 420, "y": 480}, {"x": 580, "y": 410},
+			{"x": 730, "y": 330}, {"x": 870, "y": 410},
+			{"x": 1030, "y": 330}, {"x": 1180, "y": 250},
+			{"x": 1330, "y": 330}
+		],
+		"stars": [
+			{"x": 550, "y": 350}, {"x": 1150, "y": 200}, {"x": 1350, "y": 280}
+		],
+		"powerups": [
+			{"x": 400, "y": 350, "type": "teleport"}
+		],
+		"enemies": [
+			{"x": 280, "y": 440, "min_x": 250, "max_x": 350, "type": "teleport"},
+			{"x": 700, "y": 360, "min_x": 650, "max_x": 750, "type": "teleport"},
+			{"x": 1150, "y": 280, "min_x": 1100, "max_x": 1200, "type": "teleport"}
+		],
+		"goal": {"x": 1380, "y": 350}
+	},
+	# NEW! Chaos Realm - Random elements level (v5.2)
+	{
+		"name": "Chaos Realm",
+		"bg_color": Color(0.1, 0.1, 0.1),
+		"chaos_theme": true,
+		"platforms": [
+			{"x": 50, "y": 500, "w": 120, "h": 30},
+			{"x": 200, "y": 420, "w": 80, "h": 25},
+			{"x": 100, "y": 340, "w": 80, "h": 25},
+			{"x": 300, "y": 280, "w": 100, "h": 25},
+			{"x": 450, "y": 350, "w": 80, "h": 25},
+			{"x": 550, "y": 280, "w": 100, "h": 25},
+			{"x": 700, "y": 350, "w": 80, "h": 25},
+			{"x": 850, "y": 280, "w": 100, "h": 25},
+			{"x": 700, "y": 150, "w": 80, "h": 25},
+			{"x": 900, "y": 200, "w": 100, "h": 25},
+			{"x": 1050, "y": 280, "w": 80, "h": 25},
+			{"x": 1200, "y": 350, "w": 100, "h": 25},
+			{"x": 1350, "y": 280, "w": 120, "h": 25}
+		],
+		"coins": [
+			{"x": 80, "y": 430}, {"x": 220, "y": 350},
+			{"x": 130, "y": 270}, {"x": 330, "y": 210},
+			{"x": 470, "y": 280}, {"x": 580, "y": 210},
+			{"x": 730, "y": 280}, {"x": 880, "y": 210},
+			{"x": 730, "y": 80}, {"x": 930, "y": 130},
+			{"x": 1070, "y": 210}, {"x": 1230, "y": 280},
+			{"x": 1400, "y": 210}
+		],
+		"stars": [
+			{"x": 300, "y": 150}, {"x": 900, "y": 80}, {"x": 1400, "y": 180}
+		],
+		"powerups": [
+			{"x": 700, "y": 80, "type": "clone"}
+		],
+		"enemies": [
+			{"x": 250, "y": 380, "min_x": 200, "max_x": 300, "type": "orb"},
+			{"x": 550, "y": 240, "min_x": 500, "max_x": 600, "type": "teleport"},
+			{"x": 900, "y": 160, "min_x": 850, "max_x": 950, "type": "flying"},
+			{"x": 1200, "y": 310, "min_x": 1150, "max_x": 1250, "type": "slime"}
+		],
+		"goal": {"x": 1450, "y": 230}
 	}
 ]
 
@@ -1794,6 +1873,91 @@ func clear_effects():
 	clear_twilight_effect()
 	clear_solar_effect()
 	clear_pet_effect()
+	clear_mirror_effect()
+	clear_chaos_effect()
+
+# 🪞 Mirror effect for Mirror World level
+var mirror_container: Node2D = null
+
+func create_mirror_effect():
+	if mirror_container:
+		mirror_container.queue_free()
+	
+	mirror_container = Node2D.new()
+	mirror_container.name = "MirrorEffect"
+	add_child(mirror_container)
+	mirror_container.z_index = -60
+	
+	for i in range(25):
+		var shard = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(6):
+			var angle = j * TAU / 6
+			pts.append(Vector2(cos(angle), sin(angle)) * randf_range(4, 8))
+		shard.polygon = pts
+		shard.color = Color(0.6, 0.8, 1, randf_range(0.2, 0.5))
+		shard.position = Vector2(randf() * 1400, randf() * 800)
+		mirror_container.add_child(shard)
+		
+		var tween = create_tween()
+		var start_pos = shard.position
+		tween.set_loops()
+		tween.tween_property(shard, "position:y", start_pos.y - randf_range(20, 40), randf_range(2.0, 4.0))
+		tween.tween_property(shard, "position:y", start_pos.y, randf_range(2.0, 4.0))
+		
+		var pulse_tween = create_tween()
+		pulse_tween.set_loops()
+		pulse_tween.tween_property(shard, "rotation", 0.1, randf_range(3.0, 5.0))
+		pulse_tween.tween_property(shard, "rotation", -0.1, randf_range(3.0, 5.0))
+
+func clear_mirror_effect():
+	if mirror_container:
+		mirror_container.queue_free()
+		mirror_container = null
+
+# 🔀 Chaos effect for Chaos Realm level
+var chaos_container: Node2D = null
+
+func create_chaos_effect():
+	if chaos_container:
+		chaos_container.queue_free()
+	
+	chaos_container = Node2D.new()
+	chaos_container.name = "ChaosEffect"
+	add_child(chaos_container)
+	chaos_container.z_index = -60
+	
+	for i in range(30):
+		var particle = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(4):
+			var angle = j * TAU / 4
+			pts.append(Vector2(cos(angle), sin(angle)) * randf_range(3, 7))
+		particle.polygon = pts
+		
+		var color_choice = randi() % 4
+		if color_choice == 0:
+			particle.color = Color(1, 0.3, 0.3, randf_range(0.3, 0.6))
+		elif color_choice == 1:
+			particle.color = Color(0.3, 1, 0.3, randf_range(0.3, 0.6))
+		elif color_choice == 2:
+			particle.color = Color(0.3, 0.3, 1, randf_range(0.3, 0.6))
+		else:
+			particle.color = Color(1, 1, 0.3, randf_range(0.3, 0.6))
+		
+		particle.position = Vector2(randf() * 1400, randf() * 800)
+		chaos_container.add_child(particle)
+		
+		var tween = create_tween()
+		var start_pos = particle.position
+		tween.set_loops()
+		tween.tween_property(particle, "position", start_pos + Vector2(randf_range(-50, 50), randf_range(-50, 50)), randf_range(1.5, 3.0))
+		tween.tween_property(particle, "position", start_pos, randf_range(1.5, 3.0))
+
+func clear_chaos_effect():
+	if chaos_container:
+		chaos_container.queue_free()
+		chaos_container = null
 
 # 🌅 Twilight effect for Twilight Temple level
 var twilight_container: Node2D = null
@@ -2666,6 +2830,20 @@ func show_start_screen():
 	daily_btn.pressed.connect(func(): start_daily_challenge())
 	container.add_child(daily_btn)
 	
+	# Boss Rush button - NEW!
+	var boss_rush_btn = Button.new()
+	boss_rush_btn.text = "🐉 Boss Rush"
+	boss_rush_btn.custom_minimum_size = Vector2(200, 50)
+	boss_rush_btn.pressed.connect(func(): start_boss_rush())
+	container.add_child(boss_rush_btn)
+	
+	# New Game+ button - Hard mode!
+	var new_game_plus_btn = Button.new()
+	new_game_plus_btn.text = "⭐ New Game+"
+	new_game_plus_btn.custom_minimum_size = Vector2(200, 50)
+	new_game_plus_btn.pressed.connect(func(): start_new_game_plus())
+	container.add_child(new_game_plus_btn)
+	
 	# Metroidvania: 显示进度
 	var progress_text = "💾 Progress:\n"
 	progress_text += "🪙 Coins: " + str(save_data["total_coins"]) + " | "
@@ -3453,6 +3631,249 @@ func show_daily_challenge_result(show_completed = false):
 	if result and is_instance_valid(result):
 		result.queue_free()
 
+# 🐉 Boss Rush Mode - Fight all bosses in sequence!
+var boss_rush_mode = false
+var boss_rush_bosses = []
+var current_boss_index = 0
+var boss_rush_wins = 0
+var boss_rush_max_bosses = 5
+
+# ⭐ New Game+ Mode - Harder difficulty!
+var new_game_plus_mode = false
+var ngp_multiplier = 1.5  # 50% more enemies, harder platforming
+
+func start_new_game_plus():
+	new_game_plus_mode = true
+	ngp_multiplier = 1.5
+	game_started = true
+	current_level = 0
+	score = 0
+	lives = 2  # One less life!
+	total_play_time = 0.0
+	level_deaths = 0
+	show_new_game_plus_intro()
+
+func show_new_game_plus_intro():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if not ui:
+		return
+	
+	var intro = Node2D.new()
+	intro.name = "NewGamePlusIntro"
+	intro.position = Vector2(640, 360)
+	ui.add_child(intro)
+	
+	var bg = ColorRect.new()
+	bg.color = Color(0.15, 0.1, 0.2, 0.95)
+	bg.size = Vector2(500, 220)
+	bg.position = Vector2(-250, -110)
+	intro.add_child(bg)
+	
+	var title = Label.new()
+	title.text = "⭐ NEW GAME+"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 38)
+	title.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+	title.position = Vector2(-80, -70)
+	intro.add_child(title)
+	
+	var info = Label.new()
+	info.text = "Hard Mode Enabled!\n• Enemies are 50% stronger\n• Only 2 lives (no extra)\n• Double score multiplier\n• All abilities unlocked!\nProve you're a true platformer master!"
+	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info.add_theme_font_size_override("font_size", 14)
+	info.add_theme_color_override("font_color", Color(0.9, 0.9, 1))
+	info.position = Vector2(-120, -10)
+	intro.add_child(info)
+	
+	# Unlock all abilities for NG+
+	for ability in ABILITIES.keys():
+		unlock_ability(ability)
+	
+	await get_tree().create_timer(4.0).timeout
+	if intro and is_instance_valid(intro):
+		intro.queue_free()
+	setup_level(current_level)
+
+func start_boss_rush():
+	boss_rush_mode = true
+	boss_rush_bosses = []
+	current_boss_index = 0
+	boss_rush_wins = 0
+	game_started = true
+	score = 0
+	lives = 3
+	total_play_time = 0.0
+	level_deaths = 0
+	collect_boss_levels()
+	show_boss_rush_intro()
+
+func collect_boss_levels():
+	for i in range(levels.size()):
+		var level = levels[i]
+		if level.get("is_boss", false):
+			boss_rush_bosses.append(i)
+	if boss_rush_bosses.size() == 0:
+		boss_rush_bosses = [10]  # Default boss level
+	boss_rush_max_bosses = boss_rush_bosses.size()
+
+func show_boss_rush_intro():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if not ui:
+		return
+	
+	var intro = Node2D.new()
+	intro.name = "BossRushIntro"
+	intro.position = Vector2(640, 360)
+	ui.add_child(intro)
+	
+	var bg = ColorRect.new()
+	bg.color = Color(0.2, 0.05, 0.1, 0.95)
+	bg.size = Vector2(550, 280)
+	bg.position = Vector2(-275, -140)
+	intro.add_child(bg)
+	
+	var title = Label.new()
+	title.text = "🐉 BOSS RUSH"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 40)
+	title.add_theme_color_override("font_color", Color(1, 0.3, 0.1))
+	title.position = Vector2(-80, -100)
+	intro.add_child(title)
+	
+	var info = Label.new()
+	info.text = "Defeat all bosses in sequence!\n" + str(boss_rush_max_bosses) + " bosses await you.\nEach victory grants bonus points.\nDon't lose all lives!"
+	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info.add_theme_font_size_override("font_size", 16)
+	info.add_theme_color_override("font_color", Color(1, 0.9, 0.8))
+	info.position = Vector2(-130, -20)
+	intro.add_child(info)
+	
+	await get_tree().create_timer(3.5).timeout
+	if intro and is_instance_valid(intro):
+		intro.queue_free()
+	setup_boss_rush_level()
+
+func setup_boss_rush_level():
+	if current_boss_index >= boss_rush_bosses.size():
+		finish_boss_rush(true)
+		return
+	
+	clear_level()
+	clear_checkpoints()
+	
+	var level_index = boss_rush_bosses[current_boss_index]
+	var level = levels[level_index]
+	
+	RenderingServer.set_default_clear_color(Color(0.15, 0.05, 0.1))
+	clear_effects()
+	
+	create_platform(50, 550, 200, 40)
+	create_platform(350, 450, 150, 20)
+	create_platform(600, 350, 100, 20)
+	create_platform(850, 450, 150, 20)
+	create_platform(1100, 550, 200, 40)
+	
+	for coin in level.get("coins", []):
+		create_coin(coin.x, coin.y)
+	
+	for gem in level.get("gems", []):
+		create_gem(gem.x, gem.y)
+	
+	create_enemy(700, 250, "boss", level.get("boss_hp", 5), 600, 800)
+	
+	create_goal(1250, 500)
+	
+	checkpoint_pos = Vector2(450, 400)
+	
+	show_level_name("Boss " + str(current_boss_index + 1) + ": " + level.get("boss_name", "Boss"))
+	
+	start_level_timer()
+	
+	player = CharacterBody2D.new()
+	player.position = checkpoint_pos
+	player.script = load("res://player.gd")
+	player.add_to_group("player")
+	add_child(player)
+	create_player_visual(player)
+	
+	var cam = Camera2D.new()
+	player.add_child(cam)
+	
+	await get_tree().create_timer(2.0).timeout
+	show_hint("boss_rush", "Jump on the boss to deal damage! Watch for attacks!")
+
+func on_boss_defeated():
+	boss_rush_wins += 1
+	score += 500 + (current_boss_index + 1) * 100
+	current_boss_index += 1
+	
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		var msg = Label.new()
+		msg.text = "Boss Defeated!\n+" + str(500 + current_boss_index * 100) + " points"
+		msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		msg.add_theme_font_size_override("font_size", 28)
+		msg.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+		msg.position = Vector2(540, 280)
+		msg.z_index = 100
+		ui.add_child(msg)
+		
+		await get_tree().create_timer(2.0).timeout
+		msg.queue_free()
+	
+	if current_boss_index >= boss_rush_bosses.size():
+		finish_boss_rush(true)
+	else:
+		setup_boss_rush_level()
+
+func finish_boss_rush(victory: bool):
+	var ui = get_tree().get_first_node_in_group("ui")
+	if not ui:
+		return
+	
+	var result = Node2D.new()
+	result.name = "BossRushResult"
+	result.position = Vector2(640, 360)
+	ui.add_child(result)
+	
+	var bg = ColorRect.new()
+	bg.color = Color(0.1, 0.05, 0.15, 0.95)
+	bg.size = Vector2(450, 250)
+	bg.position = Vector2(-225, -125)
+	result.add_child(bg)
+	
+	var title = Label.new()
+	if victory:
+		title.text = "🎉 BOSS RUSH COMPLETE!"
+		title.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+		score += 1000
+	else:
+		title.text = "💀 BOSS RUSH FAILED"
+		title.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 28)
+	title.position = Vector2(-130, -80)
+	result.add_child(title)
+	
+	var stats = Label.new()
+	stats.text = "Bosses Defeated: " + str(boss_rush_wins) + "/" + str(boss_rush_max_bosses) + "\nScore: " + str(score)
+	stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats.add_theme_font_size_override("font_size", 18)
+	stats.add_theme_color_override("font_color", Color(0.9, 0.9, 1))
+	stats.position = Vector2(-80, -10)
+	result.add_child(stats)
+	
+	var back_btn = Button.new()
+	back_btn.text = "Back to Menu"
+	back_btn.position = Vector2(-80, 60)
+	back_btn.custom_minimum_size = Vector2(160, 40)
+	back_btn.pressed.connect(func(): 
+		result.queue_free()
+		boss_rush_mode = false
+		quit_to_menu()
+	)
+	result.add_child(back_btn)
+
 func start_endless_mode():
 	endless_mode = true
 	endless_score = 0
@@ -3677,6 +4098,18 @@ func setup_level(level_index):
 		create_solar_effect()
 	else:
 		clear_solar_effect()
+	
+	# 🪞 Create mirror effect for Mirror World
+	if level.get("mirror_theme", false):
+		create_mirror_effect()
+	else:
+		clear_mirror_effect()
+	
+	# 🔀 Create chaos effect for Chaos Realm
+	if level.get("chaos_theme", false):
+		create_chaos_effect()
+	else:
+		clear_chaos_effect()
 	
 	# ⏱️ Start level timer
 	start_level_timer()
@@ -4458,6 +4891,46 @@ func create_enemy(x, y, type = "ground", hp = 1, min_x = 0, max_x = 300) -> Char
 		enemy.script = load("res://boss_enemy.gd")
 		enemy.hp = hp
 		enemy.max_hp = hp
+		
+		# Boss collision
+		var col = CollisionShape2D.new()
+		col.position = Vector2(0, -20)
+		var rect = RectangleShape2D.new()
+		rect.size = Vector2(40, 40)
+		col.shape = rect
+		enemy.add_child(col)
+	elif type == "teleport":
+		# Teleport enemy - teleports around the level
+		enemy = CharacterBody2D.new()
+		enemy.position = Vector2(x, y)
+		enemy.script = load("res://teleport_enemy.gd")
+		
+		# Purple mystic enemy visual
+		var sprite = Polygon2D.new()
+		sprite.name = "Visual"
+		var pts = PackedVector2Array()
+		for j in range(8):
+			var angle = j * TAU / 8
+			pts.append(Vector2(cos(angle), sin(angle)) * 12)
+		sprite.polygon = pts
+		sprite.color = Color(0.5, 0.2, 0.8, 1)
+		sprite.position = Vector2(0, -12)
+		enemy.add_child(sprite)
+		
+		# Glow effect
+		var glow = Polygon2D.new()
+		glow.polygon = pts.duplicate()
+		glow.color = Color(0.6, 0.3, 1, 0.4)
+		glow.position = Vector2(0, -12)
+		enemy.add_child(glow)
+		
+		# Collision
+		var col = CollisionShape2D.new()
+		col.position = Vector2(0, -12)
+		var rect = RectangleShape2D.new()
+		rect.size = Vector2(20, 20)
+		col.shape = rect
+		enemy.add_child(col)
 	else:
 		enemy = CharacterBody2D.new()
 		enemy.position = Vector2(x, y)
