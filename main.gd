@@ -1217,9 +1217,6 @@ var levels = [
 	{
 		"name": "Void Dimension",
 		"bg_color": Color(0.02, 0.02, 0.05),
-	{
-		"name": "Void Dimension",
-		"bg_color": Color(0.02, 0.02, 0.05),
 		"void_theme": true,
 		"platforms": [
 			{"x": 50, "y": 550, "w": 100, "h": 25, "void": true},
@@ -1262,6 +1259,97 @@ var levels = [
 			{"x": 1300, "y": 200, "min_x": 1250, "max_x": 1350, "type": "jellyfish"}
 		],
 		"goal": {"x": 1500, "y": 150}
+	},
+	
+	# NEW! Phoenix Realm - Fire phoenix theme (v3.8)
+	{
+		"name": "Phoenix Realm",
+		"bg_color": Color(0.3, 0.08, 0.05),
+		"phoenix_theme": true,
+		"platforms": [
+			{"x": 50, "y": 520, "w": 150, "h": 30, "fire": true},
+			{"x": 250, "y": 460, "w": 100, "h": 25, "fire": true},
+			{"x": 100, "y": 380, "w": 80, "h": 25, "fire": true},
+			{"x": 280, "y": 300, "w": 100, "h": 25, "fire": true},
+			{"x": 450, "y": 380, "w": 80, "h": 25, "fire": true},
+			{"x": 600, "y": 300, "w": 120, "h": 25, "fire": true},
+			{"x": 450, "y": 180, "w": 100, "h": 25, "fire": true},
+			{"x": 650, "y": 120, "w": 100, "h": 25, "fire": true},
+			{"x": 850, "y": 200, "w": 120, "h": 25, "fire": true},
+			{"x": 1050, "y": 280, "w": 100, "h": 25, "fire": true},
+			{"x": 1200, "y": 200, "w": 80, "h": 25, "fire": true},
+			{"x": 1350, "y": 280, "w": 100, "h": 25, "fire": true},
+			{"x": 1180, "y": 100, "w": 80, "h": 25, "fire": true},
+			{"x": 1350, "y": 120, "w": 100, "h": 25, "fire": "orange"},
+			{"x": 1520, "y": 200, "w": 120, "h": 25, "fire": "orange"}
+		],
+		"coins": [
+			{"x": 80, "y": 450}, {"x": 280, "y": 390},
+			{"x": 120, "y": 310}, {"x": 310, "y": 230},
+			{"x": 470, "y": 310}, {"x": 630, "y": 230},
+			{"x": 480, "y": 110}, {"x": 680, "y": 50},
+			{"x": 880, "y": 130}, {"x": 1080, "y": 210},
+			{"x": 1220, "y": 130}, {"x": 1130, "y": 30},
+			{"x": 1380, "y": 50}, {"x": 1550, "y": 130}
+		],
+		"stars": [
+			{"x": 280, "y": 180}, {"x": 680, "y": 80}, {"x": 1550, "y": 130}
+		],
+		"powerups": [
+			{"x": 1200, "y": 100, "type": "dash"}
+		],
+		"enemies": [
+			{"x": 280, "y": 420, "min_x": 250, "max_x": 350, "type": "fireball"},
+			{"x": 500, "y": 340, "min_x": 450, "max_x": 550, "type": "slime"},
+			{"x": 700, "y": 260, "min_x": 650, "max_x": 750, "type": "flying"},
+			{"x": 1050, "y": 240, "min_x": 1000, "max_x": 1100, "type": "fireball"}
+		],
+		"goal": {"x": 1580, "y": 150}
+	},
+	
+	# NEW! Abyss Core - Deep sea abyss theme (v3.9)
+	{
+		"name": "Abyss Core",
+		"bg_color": Color(0.02, 0.05, 0.12),
+		"abyss_theme": true,
+		"platforms": [
+			{"x": 50, "y": 500, "w": 150, "h": 30},
+			{"x": 250, "y": 450, "w": 80, "h": 25},
+			{"x": 100, "y": 350, "w": 80, "h": 25},
+			{"x": 280, "y": 280, "w": 100, "h": 25},
+			{"x": 450, "y": 350, "w": 80, "h": 25},
+			{"x": 600, "y": 280, "w": 100, "h": 25},
+			{"x": 450, "y": 180, "w": 80, "h": 25},
+			{"x": 620, "y": 120, "w": 100, "h": 25},
+			{"x": 800, "y": 200, "w": 80, "h": 25},
+			{"x": 950, "y": 280, "w": 100, "h": 25},
+			{"x": 1100, "y": 200, "w": 80, "h": 25},
+			{"x": 1250, "y": 280, "w": 100, "h": 25},
+			{"x": 1400, "y": 350, "w": 150, "h": 25}
+		],
+		"coins": [
+			{"x": 80, "y": 430}, {"x": 270, "y": 380},
+			{"x": 120, "y": 280}, {"x": 310, "y": 210},
+			{"x": 470, "y": 280}, {"x": 630, "y": 210},
+			{"x": 470, "y": 110}, {"x": 650, "y": 50},
+			{"x": 820, "y": 130}, {"x": 980, "y": 210},
+			{"x": 1130, "y": 130}, {"x": 1280, "y": 210},
+			{"x": 1430, "y": 280}
+		],
+		"stars": [
+			{"x": 150, "y": 250}, {"x": 650, "y": 80}, {"x": 1450, "y": 280}
+		],
+		"powerups": [
+			{"x": 950, "y": 180, "type": "double_jump"}
+		],
+		"enemies": [
+			{"x": 280, "y": 410, "min_x": 250, "max_x": 350, "type": "jellyfish"},
+			{"x": 500, "y": 310, "min_x": 450, "max_x": 550, "type": "jellyfish"},
+			{"x": 750, "y": 160, "min_x": 700, "max_x": 800, "type": "electric"},
+			{"x": 1050, "y": 240, "min_x": 1000, "max_x": 1100, "type": "jellyfish"},
+			{"x": 1350, "y": 310, "min_x": 1300, "max_x": 1400, "type": "slime"}
+		],
+		"goal": {"x": 1500, "y": 300}
 	}
 ]
 
@@ -1493,6 +1581,127 @@ func clear_void_effect():
 		void_container.queue_free()
 		void_container = null
 
+# 🔥 Phoenix effect for Phoenix Realm level
+var phoenix_container: Node2D = null
+
+func create_phoenix_effect():
+	if phoenix_container:
+		phoenix_container.queue_free()
+	
+	phoenix_container = Node2D.new()
+	phoenix_container.name = "PhoenixEffect"
+	add_child(phoenix_container)
+	phoenix_container.z_index = -60
+	
+	# Create floating fire embers
+	for i in range(50):
+		var ember = ColorRect.new()
+		ember.size = Vector2(randf_range(2, 5), randf_range(2, 5))
+		# Fire colors - orange, red, yellow
+		var color_choice = randi() % 3
+		if color_choice == 0:
+			ember.color = Color(1, 0.5, 0.1, randf_range(0.4, 0.8))
+		elif color_choice == 1:
+			ember.color = Color(1, 0.2, 0.05, randf_range(0.4, 0.8))
+		else:
+			ember.color = Color(1, 0.8, 0.2, randf_range(0.4, 0.8))
+		ember.position = Vector2(randf() * 1400, randf() * 800)
+		phoenix_container.add_child(ember)
+		
+		# Float upward animation
+		var tween = create_tween()
+		var start_pos = ember.position
+		tween.set_loops()
+		tween.tween_property(ember, "position:y", start_pos.y - randf_range(50, 100), randf_range(2.0, 4.0))
+		tween.tween_property(ember, "position:y", start_pos.y, randf_range(0.5, 1.0))
+	
+	# Create fire wisps
+	for i in range(20):
+		var wisp = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(6):
+			var angle = j * TAU / 6
+			pts.append(Vector2(cos(angle), sin(angle)) * randf_range(3, 6))
+		wisp.polygon = pts
+		wisp.color = Color(1, 0.4, 0.1, randf_range(0.3, 0.6))
+		wisp.position = Vector2(randf() * 1400, randf() * 800)
+		phoenix_container.add_child(wisp)
+		
+		# Flicker animation
+		var tween = create_tween()
+		tween.set_loops()
+		tween.tween_property(wisp, "scale", Vector2(1.2, 1.2), randf_range(0.3, 0.6))
+		tween.tween_property(wisp, "scale", Vector2(0.8, 0.8), randf_range(0.3, 0.6))
+
+func clear_phoenix_effect():
+	if phoenix_container:
+		phoenix_container.queue_free()
+		phoenix_container = null
+
+# 🫧 Abyss effect for Abyss Core level
+var abyss_container: Node2D = null
+
+func create_abyss_effect():
+	if abyss_container:
+		abyss_container.queue_free()
+	
+	abyss_container = Node2D.new()
+	abyss_container.name = "AbyssEffect"
+	add_child(abyss_container)
+	abyss_container.z_index = -60
+	
+	# Create bioluminescent creatures (glowing orbs)
+	for i in range(30):
+		var orb = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(8):
+			var angle = j * TAU / 8
+			pts.append(Vector2(cos(angle), sin(angle)) * randf_range(3, 7))
+		orb.polygon = pts
+		# Deep sea colors - blue, cyan, purple bioluminescence
+		var color_choice = randi() % 3
+		if color_choice == 0:
+			orb.color = Color(0.2, 0.6, 1.0, randf_range(0.3, 0.6))
+		elif color_choice == 1:
+			orb.color = Color(0.3, 0.8, 0.7, randf_range(0.3, 0.6))
+		else:
+			orb.color = Color(0.6, 0.3, 0.9, randf_range(0.3, 0.6))
+		orb.position = Vector2(randf() * 1400, randf() * 800)
+		abyss_container.add_child(orb)
+		
+		# Gentle float animation
+		var tween = create_tween()
+		var start_pos = orb.position
+		tween.set_loops()
+		tween.tween_property(orb, "position:y", start_pos.y - randf_range(20, 40), randf_range(3.0, 5.0))
+		tween.tween_property(orb, "position:y", start_pos.y, randf_range(3.0, 5.0))
+		
+		# Pulse animation
+		var pulse_tween = create_tween()
+		pulse_tween.set_loops()
+		pulse_tween.tween_property(orb, "scale", Vector2(1.3, 1.3), randf_range(1.0, 2.0))
+		pulse_tween.tween_property(orb, "scale", Vector2(0.7, 0.7), randf_range(1.0, 2.0))
+	
+	# Add floating particles (marine snow)
+	for i in range(60):
+		var particle = ColorRect.new()
+		particle.size = Vector2(randf_range(1, 3), randf_range(1, 3))
+		particle.color = Color(0.6, 0.8, 1.0, randf_range(0.1, 0.3))
+		particle.position = Vector2(randf() * 1400, randf() * 800)
+		abyss_container.add_child(particle)
+		
+		# Slow drift animation
+		var tween = create_tween()
+		var start_pos = particle.position
+		tween.set_loops()
+		tween.tween_property(particle, "position:y", start_pos.y + randf_range(-30, 30), randf_range(4.0, 7.0))
+		tween.tween_property(particle, "position:y", start_pos.y, randf_range(4.0, 7.0))
+
+func clear_abyss_effect():
+	if abyss_container:
+		abyss_container.queue_free()
+		abyss_container = null
+
 func show_level_name(level_name):
 	var ui = get_tree().get_first_node_in_group("ui")
 	if ui:
@@ -1547,6 +1756,66 @@ func show_level_name(level_name):
 		tween.tween_property(container, "modulate:a", 0.0, 0.5)
 		tween.tween_property(container, "position:y", container.position.y - 30, 0.5)
 		tween.tween_callback(container.queue_free)
+
+# 🎯 In-game hint system
+var shown_hints = {}
+
+func show_hint(hint_key: String, hint_text: String):
+	# Don't show same hint twice per session
+	if shown_hints.get(hint_key, false):
+		return
+	shown_hints[hint_key] = true
+	
+	var ui = get_tree().get_first_node_in_group("ui")
+	if not ui:
+		return
+	
+	# Create hint container
+	var hint_container = Node2D.new()
+	hint_container.name = "Hint"
+	hint_container.position = Vector2(640, 450)
+	ui.add_child(hint_container)
+	
+	# Background
+	var bg = ColorRect.new()
+	bg.color = Color(0.1, 0.1, 0.15, 0.85)
+	bg.size = Vector2(500, 50)
+	bg.position = Vector2(-250, -25)
+	hint_container.add_child(bg)
+	
+	# Hint text
+	var hint_label = Label.new()
+	hint_label.text = "💡 " + hint_text
+	hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint_label.add_theme_font_size_override("font_size", 18)
+	hint_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.7))
+	hint_label.position = Vector2(-100, -12)
+	hint_container.add_child(hint_label)
+	
+	# Animate in
+	hint_container.modulate.a = 0
+	var tween = create_tween()
+	tween.tween_property(hint_container, "modulate:a", 1.0, 0.3)
+	tween.tween_interval(4.0)
+	tween.tween_property(hint_container, "modulate:a", 0.0, 0.5)
+	tween.tween_property(hint_container, "position:y", hint_container.position.y - 20, 0.5)
+	tween.tween_callback(hint_container.queue_free)
+
+func show_level_hints(level_index: int):
+	# Show hints based on level
+	match level_index:
+		0:
+			show_hint("level_0_1", "Collect coins for points!")
+			await get_tree().create_timer(2.0).timeout
+			show_hint("level_0_2", "Jump on enemies to defeat them!")
+		2:
+			show_hint("level_2_1", "Moving platforms - time your jumps!")
+		4:
+			show_hint("level_4_1", "Floating islands - watch your step!")
+		10:
+			show_hint("level_10_1", "Boss battle! Watch for attacks!")
+			await get_tree().create_timer(2.0).timeout
+			show_hint("level_10_2", "Jump on the boss to deal damage!")
 
 func update_stars_parallax():
 	if stars_container and player:
@@ -2311,6 +2580,18 @@ func setup_level(level_index):
 	else:
 		clear_void_effect()
 	
+	# 🔥 Create phoenix effect for Phoenix Realm
+	if level.get("phoenix_theme", false):
+		create_phoenix_effect()
+	else:
+		clear_phoenix_effect()
+	
+	# 🫧 Create abyss effect for Abyss Core
+	if level.get("abyss_theme", false):
+		create_abyss_effect()
+	else:
+		clear_abyss_effect()
+	
 	# ⏱️ Start level timer
 	start_level_timer()
 	level_deaths = 0
@@ -2319,6 +2600,10 @@ func setup_level(level_index):
 	
 	# Show level name
 	show_level_name(level.get("name", "Level " + str(level_index + 1)))
+	
+	# Show level hints
+	await get_tree().create_timer(2.0).timeout
+	show_level_hints(level_index)
 	
 	# Show boss warning if boss level
 	if level.get("is_boss", false):
@@ -2346,7 +2631,9 @@ func setup_level(level_index):
 			move_data = {"move_x": p.get("move_x", 0), "move_y": p.get("move_y", 0)}
 		# Check for crystal platform
 		var crystal_type = p.get("crystal", null)
-		create_platform(p.x, p.y, p.w, p.h, move_data, crystal_type)
+		# Check for fire platform
+		var fire_type = p.get("fire", null)
+		create_platform(p.x, p.y, p.w, p.h, move_data, crystal_type, fire_type)
 	
 	# Create coins
 	for c in level["coins"]:
@@ -2414,7 +2701,7 @@ func create_player_visual(p):
 	col.position = Vector2(0, -12)  # Same center as sprite
 	p.add_child(col)
 
-func create_platform(x, y, w, h, move_data = null, crystal_type = null):
+func create_platform(x, y, w, h, move_data = null, crystal_type = null, fire_type = null):
 	var platform: Node2D
 	var is_moving = move_data != null
 	
@@ -2427,8 +2714,67 @@ func create_platform(x, y, w, h, move_data = null, crystal_type = null):
 	
 	platform.position = Vector2(x, y)
 	
+	# Fire platform rendering (Phoenix theme)
+	if fire_type != null:
+		var fire_colors = {
+			"true": Color(0.9, 0.3, 0.1, 0.85),  # Red-orange fire
+			"orange": Color(1.0, 0.5, 0.1, 0.85),  # Orange fire
+			"red": Color(0.8, 0.2, 0.1, 0.85)      # Red fire
+		}
+		var fire_color = fire_colors.get(str(fire_type), Color(0.9, 0.3, 0.1, 0.85))
+		
+		# Create fire-like platform using gradient
+		var gradient = Gradient.new()
+		gradient.set_color(0, Color(fire_color.r, fire_color.g, fire_color.b, fire_color.a * 0.4))
+		gradient.set_color(1, fire_color)
+		
+		var gradient_texture = GradientTexture2D.new()
+		gradient_texture.gradient = gradient
+		gradient_texture.fill = 1  # Vertical fill
+		gradient_texture.fill_from = Vector2(0, 0)
+		gradient_texture.fill_to = Vector2(1, 1)
+		gradient_texture.width = int(w)
+		gradient_texture.height = int(h)
+		
+		var sprite = Sprite2D.new()
+		sprite.texture = gradient_texture
+		sprite.position = Vector2(w/2, h/2)
+		platform.add_child(sprite)
+		
+		# Add flame edge effect
+		var edge_sprite = Sprite2D.new()
+		var edge_gradient = Gradient.new()
+		edge_gradient.set_color(0, Color(1, 0.6, 0.1, 0))
+		edge_gradient.set_color(1, Color(1, 0.4, 0.1, 0.7))
+		
+		var edge_texture = GradientTexture2D.new()
+		edge_texture.gradient = edge_gradient
+		edge_texture.fill = 1  # Vertical fill
+		edge_texture.width = int(w)
+		edge_texture.height = 6
+		
+		edge_sprite.texture = edge_texture
+		edge_sprite.position = Vector2(w/2, h - 3)
+		platform.add_child(edge_sprite)
+		
+		# Add glow effect at top
+		var glow_sprite = Sprite2D.new()
+		var glow_gradient = Gradient.new()
+		glow_gradient.set_color(0, Color(1, 0.8, 0.3, 0.5))
+		glow_gradient.set_color(1, Color(1, 0.5, 0.1, 0))
+		
+		var glow_texture = GradientTexture2D.new()
+		glow_texture.gradient = glow_gradient
+		glow_texture.fill = 1
+		glow_texture.width = int(w)
+		glow_texture.height = 8
+		
+		glow_sprite.texture = glow_texture
+		glow_sprite.position = Vector2(w/2, 4)
+		platform.add_child(glow_sprite)
+	
 	# Crystal platform rendering (Ice crystal theme)
-	if crystal_type != null:
+	elif crystal_type != null:
 		var crystal_colors = {
 			"cyan": Color(0.4, 0.9, 1.0, 0.85),   # Cyan ice
 			"blue": Color(0.3, 0.5, 1.0, 0.85),   # Blue ice
@@ -2627,6 +2973,11 @@ func collect_gem():
 	save_data["total_gems"] += 1
 	update_achievement_progress("gem_collector", save_data["total_gems"])
 	update_ui_labels()
+	
+	# 💎 Gem collection - big effect!
+	if player:
+		spawn_big_collection_effect(Color(0.3, 0.9, 1.0), player.global_position)
+		screen_shake_intensity(4)
 
 # 🌟 Create a star collectible
 func create_star(x, y):
@@ -2801,6 +3152,44 @@ func create_enemy(x, y, type = "ground", hp = 1, min_x = 0, max_x = 300) -> Char
 		col.position = Vector2(0, -12)
 		var rect = RectangleShape2D.new()
 		rect.size = Vector2(20, 20)
+		col.shape = rect
+		enemy.add_child(col)
+		
+		# Set movement bounds
+		enemy.set_meta("min_x", min_x)
+		enemy.set_meta("max_x", max_x)
+	elif type == "fireball":
+		# Fireball enemy - fiery bouncing enemy
+		enemy = CharacterBody2D.new()
+		enemy.position = Vector2(x, y)
+		enemy.script = load("res://fireball_enemy.gd")
+		
+		# Fireball sprite - orange/red fire
+		var sprite = Sprite2D.new()
+		sprite.name = "Visual"
+		sprite.texture = char_tilesheet
+		sprite.region_enabled = true
+		sprite.region_rect = Rect2(15 * 25, 0, 24, 24)
+		sprite.position = Vector2(0, -12)
+		sprite.modulate = Color(1, 0.5, 0.1, 1)  # Orange fire
+		enemy.add_child(sprite)
+		
+		# Add flame glow effect
+		var glow = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(8):
+			var angle = j * TAU / 8
+			pts.append(Vector2(cos(angle), sin(angle)) * 14)
+		glow.polygon = pts
+		glow.color = Color(1, 0.4, 0.1, 0.4)
+		glow.position = Vector2(0, -12)
+		enemy.add_child(glow)
+		
+		# Collision
+		var col = CollisionShape2D.new()
+		col.position = Vector2(0, -12)
+		var rect = RectangleShape2D.new()
+		rect.size = Vector2(18, 18)
 		col.shape = rect
 		enemy.add_child(col)
 		
@@ -3175,8 +3564,9 @@ func collect_star():
 	stars_collected += 1
 	update_ui_labels()
 	
-	# 🌟 Star collection particles
-	spawn_collection_particles(Color(1, 0.85, 0.3), player.global_position if player else Vector2.ZERO)
+	# 🌟 Star collection particles - big effect!
+	spawn_big_collection_effect(Color(1, 0.85, 0.3), player.global_position if player else Vector2.ZERO)
+	screen_shake_intensity(3)
 	
 	# 🏆 Star achievements
 	update_achievement_progress("star_gatherer", stars_collected)
@@ -3227,6 +3617,63 @@ func spawn_collection_particles(color: Color, pos: Vector2):
 		tween.parallel().tween_property(star, "modulate:a", 0.0, 0.5)
 		tween.parallel().tween_property(star, "scale", Vector2(0.3, 0.3), 0.5)
 		tween.tween_callback(star.queue_free)
+
+# Big collection effect for gems and stars
+func spawn_big_collection_effect(color: Color, pos: Vector2):
+	# Ring explosion
+	for i in range(16):
+		var particle = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(6):
+			var angle = j * TAU / 6
+			pts.append(Vector2(cos(angle), sin(angle)) * randf_range(2, 4))
+		particle.polygon = pts
+		particle.color = color
+		particle.position = pos
+		particle.z_index = 12
+		add_child(particle)
+		
+		var angle = i * TAU / 16
+		var distance = randf_range(40, 80)
+		var target = Vector2(cos(angle), sin(angle)) * distance
+		
+		var tween = create_tween()
+		tween.tween_property(particle, "position", pos + target, 0.8)
+		tween.parallel().tween_property(particle, "modulate:a", 0.0, 0.8)
+		tween.parallel().tween_property(particle, "scale", Vector2(0.1, 0.1), 0.8)
+		tween.tween_callback(particle.queue_free)
+	
+	# Sparkle burst
+	for i in range(8):
+		var sparkle = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(4):
+			var angle = j * TAU / 4
+			pts.append(Vector2(cos(angle), sin(angle)) * 6)
+		sparkle.polygon = pts
+		sparkle.color = Color(1, 1, 0.9, 0.9)
+		sparkle.position = pos + Vector2(randf_range(-10, 10), randf_range(-10, 10))
+		sparkle.z_index = 13
+		add_child(sparkle)
+		
+		var tween = create_tween()
+		var target_pos = pos + Vector2(randf_range(-60, 60), randf_range(-80, -20))
+		tween.tween_property(sparkle, "position", target_pos, 0.6)
+		tween.parallel().tween_property(sparkle, "modulate:a", 0.0, 0.6)
+		tween.parallel().tween_property(sparkle, "rotation", randf_range(2, 4), 0.6)
+		tween.tween_callback(sparkle.queue_free)
+	
+	# Screen flash
+	var flash = ColorRect.new()
+	flash.size = Vector2(2000, 2000)
+	flash.position = Vector2(-500, -500)
+	flash.color = Color(color.r, color.g, color.b, 0.3)
+	flash.z_index = 100
+	add_child(flash)
+	
+	var flash_tween = create_tween()
+	flash_tween.tween_property(flash, "color:a", 0.0, 0.3)
+	flash_tween.tween_callback(flash.queue_free)
 
 # 屏幕震动效果
 func shake_screen(intensity: float, duration: float):
