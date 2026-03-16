@@ -1,6 +1,6 @@
 extends Area2D
 
-enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE, DASH, WALL_CLIMB, GROUND_SLAM, TIME_SLOW, FREEZE, INVISIBLE }
+enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE, DASH, WALL_CLIMB, GROUND_SLAM, TIME_SLOW, FREEZE, INVISIBLE, PHOENIX, SHIELD, MAGNET }
 
 var powerup_type: PowerupType = PowerupType.INVINCIBLE
 var rotation_speed = 1.5
@@ -17,7 +17,10 @@ var colors = {
 	PowerupType.GROUND_SLAM: Color(1, 0.4, 0.1, 1),        # Orange - ground slam
 	PowerupType.TIME_SLOW: Color(0.5, 0.3, 0.8, 1),       # Purple - time slow
 	PowerupType.FREEZE: Color(0.3, 0.8, 1, 1),           # Ice blue - freeze
-	PowerupType.INVISIBLE: Color(0.6, 0.6, 0.7, 0.8)     # Silver - invisible
+	PowerupType.INVISIBLE: Color(0.6, 0.6, 0.7, 0.8),     # Silver - invisible
+	PowerupType.PHOENIX: Color(1, 0.5, 0.1, 1),           # Orange-red - phoenix
+	PowerupType.SHIELD: Color(0.3, 0.6, 1, 1),            # Blue - shield
+	PowerupType.MAGNET: Color(0.9, 0.3, 0.9, 1)          # Pink-purple - magnet
 }
 
 func _ready():
@@ -346,6 +349,40 @@ func apply_powerup():
 		PowerupType.INVISIBLE:
 			player_node.activate_invisible(6.0)
 			get_tree().call_group("game", "add_score", 30)
+		PowerupType.PHOENIX:
+			player_node.lives = 3
+			player_node.is_dead = false
+			player_node.modulate.a = 1.0
+			player_node.velocity = Vector2.ZERO
+			get_tree().call_group("game", "_update_lives")
+			get_tree().call_group("game", "add_score", 100)
+			get_tree().call_group("game", "screen_shake_intensity", 10)
+			spawn_phoenix_effect(player_node.global_position)
+		PowerupType.SHIELD:
+			player_node.activate_shield(8.0)
+			get_tree().call_group("game", "add_score", 40)
+		PowerupType.MAGNET:
+			player_node.activate_magnet(10.0)
+			get_tree().call_group("game", "add_score", 35)
+
+func spawn_phoenix_effect(pos: Vector2):
+	for i in range(20):
+		var flame = ColorRect.new()
+		flame.size = Vector2(randf_range(4, 8), randf_range(4, 8))
+		var color_choice = randi() % 3
+		if color_choice == 0:
+			flame.color = Color(1, 0.5, 0.1, 0.8)
+		elif color_choice == 1:
+			flame.color = Color(1, 0.2, 0.05, 0.8)
+		else:
+			flame.color = Color(1, 0.8, 0.2, 0.8)
+		flame.position = pos + Vector2(randf_range(-30, 30), randf_range(-40, -10))
+		get_parent().add_child(flame)
+		
+		var tween = create_tween()
+		tween.tween_property(flame, "position", flame.position + Vector2(randf_range(-20, 20), -randf_range(40, 80)), 0.6)
+		tween.parallel().tween_property(flame, "modulate:a", 0.0, 0.6)
+		tween.tween_callback(flame.queue_free)
 
 func spawn_particles():
 	var color = colors[powerup_type]

@@ -6,6 +6,10 @@ var lives = 3
 var current_level = 0
 var combo = 0
 var combo_timer = 0.0
+var combo_meter = 0.0  # 0-100 fills up for special ability
+var combo_meter_max = 100.0
+var super_combo_active = false
+var super_combo_timer = 0.0
 var last_coin_time = 0.0
 var stars_collected = 0
 var high_score = 0
@@ -2112,6 +2116,22 @@ func _process(delta):
 			if combo_timer <= 0:
 				combo = 0
 				update_combo_display()
+		
+		# Super combo timer
+		if super_combo_active:
+			super_combo_timer -= delta
+			if super_combo_timer <= 0:
+				super_combo_active = false
+				combo_meter = 0.0
+				# Reset player powers
+				if player:
+					player.speed_multiplier = 1.0
+					if not player.is_invincible:  # Don't reset if has other invincibility
+						player.modulate = Color.WHITE
+		
+		# Update combo meter display
+		update_combo_meter_display()
+		
 		# Camera shake effect
 		if screen_shake > 0:
 			screen_shake -= delta * 30
@@ -2246,7 +2266,7 @@ func show_start_screen():
 	
 	# Version in bottom right
 	var version = Label.new()
-	version.text = "v4.2"
+	version.text = "v4.3"
 	version.position = Vector2(650, 550)
 	version.add_theme_font_size_override("font_size", 14)
 	version.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
@@ -2684,6 +2704,7 @@ func restart_current_level():
 func quit_to_menu():
 	is_paused = false
 	get_tree().paused = false
+	Engine.time_scale = 1.0  # Reset time scale to fix potential slow-mo bug
 	hide_pause_menu()
 	game_started = false
 	show_start_screen()
@@ -2713,6 +2734,10 @@ func clear_level():
 	checkpoint_pos = Vector2(80, 350)
 
 func _input(event):
+	# Easter egg: Konami code detection (↑↑↓↓←→←→BA)
+	if event is InputEventKey and event.pressed:
+		handle_konami_code(event)
+	
 	# 处理跳跃键
 	if event.is_action_pressed("jump"):
 		_handle_continue_or_start()
@@ -2721,6 +2746,65 @@ func _input(event):
 		_handle_continue_or_start()
 	elif event is InputEventScreenTouch and event.pressed:
 		_handle_continue_or_start()
+
+# 🎮 Easter egg: Konami code for super secret!
+var konami_buffer = []
+var konami_code = [KEY_UP, KEY_UP, KEY_DOWN, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_LEFT, KEY_RIGHT, KEY_B, KEY_A]
+
+func handle_konami_code(event: InputEventKey):
+	konami_buffer.append(event.keycode)
+	if konami_buffer.size() > 10:
+		konami_buffer.pop_front()
+	
+	# Check if Konami code is complete
+	if konami_buffer.size() == 10:
+		var match = true
+		for i in range(10):
+			if konami_buffer[i] != konami_code[i]:
+				match = false
+				break
+		if match:
+			activate_konami_cheat()
+
+func activate_konami_cheat():
+	# Give player all abilities and 99 lives!
+	if player:
+		player.lives = 99
+		player.max_jumps = 3
+		player.can_dash = true
+		player.can_wall_climb = true
+		player.can_ground_slam = true
+		player.can_time_slow = true
+		player.has_permanent_double_jump = true
+	
+	# Unlock all abilities
+	for ability in ABILITIES.keys():
+		unlock_ability(ability)
+	
+	# Big score bonus
+	score += 9999
+	
+	# Show secret message
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		var secret = Label.new()
+		secret.text = "🎮 CHEAT ACTIVATED!\nAll abilities unlocked!\n99 lives granted!"
+		secret.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		secret.position = Vector2(640, 300)
+		secret.add_theme_font_size_override("font_size", 28)
+		secret.add_theme_color_override("font_color", Color(1, 0.3, 0.8))
+		secret.z_index = 200
+		ui.add_child(secret)
+		
+		var tw = create_tween()
+		tw.tween_interval(3.0)
+		tween_property(secret, "modulate:a", 0.0, 0.5)
+		tw.tween_property(secret, "position:y", secret.position.y - 30, 0.5)
+		tw.tween_callback(secret.queue_free)
+	
+	# Reset buffer
+	konami_buffer.clear()
+	update_ui_labels()
 
 func _handle_continue_or_start():
 	if not game_started:
@@ -4033,6 +4117,21 @@ func setup_ui():
 	combo_label.add_theme_color_override("font_color", Color(1, 0.7, 0.1))
 	vbox.add_child(combo_label)
 	
+	# 🔥 Super Combo Meter - fills up for special ability
+	var meter_container = HBoxContainer.new()
+	var meter_icon = Label.new()
+	meter_icon.text = "🔥"
+	meter_icon.add_theme_font_size_override("font_size", 16)
+	meter_container.add_child(meter_icon)
+	
+	var meter_label = Label.new()
+	meter_label.name = "ComboMeterLabel"
+	meter_label.text = "[=====     ]"
+	meter_label.add_theme_font_size_override("font_size", 14)
+	meter_label.add_theme_color_override("font_color", Color(1, 0.5, 0.2))
+	meter_container.add_child(meter_label)
+	vbox.add_child(meter_container)
+	
 	# 🌟 Stars collected
 	var star_container = HBoxContainer.new()
 	var star_icon = Label.new()
@@ -4156,6 +4255,13 @@ func add_score(points):
 	# Calculate bonus from combo
 	var bonus = points * combo
 	score += bonus
+	
+	# 🔥 Fill combo meter based on points
+	if not super_combo_active:
+		combo_meter = min(combo_meter + points * 0.5, combo_meter_max)
+		if combo_meter >= combo_meter_max:
+			activate_super_combo()
+	
 	update_ui_labels()
 	
 	# Spawn coin collection particles
@@ -4169,6 +4275,48 @@ func add_score(points):
 	# Combo achievements
 	if combo >= 10:
 		unlock_achievement("combo_master")
+
+func activate_super_combo():
+	super_combo_active = true
+	super_combo_timer = 5.0  # 5 seconds of super combo
+	
+	# Give player temporary powers
+	if player:
+		player.speed_multiplier = 1.5
+		player.is_invincible = true
+		player.invincible_timer = 5.0
+	
+	# Visual effect - screen flash
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		var flash = ColorRect.new()
+		flash.size = Vector2(2000, 2000)
+		flash.position = Vector2(-500, -500)
+		flash.color = Color(1, 0.5, 0.2, 0.3)
+		flash.z_index = 50
+		ui.add_child(flash)
+		
+		var tw = create_tween()
+		tw.tween_property(flash, "color:a", 0.0, 0.5)
+		tw.tween_callback(flash.queue_free)
+	
+	screen_shake_intensity(8)
+
+func update_combo_meter_display():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		var meter_label = ui.get_node_or_null("ComboMeterLabel")
+		if meter_label:
+			if super_combo_active:
+				meter_label.text = "🔥 SUPER! 🔥"
+				meter_label.add_theme_color_override("font_color", Color(1, 0.3, 0.1))
+			else:
+				var filled = int(combo_meter / combo_meter_max * 5)
+				var bar = ""
+				for i in range(5):
+					bar += "█" if i < filled else "░"
+				meter_label.text = "[" + bar + "]"
+				meter_label.add_theme_color_override("font_color", Color(1, 0.5, 0.2))
 
 # 🌟 Called when player collects a star
 func collect_star():

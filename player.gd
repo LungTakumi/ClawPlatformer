@@ -205,14 +205,59 @@ func _physics_process(delta):
 	if trail_timer > 0.05 and velocity.length() > 10:
 		trail_timer = 0
 		spawn_trail()
+		# Extra particle effects
+		spawn_movement_particles()
 	
 	# Invincibility visual - flash
 	if is_invincible:
 		modulate = Color(1, 1, 1, 0.5 + 0.5 * sin(Time.get_ticks_msec() / 50.0))
 	
+	# Shield visual - blue pulse
+	if has_shield:
+		shield_timer -= delta
+		if shield_timer <= 0:
+			has_shield = false
+			modulate = Color.WHITE
+		else:
+			modulate = Color(0.3, 0.6, 1, 0.5 + 0.3 * sin(Time.get_ticks_msec() / 80.0))
+	
+	# Magnet effect - attract nearby coins
+	if has_magnet:
+		magnet_timer -= delta
+		if has_child_named("MagnetGlow"):
+			var glow = get_node("Visual/MagnetGlow")
+			if glow:
+				glow.modulate.a = 0.3 + 0.2 * sin(Time.get_ticks_msec() / 100.0)
+		if magnet_timer <= 0:
+			has_magnet = false
+			var glow = get_node_or_null("Visual/MagnetGlow")
+			if glow:
+				glow.queue_free()
+		# Attract coins
+		attract_nearby_coins()
+	
 	# Check if fell off screen
 	if global_position.y > 800:
 		die()
+
+func has_child_named(name: String) -> bool:
+	var visual = get_node_or_null("Visual")
+	if visual:
+		return visual.has_node(name)
+	return false
+
+func attract_nearby_coins():
+	var game = get_tree().get_first_node_in_group("game")
+	if not game or not game.coins:
+		return
+	
+	var player_pos = global_position
+	for coin in game.coins:
+		if is_instance_valid(coin):
+			var dist = player_pos.distance_to(coin.global_position)
+			if dist < 150:  # Attraction range
+				var direction = (player_pos - coin.global_position).normalized()
+				coin.global_position += direction * 400 * get_physics_process_delta_time()
 
 func update_facing():
 	var visual = get_node_or_null("Visual")
@@ -285,6 +330,23 @@ func spawn_trail():
 	tween.tween_property(trail, "modulate:a", 0.0, 0.3)
 	tween.tween_callback(trail.queue_free)
 
+func spawn_movement_particles():
+	if not is_instance_valid(self):
+		return
+	# Spawn small particle dust when moving
+	var particle = ColorRect.new()
+	particle.size = Vector2(randf_range(2, 4), randf_range(2, 4))
+	particle.color = Color(0.8, 0.7, 0.6, randf_range(0.3, 0.6))
+	particle.position = Vector2(randf_range(-5, 5), randf_range(-5, 5))
+	particle.z_index = -1
+	get_parent().add_child(particle)
+	
+	var tween = create_tween()
+	var target = Vector2(randf_range(-15, 15), randf_range(5, 15))
+	tween.tween_property(particle, "position", particle.position + target, 0.3)
+	tween.parallel().tween_property(particle, "modulate:a", 0.0, 0.3)
+	tween.tween_callback(particle.queue_free)
+
 func spawn_dash_trail():
 	if not is_instance_valid(self):
 		return
@@ -308,6 +370,12 @@ func die():
 		return
 	is_dead = true
 	lives -= 1
+	
+	# IMPORTANT: Reset time scale on death to prevent permanent slow-mo
+	if is_time_slowed:
+		is_time_slowed = false
+		time_scale = 1.0
+		Engine.time_scale = 1.0
 	
 	# Track level deaths for achievements
 	get_tree().call_group("game", "track_death")
@@ -427,6 +495,10 @@ var is_frozen = false
 var freeze_timer = 0.0
 var is_invisible = false
 var invisible_timer = 0.0
+var has_shield = false
+var shield_timer = 0.0
+var has_magnet = false
+var magnet_timer = 0.0
 
 func activate_freeze(duration: float):
 	is_frozen = true
@@ -460,3 +532,53 @@ func activate_invisible(duration: float):
 		tw.tween_property(p, "position", p.position + Vector2(randf_range(-20, 20), randf_range(-30, -10)), 0.6)
 		tw.parallel().tween_property(p, "modulate:a", 0.0, 0.6)
 		tw.tween_callback(p.queue_free)
+
+func activate_shield(duration: float):
+	has_shield = true
+	shield_timer = duration
+	# Blue glow effect
+	modulate = Color(0.3, 0.6, 1, 1)
+	spawn_shield_effect()
+
+func spawn_shield_effect():
+	for i in range(6):
+		var orb = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(8):
+			var angle = j * TAU / 8
+			pts.append(Vector2(cos(angle), sin(angle)) * 8)
+		orb.polygon = pts
+		orb.color = Color(0.3, 0.6, 1, 0.6)
+		orb.position = Vector2(randf_range(-15, 15), randf_range(-25, 5))
+		add_child(orb)
+		
+		var tw = create_tween()
+		tw.tween_property(orb, "position", orb.position + Vector2(randf_range(-30, 30), randf_range(-40, 10)), 0.5)
+		tw.parallel().tween_property(orb, "modulate:a", 0.0, 0.5)
+		tw.tween_callback(orb.queue_free)
+
+func activate_magnet(duration: float):
+	has_magnet = true
+	magnet_timer = duration
+	spawn_magnet_effect()
+
+func spawn_magnet_effect():
+	var visual = get_node_or_null("Visual")
+	if not visual:
+		return
+	# Add pink glow around player
+	var glow = Polygon2D.new()
+	var pts = PackedVector2Array()
+	for j in range(12):
+		var angle = j * TAU / 12
+		pts.append(Vector2(cos(angle), sin(angle)) * 25)
+	glow.polygon = pts
+	glow.color = Color(0.9, 0.3, 0.9, 0.3)
+	glow.name = "MagnetGlow"
+	visual.add_child(glow)
+	
+	# Pulse animation
+	var tw = create_tween()
+	tw.set_loops()
+	tw.tween_property(glow, "scale", Vector2(1.2, 1.2), 0.5)
+	tw.tween_property(glow, "scale", Vector2(1.0, 1.0), 0.5)
