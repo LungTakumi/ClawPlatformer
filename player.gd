@@ -62,6 +62,16 @@ var can_bounce = false
 var bounce_count = 0
 var max_bounces = 1
 
+# Pet companion system
+var has_pet = false
+var pet: Node2D = null
+var pet_follow_delay = 0.15
+
+# Combo Finale - Super ability when meter is full
+var can_combo_finale = false
+var is_combo_finale_active = false
+var finale_timer = 0.0
+
 func _physics_process(delta):
 	if is_dead:
 		return
@@ -199,6 +209,11 @@ func _physics_process(delta):
 	
 	if clone_cooldown > 0:
 		clone_cooldown -= delta
+	
+	# Handle Combo Finale super ability (Press V when meter is full)
+	if can_combo_finale and not is_combo_finale_active:
+		if Input.is_key_pressed(KEY_V):
+			activate_combo_finale()
 
 	# Get input direction
 	var direction = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
@@ -284,6 +299,16 @@ func _physics_process(delta):
 	# Check if fell off screen
 	if global_position.y > 800:
 		die()
+	
+	# Update pet position
+	if has_pet and pet and is_instance_valid(pet):
+		update_pet_position(delta)
+	
+	# Handle Combo Finale active state
+	if is_combo_finale_active:
+		finale_timer -= delta
+		if finale_timer <= 0:
+			end_combo_finale()
 
 func reset_time_scale():
 	if Engine.time_scale != 1.0:
@@ -423,6 +448,10 @@ func _enter_tree():
 		Engine.time_scale = 1.0
 		is_time_slowed = false
 		time_scale = 1.0
+
+func _exit_tree():
+	# Reset time scale when player leaves scene to prevent permanent slow-mo
+	Engine.time_scale = 1.0
 
 func die():
 	if is_dead:
@@ -748,4 +777,118 @@ func spawn_bounce_effect():
 	var game = get_tree().get_first_node_in_group("game")
 	if game:
 		game.screen_shake_intensity(4)
+
+func spawn_pet(pet_type: String = "default"):
+	has_pet = true
+	pet = Node2D.new()
+	pet.name = "Pet"
+	get_parent().add_child(pet)
+	
+	var pet_visual = Polygon2D.new()
+	var pts = PackedVector2Array()
+	if pet_type == "bird":
+		pts = PackedVector2Array([Vector2(-6, 0), Vector2(-2, -4), Vector2(2, -4), Vector2(6, 0), Vector2(2, 2), Vector2(-2, 2)])
+		pet_visual.color = Color(1, 0.9, 0.3, 1)
+	elif pet_type == "cat":
+		pts = PackedVector2Array([Vector2(-5, -3), Vector2(-5, 3), Vector2(5, 3), Vector2(5, -3)])
+		pet_visual.color = Color(1, 0.6, 0.4, 1)
+	elif pet_type == "dragon":
+		pts = PackedVector2Array([Vector2(0, -6), Vector2(4, -2), Vector2(4, 2), Vector2(0, 6), Vector2(-4, 2), Vector2(-4, -2)])
+		pet_visual.color = Color(0.3, 0.8, 0.4, 1)
+	else:
+		pts = PackedVector2Array([Vector2(0, -5), Vector2(3, 0), Vector2(0, 5), Vector2(-3, 0)])
+		pet_visual.color = Color(0.4, 0.9, 1, 1)
+	pet_visual.polygon = pts
+	pet.add_child(pet_visual)
+	
+	pet.position = position + Vector2(-30, -20)
+	spawn_pet_spawn_effect()
+
+func update_pet_position(delta: float):
+	if not pet or not is_instance_valid(pet):
+		return
+	
+	var target_pos = position + Vector2(-25, -15)
+	var direction = (target_pos - pet.position)
+	pet.position += direction * (1.0 / pet_follow_delay) * delta
+	
+	var tween = create_tween()
+	tween.tween_property(pet, "position", pet.position + Vector2(0, sin(Time.get_ticks_msec() / 200.0) * 2), 0.1)
+
+func spawn_pet_spawn_effect():
+	for i in range(10):
+		var particle = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(4):
+			var angle = j * TAU / 4
+			pts.append(Vector2(cos(angle), sin(angle)) * 3)
+		particle.polygon = pts
+		particle.color = Color(0.4, 0.9, 1, 0.8)
+		particle.position = position
+		get_parent().add_child(particle)
+		
+		var tw = create_tween()
+		var angle = i * TAU / 10
+		var dist = randf_range(20, 40)
+		tw.tween_property(particle, "position", position + Vector2(cos(angle), sin(angle)) * dist, 0.4)
+		tw.parallel().tween_property(particle, "modulate:a", 0.0, 0.4)
+		tw.tween_callback(particle.queue_free)
+
+func activate_combo_finale():
+	if not can_combo_finale or is_combo_finale_active:
+		return
+	
+	is_combo_finale_active = true
+	finale_timer = 5.0
+	
+	speed_multiplier = 2.0
+	is_invincible = true
+	
+	spawn_combo_finale_effect()
+	
+	var game = get_tree().get_first_node_in_group("game")
+	if game:
+		game.screen_shake_intensity(15)
+		game.combo_meter = 0.0
+
+func end_combo_finale():
+	is_combo_finale_active = false
+	speed_multiplier = 1.0
+	is_invincible = false
+	modulate = Color.WHITE
+
+func spawn_combo_finale_effect():
+	for i in range(20):
+		var particle = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(6):
+			var angle = j * TAU / 6
+			pts.append(Vector2(cos(angle), sin(angle)) * randf_range(4, 8))
+		particle.polygon = pts
+		particle.color = Color(1, 0.8, 0.2, 0.9)
+		particle.position = position + Vector2(randf_range(-20, 20), randf_range(-30, 0))
+		get_parent().add_child(particle)
+		
+		var tw = create_tween()
+		var angle = i * TAU / 20
+		var dist = randf_range(40, 80)
+		tw.tween_property(particle, "position", position + Vector2(cos(angle), sin(angle)) * dist, 0.5)
+		tw.parallel().tween_property(particle, "modulate:a", 0.0, 0.5)
+		tw.parallel().tween_property(particle, "scale", Vector2(0.3, 0.3), 0.5)
+		tw.tween_callback(particle.queue_free)
+	
+	var ring = Polygon2D.new()
+	var ring_pts = PackedVector2Array()
+	for j in range(20):
+		var angle = j * TAU / 20
+		ring_pts.append(Vector2(cos(angle), sin(angle)) * 30)
+	ring.polygon = ring_pts
+	ring.color = Color(1, 0.9, 0.3, 0.6)
+	ring.position = position
+	get_parent().add_child(ring)
+	
+	var ring_tw = create_tween()
+	ring_tw.tween_property(ring, "scale", Vector2(3, 3), 0.5)
+	ring_tw.parallel().tween_property(ring, "modulate:a", 0.0, 0.5)
+	ring_tw.tween_callback(ring.queue_free)
 

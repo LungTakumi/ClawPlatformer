@@ -1655,6 +1655,49 @@ var levels = [
 			{"x": 1200, "y": 160, "min_x": 1150, "max_x": 1250, "type": "orb"}
 		],
 		"goal": {"x": 1450, "y": 230}
+	},
+	# NEW! Pet Paradise v2 - Showcases pet companion system (v5.0)
+	{
+		"name": "Pet Haven",
+		"bg_color": Color(0.15, 0.25, 0.2),
+		"pet_theme": true,
+		"platforms": [
+			{"x": 50, "y": 500, "w": 150, "h": 30},
+			{"x": 250, "y": 450, "w": 100, "h": 25},
+			{"x": 100, "y": 380, "w": 100, "h": 25},
+			{"x": 300, "y": 300, "w": 100, "h": 25},
+			{"x": 500, "y": 380, "w": 80, "h": 25},
+			{"x": 650, "y": 300, "w": 100, "h": 25},
+			{"x": 500, "y": 200, "w": 100, "h": 25},
+			{"x": 700, "y": 120, "w": 100, "h": 25},
+			{"x": 900, "y": 200, "w": 120, "h": 25},
+			{"x": 1050, "y": 280, "w": 100, "h": 25},
+			{"x": 1200, "y": 200, "w": 80, "h": 25},
+			{"x": 1350, "y": 280, "w": 150, "h": 25}
+		],
+		"coins": [
+			{"x": 80, "y": 430}, {"x": 280, "y": 380},
+			{"x": 130, "y": 310}, {"x": 330, "y": 230},
+			{"x": 520, "y": 310}, {"x": 680, "y": 230},
+			{"x": 530, "y": 130}, {"x": 730, "y": 50},
+			{"x": 930, "y": 130}, {"x": 1080, "y": 210},
+			{"x": 1230, "y": 130}, {"x": 1400, "y": 210}
+		],
+		"stars": [
+			{"x": 280, "y": 180}, {"x": 700, "y": 80}, {"x": 1430, "y": 210}
+		],
+		"powerups": [
+			{"x": 500, "y": 130, "type": "double_jump"},
+			{"x": 900, "y": 100, "type": "dash"}
+		],
+		"pet_spawn": {"x": 150, "y": 420, "type": "bird"},
+		"enemies": [
+			{"x": 280, "y": 410, "min_x": 250, "max_x": 350, "type": "slime"},
+			{"x": 520, "y": 340, "min_x": 450, "max_x": 550, "type": "jellyfish"},
+			{"x": 750, "y": 80, "min_x": 700, "max_x": 800, "type": "flying"},
+			{"x": 1100, "y": 240, "min_x": 1000, "max_x": 1200, "type": "slime"}
+		],
+		"goal": {"x": 1450, "y": 230}
 	}
 ]
 
@@ -1750,6 +1793,7 @@ func clear_effects():
 	clear_weather_effect()
 	clear_twilight_effect()
 	clear_solar_effect()
+	clear_pet_effect()
 
 # 🌅 Twilight effect for Twilight Temple level
 var twilight_container: Node2D = null
@@ -1913,6 +1957,49 @@ func clear_aurora_effect():
 	if aurora_container:
 		aurora_container.queue_free()
 		aurora_container = null
+
+# 🐾 Pet theme effect for Pet Haven level
+var pet_effect_container: Node2D = null
+
+func create_pet_effect():
+	if pet_effect_container:
+		pet_effect_container.queue_free()
+	
+	pet_effect_container = Node2D.new()
+	pet_effect_container.name = "PetEffect"
+	add_child(pet_effect_container)
+	pet_effect_container.z_index = -50
+	
+	# Create floating hearts and sparkles
+	for i in range(25):
+		var sparkle = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(4):
+			var angle = j * TAU / 4
+			pts.append(Vector2(cos(angle), sin(angle)) * randf_range(2, 5))
+		sparkle.polygon = pts
+		
+		var color_choice = randi() % 3
+		if color_choice == 0:
+			sparkle.color = Color(1, 0.5, 0.7, randf_range(0.3, 0.6))
+		elif color_choice == 1:
+			sparkle.color = Color(1, 0.9, 0.5, randf_range(0.3, 0.6))
+		else:
+			sparkle.color = Color(0.5, 1, 0.8, randf_range(0.3, 0.6))
+		
+		sparkle.position = Vector2(randf() * 1400, randf() * 600)
+		pet_effect_container.add_child(sparkle)
+		
+		var tween = create_tween()
+		var start_pos = sparkle.position
+		tween.set_loops()
+		tween.tween_property(sparkle, "position:y", start_pos.y - randf_range(20, 40), randf_range(2.0, 4.0))
+		tween.tween_property(sparkle, "position:y", start_pos.y, randf_range(2.0, 4.0))
+
+func clear_pet_effect():
+	if pet_effect_container:
+		pet_effect_container.queue_free()
+		pet_effect_container = null
 
 # 🌌 Nebula effect for Nebula Nexus level
 var nebula_container: Node2D = null
@@ -2538,7 +2625,7 @@ func show_start_screen():
 	
 	# Controls info
 	var instr = Label.new()
-	instr.text = "🎮 Controls:\nArrow Keys / WASD: Move\nSpace: Jump\nESC: Pause"
+	instr.text = "🎮 Controls:\nArrow Keys / WASD: Move\nSpace: Jump\nESC: Pause\nShift: Dash | Z: Time Slow | X: Teleport\nC: Shadow Clone | V: Combo Finale"
 	instr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	instr.add_theme_font_size_override("font_size", 18)
 	instr.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
@@ -2616,7 +2703,7 @@ func show_start_screen():
 	
 	# Version in bottom right
 	var version = Label.new()
-	version.text = "v4.8"
+	version.text = "v5.0"
 	version.position = Vector2(650, 550)
 	version.add_theme_font_size_override("font_size", 14)
 	version.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
@@ -3560,6 +3647,12 @@ func setup_level(level_index):
 	else:
 		clear_abyss_effect()
 	
+	# 🐾 Create pet theme effect for Pet Haven
+	if level.get("pet_theme", false):
+		create_pet_effect()
+	else:
+		clear_pet_effect()
+	
 	# 🌧️ Create weather effect
 	var weather_str = level.get("weather", "")
 	if weather_str != "":
@@ -3670,6 +3763,10 @@ func setup_level(level_index):
 	if level.has("powerups"):
 		for p in level["powerups"]:
 			create_powerup(p.x, p.y, p.get("type", "dash"))
+	
+	# Create pet companion (if defined in level)
+	if level.has("pet_spawn") and player:
+		player.spawn_pet(level["pet_spawn"].get("type", "default"))
 	
 	# Create treasure chests (if defined in level)
 	if level.has("treasure_chests"):
@@ -4895,6 +4992,8 @@ func activate_super_combo():
 		player.speed_multiplier = 1.5
 		player.is_invincible = true
 		player.invincible_timer = 5.0
+		# Enable Combo Finale ability
+		player.can_combo_finale = true
 	
 	# Visual effect - screen flash
 	var ui = get_tree().get_first_node_in_group("ui")
@@ -4909,6 +5008,24 @@ func activate_super_combo():
 		var tw = create_tween()
 		tw.tween_property(flash, "color:a", 0.0, 0.5)
 		tw.tween_callback(flash.queue_free)
+	
+	# Show combo finale ready notification
+	if ui:
+		var notif = Label.new()
+		notif.text = "⚡ COMBO FINALE READY!\nPress V to activate!"
+		notif.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		notif.position = Vector2(200, 120)
+		notif.add_theme_font_size_override("font_size", 24)
+		notif.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+		notif.modulate.a = 0
+		ui.add_child(notif)
+		
+		var tw = create_tween()
+		tw.tween_property(notif, "modulate:a", 1.0, 0.3)
+		tw.tween_interval(3.0)
+		tw.tween_property(notif, "modulate:a", 0.0, 0.5)
+		tw.tween_property(notif, "position:y", notif.position.y - 30, 0.5)
+		tw.tween_callback(notif.queue_free)
 	
 	screen_shake_intensity(8)
 
