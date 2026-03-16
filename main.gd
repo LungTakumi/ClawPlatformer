@@ -929,6 +929,91 @@ var levels = [
 			{"x": 870, "y": 230, "min_x": 850, "max_x": 930, "type": "fireball"}
 		],
 		"goal": {"x": 1430, "y": 300}
+	},
+	# NEW! Magic Forest - Mystical forest with phantom enemies (v6.0)
+	{
+		"name": "Magic Forest",
+		"bg_color": Color(0.05, 0.15, 0.1),
+		"magic_theme": true,
+		"platforms": [
+			{"x": 50, "y": 550, "w": 150, "h": 30},
+			{"x": 250, "y": 480, "w": 100, "h": 20},
+			{"x": 100, "y": 380, "w": 80, "h": 20},
+			{"x": 280, "y": 300, "w": 100, "h": 20},
+			{"x": 450, "y": 380, "w": 80, "h": 20},
+			{"x": 600, "y": 300, "w": 100, "h": 20},
+			{"x": 450, "y": 180, "w": 80, "h": 20},
+			{"x": 650, "y": 120, "w": 100, "h": 20},
+			{"x": 850, "y": 200, "w": 80, "h": 20},
+			{"x": 1000, "y": 280, "w": 100, "h": 20},
+			{"x": 1200, "y": 350, "w": 80, "h": 20},
+			{"x": 1350, "y": 280, "w": 150, "h": 20}
+		],
+		"coins": [
+			{"x": 80, "y": 480}, {"x": 270, "y": 420},
+			{"x": 120, "y": 310}, {"x": 300, "y": 230},
+			{"x": 470, "y": 310}, {"x": 630, "y": 230},
+			{"x": 480, "y": 110}, {"x": 680, "y": 50},
+			{"x": 870, "y": 130}, {"x": 1030, "y": 210},
+			{"x": 1220, "y": 280}, {"x": 1400, "y": 210}
+		],
+		"stars": [
+			{"x": 300, "y": 180}, {"x": 680, "y": 80}, {"x": 1400, "y": 180}
+		],
+		"runes": [
+			{"x": 500, "y": 250}, {"x": 900, "y": 150}, {"x": 1300, "y": 200}
+		],
+		"powerups": [
+			{"x": 750, "y": 80, "type": "teleport"}
+		],
+		"enemies": [
+			{"x": 300, "y": 440, "min_x": 250, "max_x": 350, "type": "slime"},
+			{"x": 600, "y": 260, "min_x": 550, "max_x": 650, "type": "phantom_mage"},
+			{"x": 1000, "y": 240, "min_x": 950, "max_x": 1050, "type": "shadow_ninja"}
+		],
+		"goal": {"x": 1450, "y": 230}
+	},
+	# NEW! Crystal Tower - Vertical climbing level (v6.1)
+	{
+		"name": "Crystal Tower",
+		"bg_color": Color(0.1, 0.2, 0.3),
+		"platforms": [
+			{"x": 50, "y": 550, "w": 150, "h": 30},
+			{"x": 150, "y": 480, "w": 80, "h": 20},
+			{"x": 80, "y": 400, "w": 80, "h": 20},
+			{"x": 180, "y": 320, "w": 80, "h": 20},
+			{"x": 100, "y": 240, "w": 80, "h": 20},
+			{"x": 200, "y": 160, "w": 80, "h": 20},
+			{"x": 350, "y": 200, "w": 100, "h": 20},
+			{"x": 500, "y": 280, "w": 80, "h": 20},
+			{"x": 650, "y": 350, "w": 100, "h": 20},
+			{"x": 800, "y": 420, "w": 80, "h": 20},
+			{"x": 950, "y": 350, "w": 80, "h": 20},
+			{"x": 1100, "y": 280, "w": 100, "h": 20},
+			{"x": 1250, "y": 200, "w": 150, "h": 20}
+		],
+		"coins": [
+			{"x": 80, "y": 480}, {"x": 160, "y": 410},
+			{"x": 100, "y": 330}, {"x": 200, "y": 250},
+			{"x": 120, "y": 170}, {"x": 220, "y": 90},
+			{"x": 370, "y": 130}, {"x": 520, "y": 210},
+			{"x": 670, "y": 280}, {"x": 820, "y": 350},
+			{"x": 970, "y": 280}, {"x": 1130, "y": 210},
+			{"x": 1300, "y": 130}
+		],
+		"stars": [
+			{"x": 200, "y": 50}, {"x": 650, "y": 200}, {"x": 1300, "y": 100}
+		],
+		"runes": [
+			{"x": 400, "y": 150}
+		],
+		"enemies": [
+			{"x": 180, "y": 440, "min_x": 150, "max_x": 250, "type": "flying"},
+			{"x": 200, "y": 120, "min_x": 150, "max_x": 250, "type": "jellyfish"},
+			{"x": 650, "y": 310, "min_x": 600, "max_x": 700, "type": "slime"},
+			{"x": 1100, "y": 240, "min_x": 1050, "max_x": 1150, "type": "phantom_mage"}
+		],
+		"goal": {"x": 1350, "y": 150}
 	}
 ]
 
@@ -2127,7 +2212,7 @@ func show_start_screen():
 	
 	# Version in bottom right
 	var version = Label.new()
-	version.text = "v5.0"
+	version.text = "v6.0"
 	version.position = Vector2(650, 550)
 	version.add_theme_font_size_override("font_size", 14)
 	version.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
@@ -2694,6 +2779,9 @@ func clear_level():
 	for s in stars:  # 🌟 Clear stars
 		if is_instance_valid(s): s.queue_free()
 	stars.clear()
+	for r in runes:  # ✨ Clear runes
+		if is_instance_valid(r): r.queue_free()
+	runes.clear()
 	for e in enemies:
 		if is_instance_valid(e): e.queue_free()
 	enemies.clear()
@@ -3533,6 +3621,12 @@ func setup_level(level_index):
 		for g in level["gems"]:
 			create_gem(g.x, g.y)
 	
+	# ✨ Create magic runes (if defined in level) - special collectibles with effects
+	runes.clear()
+	if level.has("runes"):
+		for r in level["runes"]:
+			create_rune(r.x, r.y)
+	
 	# 🌟 Create stars (if defined in level)
 	if level.has("stars"):
 		for s in level["stars"]:
@@ -3967,6 +4061,23 @@ func collect_gem():
 	save_data["total_gems"] += 1
 	update_achievement_progress("gem_collector", save_data["total_gems"])
 	update_ui_labels()
+
+# ✨ Create a magic rune - special collectible with effects
+var runes_collected = 0
+
+func create_rune(x, y):
+	var rune = Area2D.new()
+	rune.position = Vector2(x, y)
+	rune.script = load("res://rune.gd")
+	
+	add_child(rune)
+	runes.append(rune)
+	
+	# Add to collectibles group for tracking
+	rune.add_to_group("collectible")
+
+# Track runes
+var runes: Array[Area2D] = []
 	
 	# 💎 Gem collection - big effect!
 	if player:
@@ -4296,6 +4407,42 @@ func create_enemy(x, y, type = "ground", hp = 1, min_x = 0, max_x = 300) -> Char
 		rect.size = Vector2(20, 20)
 		col.shape = rect
 		enemy.add_child(col)
+	elif type == "phantom_mage":
+		# Phantom Mage - magical floating enemy with special attacks
+		enemy = CharacterBody2D.new()
+		enemy.position = Vector2(x, y)
+		enemy.script = load("res://phantom_mage_enemy.gd")
+		
+		# Phantom visual - ghostly purple
+		var sprite = Polygon2D.new()
+		sprite.name = "Visual"
+		var pts = PackedVector2Array()
+		for j in range(8):
+			var angle = j * TAU / 8
+			pts.append(Vector2(cos(angle), sin(angle)) * 10)
+		sprite.polygon = pts
+		sprite.color = Color(0.5, 0.3, 0.7, 0.8)
+		sprite.position = Vector2(0, -15)
+		enemy.add_child(sprite)
+		
+		# Glow effect
+		var glow = Polygon2D.new()
+		glow.polygon = pts.duplicate()
+		glow.color = Color(0.6, 0.4, 0.8, 0.3)
+		glow.position = Vector2(0, -15)
+		enemy.add_child(glow)
+		
+		# Collision
+		var col = CollisionShape2D.new()
+		col.position = Vector2(0, -15)
+		var circle = CircleShape2D.new()
+		circle.radius = 15
+		col.shape = circle
+		enemy.add_child(col)
+		
+		# Set movement bounds
+		enemy.set_meta("min_x", min_x)
+		enemy.set_meta("max_x", max_x)
 	else:
 		enemy = CharacterBody2D.new()
 		enemy.position = Vector2(x, y)
