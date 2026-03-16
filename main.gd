@@ -7,20 +7,24 @@ var current_level = 0
 var combo = 0
 var combo_timer = 0.0
 var last_coin_time = 0.0
-var stars_collected = 0  # 🌟 Star counter
-var high_score = 0  # 💾 Persist high score
+var stars_collected = 0
+var high_score = 0
 var player: CharacterBody2D = null
 var platforms: Array[Node2D] = []
 var coins: Array[Area2D] = []
-var stars: Array[Area2D] = []  # 🌟 Star collectibles
+var stars: Array[Area2D] = []
 var enemies: Array[CharacterBody2D] = []
 var goal: Area2D = null
 var game_started = false
 var checkpoint_pos = Vector2(80, 350)
+var active_checkpoint = null
 var stars_container: Node2D = null
-var moving_platforms: Array = []  # Track moving platforms for animation
+var moving_platforms: Array = []
 var screen_shake = 0.0
-var audio_manager: Node = null  # 🔧 Fixed: Initialize audio manager
+var audio_manager: Node = null
+
+# Checkpoint system
+var checkpoints: Array[Area2D] = []
 
 # ⏱️ Timer system
 var level_start_time = 0.0
@@ -61,6 +65,54 @@ const ABILITIES = {
 
 func screen_shake_intensity(amount):
 	screen_shake = amount
+
+# Checkpoint system
+func set_checkpoint(pos: Vector2):
+	checkpoint_pos = pos + Vector2(0, -30)
+
+func deactivate_all_checkpoints(current):
+	active_checkpoint = current
+
+func create_checkpoint(x, y):
+	var checkpoint = Area2D.new()
+	checkpoint.position = Vector2(x, y)
+	checkpoint.script = load("res://checkpoint.gd")
+	checkpoint.add_to_group("checkpoint")
+	add_child(checkpoint)
+	checkpoints.append(checkpoint)
+
+func create_secret_area(x, y, w, h):
+	var area = Area2D.new()
+	area.position = Vector2(x, y)
+	area.script = load("res://secret_area.gd")
+	
+	# Collision shape
+	var col = CollisionShape2D.new()
+	var rect = RectangleShape2D.new()
+	rect.size = Vector2(w, h)
+	col.shape = rect
+	col.position = Vector2(w/2, h/2)
+	area.add_child(col)
+	
+	add_child(area)
+	
+	# Visual hint (subtle glow)
+	var hint = ColorRect.new()
+	hint.size = Vector2(w, h)
+	hint.color = Color(0.5, 0.3, 0.8, 0.05)
+	hint.position = Vector2.ZERO
+	area.add_child(hint)
+
+func clear_checkpoints():
+	for cp in checkpoints:
+		if is_instance_valid(cp):
+			cp.queue_free()
+	checkpoints.clear()
+	active_checkpoint = null
+
+func play_checkpoint_sound():
+	if audio_manager and audio_manager.has_method("play_checkpoint"):
+		audio_manager.play_checkpoint()
 
 # Kenney assets - sprite sheets
 var char_tilesheet: Texture2D
@@ -239,7 +291,9 @@ var levels = [
 			{"x": 600, "y": 350}
 		],
 		"enemies": [{"x": 150, "y": 460, "min_x": 0, "max_x": 300}],
-		"goal": {"x": 900, "y": 350}
+		"goal": {"x": 900, "y": 350},
+		"checkpoint": {"x": 400, "y": 360},
+		"secret_area": {"x": 150, "y": 200, "w": 100, "h": 100}
 	},
 	{
 		"name": "Sky Bridges",
@@ -260,7 +314,8 @@ var levels = [
 			{"x": 300, "y": 440, "min_x": 250, "max_x": 400},
 			{"x": 950, "y": 310, "min_x": 950, "max_x": 1100}
 		],
-		"goal": {"x": 1150, "y": 400}
+		"goal": {"x": 1150, "y": 400},
+		"checkpoint": {"x": 600, "y": 250}
 	},
 	{
 		"name": "Moving Platforms",
@@ -498,7 +553,8 @@ var levels = [
 		"enemies": [
 			{"x": 700, "y": 250, "type": "boss", "hp": 5}
 		],
-		"goal": {"x": 1250, "y": 500}
+		"goal": {"x": 1250, "y": 500},
+		"checkpoint": {"x": 450, "y": 400}
 	},
 	# Secret Level - Unlockable!
 	{
@@ -2080,6 +2136,8 @@ func clear_level():
 		goal.queue_free()
 	if player and is_instance_valid(player):
 		player.queue_free()
+	# Reset checkpoint position when clearing level
+	checkpoint_pos = Vector2(80, 350)
 
 func _input(event):
 	# 处理跳跃键
@@ -2136,6 +2194,7 @@ func start_game():
 
 func setup_level(level_index):
 	clear_level()
+	clear_checkpoints()  # Clear old checkpoints
 	
 	if level_index >= levels.size():
 		score += 500
@@ -2176,9 +2235,9 @@ func setup_level(level_index):
 		await get_tree().create_timer(1.5).timeout
 		show_boss_warning()
 	
-	# Create player
+	# Create player - use checkpoint position
 	player = CharacterBody2D.new()
-	player.position = Vector2(80, 350)
+	player.position = checkpoint_pos
 	player.script = load("res://player.gd")
 	player.add_to_group("player")
 	add_child(player)
@@ -2207,6 +2266,15 @@ func setup_level(level_index):
 	if level.has("stars"):
 		for s in level["stars"]:
 			create_star(s.x, s.y)
+	
+	# Create checkpoint if defined
+	if level.has("checkpoint"):
+		create_checkpoint(level["checkpoint"].x, level["checkpoint"].y)
+	
+	# Create secret area if defined
+	if level.has("secret_area"):
+		create_secret_area(level["secret_area"].x, level["secret_area"].y, 
+			level["secret_area"].get("w", 100), level["secret_area"].get("h", 100))
 	
 	# Create enemies
 	for e in level["enemies"]:
@@ -2962,6 +3030,9 @@ func next_level():
 	unlock_level(current_level + 1)
 	save_save_data()
 	
+	# Show level complete popup
+	show_level_complete_popup()
+	
 	current_level += 1
 	# Check if player completed all levels (including boss)
 	if current_level >= levels.size():
@@ -2976,10 +3047,86 @@ func next_level():
 		if level_deaths == 0:
 			update_achievement_progress("perfect_level", achievements["perfect_level"].get("progress", 0) + 1)
 		
+		# Show level complete popup, then load next level
+		await get_tree().create_timer(2.0).timeout
 		setup_level(current_level)
 		# Check if next level is boss level
 		if levels[current_level].get("is_boss", false):
 			show_boss_warning()
+
+func show_level_complete_popup():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if not ui:
+		return
+	
+	# Create popup container
+	var popup = Node2D.new()
+	popup.name = "LevelComplete"
+	popup.position = Vector2(640, 360)
+	ui.add_child(popup)
+	
+	# Background
+	var bg = ColorRect.new()
+	bg.color = Color(0, 0, 0, 0.7)
+	bg.size = Vector2(400, 200)
+	bg.position = Vector2(-200, -100)
+	popup.add_child(bg)
+	
+	# Title
+	var title = Label.new()
+	title.text = "LEVEL COMPLETE!"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color(0.4, 1, 0.4))
+	title.position = Vector2(-100, -70)
+	popup.add_child(title)
+	
+	# Statistics
+	var stats = Label.new()
+	var time_str = "%02d:%02d" % [int(current_level_time) / 60, int(current_level_time) % 60]
+	stats.text = "Time: %s\nDeaths: %d\nScore: +%d" % [time_str, level_deaths, score]
+	stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats.add_theme_font_size_override("font_size", 18)
+	stats.add_theme_color_override("font_color", Color(0.8, 0.9, 1))
+	stats.position = Vector2(-60, -20)
+	popup.add_child(stats)
+	
+	# Time bonus
+	var bonus = 0
+	if current_level_time < 20:
+		bonus = 100
+	elif current_level_time < 30:
+		bonus = 50
+	
+	if bonus > 0:
+		var bonus_label = Label.new()
+		bonus_label.text = "Time Bonus: +%d!" % bonus
+		bonus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		bonus_label.add_theme_font_size_override("font_size", 16)
+		bonus_label.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+		bonus_label.position = Vector2(-80, 30)
+		popup.add_child(bonus_label)
+		score += bonus
+	
+	# Animate in
+	popup.scale = Vector2(0.5, 0.5)
+	popup.modulate.a = 0
+	
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(popup, "scale", Vector2(1.1, 1.1), 0.3)
+	tween.tween_property(popup, "modulate:a", 1.0, 0.2)
+	tween.tween_callback(func():
+		var t2 = create_tween()
+		t2.tween_property(popup, "scale", Vector2(1, 1), 0.15)
+	)
+	
+	# Animate out after delay
+	var out_tween = create_tween()
+	out_tween.tween_interval(1.8)
+	out_tween.tween_property(popup, "modulate:a", 0.0, 0.3)
+	out_tween.tween_property(popup, "position:y", popup.position.y - 30, 0.3)
+	out_tween.tween_callback(popup.queue_free)
 
 func show_boss_warning():
 	var ui = get_tree().get_first_node_in_group("ui")

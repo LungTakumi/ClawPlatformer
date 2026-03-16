@@ -2,14 +2,13 @@ extends CharacterBody2D
 
 var start_pos: Vector2
 var move_data: Dictionary = {}
-var move_speed = 1.5  # Slower, smoother movement
+var move_speed = 1.5
 var move_timer = 0.0
 var current_velocity: Vector2 = Vector2.ZERO
 
 func setup_movement(data: Dictionary):
 	start_pos = position
 	move_data = data
-	# Parse movement parameters
 	var move_x = data.get("move_x", 0)
 	var move_y = data.get("move_y", 0)
 	move_data["target_offset"] = Vector2(move_x, move_y)
@@ -24,30 +23,22 @@ func _physics_process(delta):
 	move_timer += delta * move_speed
 	
 	var offset = move_data.get("target_offset", Vector2.ZERO)
-	var new_pos = position
 	
 	if offset.length() > 0:
-		# Sine wave movement - smooth and predictable
-		var amplitude = offset / 2.0  # Half the total offset each direction
+		var amplitude = offset / 2.0
+		var prev_pos = position
 		
-		# Calculate target position
+		# Calculate target position using sine wave
 		var target_x = start_pos.x + sin(move_timer) * amplitude.x
 		var target_y = start_pos.y + sin(move_timer) * amplitude.y
 		
-		# Calculate velocity for moving player (smooth interpolation)
-		current_velocity = Vector2(target_x - position.x, target_y - position.y) / delta
-		new_pos = Vector2(target_x, target_y)
-	
-	# Apply velocity and move
-	velocity = current_velocity
-	
-	# Use move_and_slide for proper collision detection
-	move_and_slide()
-	
-	# Only update position if we have significant velocity
-	if current_velocity.length() > 1:
-		position = new_pos
+		# Calculate velocity for player riding
+		current_velocity = Vector2(target_x - prev_pos.x, target_y - prev_pos.y) / delta
+		
+		# Update position directly (platforms don't need collision response)
+		position = Vector2(target_x, target_y)
+	else:
+		current_velocity = Vector2.ZERO
 
-# Get the platform's current velocity for player riding
 func get_platform_velocity() -> Vector2:
 	return current_velocity
