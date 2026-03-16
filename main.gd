@@ -77,7 +77,8 @@ const ABILITIES = {
 	"dash": {"name": "Dash", "desc": "Press Shift to dash", "icon": "💨"},
 	"wall_climb": {"name": "Wall Climb", "desc": "Climb walls slowly", "icon": "🧗"},
 	"ground_slam": {"name": "Ground Slam", "desc": "Press Down in air", "icon": "💥"},
-	"time_slow": {"name": "Time Slow", "desc": "Press Z to slow time", "icon": "⏱️"}
+	"time_slow": {"name": "Time Slow", "desc": "Press Z to slow time", "icon": "⏱️"},
+	"teleport": {"name": "Teleport", "desc": "Press X to teleport", "icon": "🌀"}
 }
 
 func screen_shake_intensity(amount):

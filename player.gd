@@ -37,6 +37,21 @@ var time_slow_timer = 0.0
 var time_slow_cooldown = 0.0
 var time_scale = 1.0
 
+# Additional powerup states (previously uninitialized)
+var is_frozen = false
+var freeze_timer = 0.0
+var is_invisible = false
+var invisible_timer = 0.0
+var has_shield = false
+var shield_timer = 0.0
+var has_magnet = false
+var magnet_timer = 0.0
+
+# Teleport ability
+var can_teleport = false
+var teleport_cooldown = 0.0
+var teleport_range = 300.0
+
 func _physics_process(delta):
 	if is_dead:
 		return
@@ -154,6 +169,14 @@ func _physics_process(delta):
 	
 	if time_slow_cooldown > 0:
 		time_slow_cooldown -= delta
+	
+	# Handle Teleport ability (Press X to teleport forward)
+	if can_teleport and teleport_cooldown <= 0:
+		if Input.is_key_pressed(KEY_X):
+			perform_teleport()
+	
+	if teleport_cooldown > 0:
+		teleport_cooldown -= delta
 
 	# Get input direction
 	var direction = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
@@ -491,15 +514,6 @@ func spawn_ground_slam_impact():
 		tw.parallel().tween_property(particle, "modulate:a", 0.0, 0.4)
 		tw.tween_callback(particle.queue_free)
 
-var is_frozen = false
-var freeze_timer = 0.0
-var is_invisible = false
-var invisible_timer = 0.0
-var has_shield = false
-var shield_timer = 0.0
-var has_magnet = false
-var magnet_timer = 0.0
-
 func activate_freeze(duration: float):
 	is_frozen = true
 	freeze_timer = duration
@@ -582,3 +596,46 @@ func spawn_magnet_effect():
 	tw.set_loops()
 	tw.tween_property(glow, "scale", Vector2(1.2, 1.2), 0.5)
 	tw.tween_property(glow, "scale", Vector2(1.0, 1.0), 0.5)
+
+func perform_teleport():
+	teleport_cooldown = 5.0
+	
+	# Calculate teleport target position
+	var teleport_dir = 1 if facing_right else -1
+	var target_pos = position + Vector2(teleport_dir * teleport_range, 0)
+	
+	# Spawn teleport effect at start position
+	spawn_teleport_effect(position)
+	
+	# Move player
+	position = target_pos
+	
+	# Spawn teleport effect at end position
+	spawn_teleport_effect(position)
+	
+	# Screen shake
+	var game = get_tree().get_first_node_in_group("game")
+	if game:
+		game.screen_shake_intensity(5.0)
+
+func spawn_teleport_effect(pos: Vector2):
+	# Purple swirl effect
+	for i in range(8):
+		var particle = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(6):
+			var angle = j * TAU / 6
+			pts.append(Vector2(cos(angle), sin(angle)) * 8)
+		particle.polygon = pts
+		particle.color = Color(0.6, 0.3, 0.9, 0.8)
+		particle.position = pos + Vector2(randf_range(-10, 10), randf_range(-20, 0))
+		get_parent().add_child(particle)
+		
+		var tw = create_tween()
+		var angle = i * TAU / 8
+		var target = pos + Vector2(cos(angle), sin(angle)) * 40
+		tw.tween_property(particle, "position", target, 0.3)
+		tw.parallel().tween_property(particle, "modulate:a", 0.0, 0.3)
+		tw.parallel().tween_property(particle, "scale", Vector2(0.3, 0.3), 0.3)
+		tw.tween_callback(particle.queue_free)
+
