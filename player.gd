@@ -52,6 +52,11 @@ var can_teleport = false
 var teleport_cooldown = 0.0
 var teleport_range = 300.0
 
+# Shadow Clone ability
+var can_shadow_clone = false
+var clone_cooldown = 0.0
+var shadow_clone: Node2D = null
+
 func _physics_process(delta):
 	if is_dead:
 		return
@@ -177,6 +182,14 @@ func _physics_process(delta):
 	
 	if teleport_cooldown > 0:
 		teleport_cooldown -= delta
+	
+	# Handle Shadow Clone ability (Press C to create clone)
+	if can_shadow_clone and clone_cooldown <= 0:
+		if Input.is_key_pressed(KEY_C):
+			spawn_shadow_clone()
+	
+	if clone_cooldown > 0:
+		clone_cooldown -= delta
 
 	# Get input direction
 	var direction = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
@@ -637,5 +650,59 @@ func spawn_teleport_effect(pos: Vector2):
 		tw.tween_property(particle, "position", target, 0.3)
 		tw.parallel().tween_property(particle, "modulate:a", 0.0, 0.3)
 		tw.parallel().tween_property(particle, "scale", Vector2(0.3, 0.3), 0.3)
+		tw.tween_callback(particle.queue_free)
+
+func spawn_shadow_clone():
+	clone_cooldown = 8.0
+	
+	# Remove old clone if exists
+	if shadow_clone and is_instance_valid(shadow_clone):
+		shadow_clone.queue_free()
+	
+	# Create shadow clone
+	shadow_clone = Node2D.new()
+	shadow_clone.position = position
+	get_parent().add_child(shadow_clone)
+	
+	# Clone visual (darker version of player)
+	var visual = get_node_or_null("Visual")
+	if visual:
+		var clone_visual = Polygon2D.new()
+		clone_visual.polygon = visual.polygon
+		clone_visual.color = Color(0.2, 0.2, 0.3, 0.6)  # Darker, semi-transparent
+		clone_visual.position = visual.position
+		shadow_clone.add_child(clone_visual)
+	
+	# Clone mimics player position with delay
+	var clone_script = Node.new()
+	clone_script.set_script(load("res://shadow_clone.gd"))
+	shadow_clone.add_child(clone_script)
+	
+	# Clone inherits some player state
+	if has_method("get_stored_state"):
+		clone_script.store_state = get_stored_state()
+	
+	# Visual feedback
+	spawn_clone_spawn_effect()
+	
+	# Screen effect
+	var game = get_tree().get_first_node_in_group("game")
+	if game:
+		game.screen_shake_intensity(3)
+
+func spawn_clone_spawn_effect():
+	# Dark energy burst
+	for i in range(12):
+		var particle = Polygon2D.new()
+		particle.polygon = PackedVector2Array([Vector2(-4, 0), Vector2(0, -4), Vector2(4, 0), Vector2(0, 4)])
+		particle.color = Color(0.2, 0.2, 0.4, 0.8)
+		particle.position = position
+		get_parent().add_child(particle)
+		
+		var tw = create_tween()
+		var angle = i * TAU / 12
+		var dist = randf_range(30, 50)
+		tw.tween_property(particle, "position", position + Vector2(cos(angle), sin(angle)) * dist, 0.3)
+		tw.parallel().tween_property(particle, "modulate:a", 0.0, 0.3)
 		tw.tween_callback(particle.queue_free)
 

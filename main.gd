@@ -83,7 +83,8 @@ const ABILITIES = {
 	"wall_climb": {"name": "Wall Climb", "desc": "Climb walls slowly", "icon": "🧗"},
 	"ground_slam": {"name": "Ground Slam", "desc": "Press Down in air", "icon": "💥"},
 	"time_slow": {"name": "Time Slow", "desc": "Press Z to slow time", "icon": "⏱️"},
-	"teleport": {"name": "Teleport", "desc": "Press X to teleport", "icon": "🌀"}
+	"teleport": {"name": "Teleport", "desc": "Press X to teleport", "icon": "🌀"},
+	"shadow_clone": {"name": "Shadow Clone", "desc": "Press C to spawn clone", "icon": "👤"}
 }
 
 func screen_shake_intensity(amount):
@@ -1534,6 +1535,51 @@ var levels = [
 			{"x": 1200, "y": 210, "min_x": 1150, "max_x": 1250, "type": "jellyfish"}
 		],
 		"goal": {"x": 1430, "y": 300}
+	},
+	# NEW! Pet Paradise - Level with pets and rainbow coins (v4.9)
+	{
+		"name": "Pet Paradise",
+		"bg_color": Color(0.1, 0.2, 0.15),
+		"aurora_theme": true,
+		"platforms": [
+			{"x": 50, "y": 500, "w": 120, "h": 30},
+			{"x": 200, "y": 440, "w": 100, "h": 25},
+			{"x": 80, "y": 360, "w": 100, "h": 25},
+			{"x": 280, "y": 300, "w": 100, "h": 25},
+			{"x": 450, "y": 380, "w": 80, "h": 25},
+			{"x": 600, "y": 300, "w": 100, "h": 25},
+			{"x": 480, "y": 180, "w": 100, "h": 25},
+			{"x": 680, "y": 120, "w": 100, "h": 25},
+			{"x": 880, "y": 200, "w": 120, "h": 25},
+			{"x": 1050, "y": 280, "w": 100, "h": 25},
+			{"x": 1200, "y": 200, "w": 80, "h": 25},
+			{"x": 1350, "y": 280, "w": 150, "h": 25}
+		],
+		"coins": [
+			{"x": 80, "y": 430}, {"x": 230, "y": 370},
+			{"x": 110, "y": 290}, {"x": 310, "y": 230},
+			{"x": 470, "y": 310}, {"x": 630, "y": 230},
+			{"x": 510, "y": 110}, {"x": 710, "y": 50},
+			{"x": 910, "y": 130}, {"x": 1080, "y": 210},
+			{"x": 1230, "y": 130}, {"x": 1400, "y": 210}
+		],
+		"stars": [
+			{"x": 280, "y": 180}, {"x": 680, "y": 80}, {"x": 1430, "y": 210}
+		],
+		"rainbow_coins": [
+			{"x": 500, "y": 250}, {"x": 900, "y": 150}, {"x": 1300, "y": 200}
+		],
+		"powerups": [
+			{"x": 350, "y": 200, "type": "shadow_clone"},
+			{"x": 800, "y": 80, "type": "dash"}
+		],
+		"enemies": [
+			{"x": 230, "y": 400, "min_x": 200, "max_x": 300, "type": "slime"},
+			{"x": 480, "y": 340, "min_x": 450, "max_x": 550, "type": "jellyfish"},
+			{"x": 750, "y": 80, "min_x": 700, "max_x": 800, "type": "flying"},
+			{"x": 1100, "y": 240, "min_x": 1000, "max_x": 1200, "type": "slime"}
+		],
+		"goal": {"x": 1450, "y": 230}
 	}
 ]
 
@@ -2946,6 +2992,9 @@ func clear_level():
 	for c in coins:
 		if is_instance_valid(c): c.queue_free()
 	coins.clear()
+	for rc in rainbow_coins:  # 🌈 Clear rainbow coins
+		if is_instance_valid(rc): rc.queue_free()
+	rainbow_coins.clear()
 	for g in gems:  # 💎 Clear gems
 		if is_instance_valid(g): g.queue_free()
 	gems.clear()
@@ -3027,7 +3076,7 @@ func activate_konami_cheat():
 		
 		var tw = create_tween()
 		tw.tween_interval(3.0)
-		tween_property(secret, "modulate:a", 0.0, 0.5)
+		tw.tween_property(secret, "modulate:a", 0.0, 0.5)
 		tw.tween_property(secret, "position:y", secret.position.y - 30, 0.5)
 		tw.tween_callback(secret.queue_free)
 	
@@ -3507,6 +3556,11 @@ func setup_level(level_index):
 	# Create coins
 	for c in level["coins"]:
 		create_coin(c.x, c.y)
+	
+	# 🌈 Create rainbow coins (if defined in level) - rare bonus collectibles
+	if level.has("rainbow_coins"):
+		for rc in level["rainbow_coins"]:
+			create_rainbow_coin(rc.x, rc.y)
 	
 	# 💎 Create gems (if defined in level) - rare collectibles
 	if level.has("gems"):
@@ -4321,6 +4375,127 @@ func create_powerup(x, y, powerup_type = null):
 		powerup.set_meta("forced_type", powerup_type)
 	add_child(powerup)
 	powerups.append(powerup)
+
+# 🦋 Create a pet companion
+var current_pet: Node2D = null
+
+func create_pet(pet_type_name: String, owner: Node2D):
+	if current_pet and is_instance_valid(current_pet):
+		current_pet.queue_free()
+	
+	var pet = Node2D.new()
+	pet.position = owner.position + Vector2(0, -40)
+	pet.set_script(load("res://pet.gd"))
+	add_child(pet)
+	
+	var pet_type_map = {"lobster": 0, "firefly": 1, "ghost": 2, "robot": 3}
+	var ptype = pet_type_map.get(pet_type_name.to_lower(), 0)
+	pet.activate(ptype, owner)
+	current_pet = pet
+	
+	# Show pet notification
+	show_pet_notification(pet_type_name, pet.get_pet_bonus())
+	
+	return pet
+
+func show_pet_notification(pet_type: String, bonuses: Dictionary):
+	var ui = get_tree().get_first_node_in_group("ui")
+	if not ui:
+		return
+	
+	var pet_names = {"lobster": "🦞 Lobster Pet", "firefly": "✨ Firefly", "ghost": "👻 Ghost", "robot": "🤖 Robot"}
+	var notif = Label.new()
+	notif.text = "🦋 New Pet: " + pet_names.get(pet_type, pet_type) + "\n"
+	
+	var bonus_text = ""
+	for key in bonuses:
+		bonus_text += "• " + key + ": " + str(bonuses[key]) + "\n"
+	notif.text += bonus_text
+	
+	notif.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	notif.position = Vector2(500, 120)
+	notif.add_theme_font_size_override("font_size", 18)
+	notif.add_theme_color_override("font_color", Color(0.4, 1, 0.8))
+	notif.modulate.a = 0
+	ui.add_child(notif)
+	
+	var tween = create_tween()
+	tween.tween_property(notif, "modulate:a", 1.0, 0.3)
+	tween.tween_interval(3.0)
+	tween.tween_property(notif, "modulate:a", 0.0, 0.5)
+	tween.tween_property(notif, "position:y", notif.position.y - 20, 0.5)
+	tween.tween_callback(notif.queue_free)
+
+# 🌈 Rainbow coin - rare bonus collectible
+var rainbow_coins: Array[Area2D] = []
+
+func create_rainbow_coin(x, y):
+	var coin = Area2D.new()
+	coin.position = Vector2(x, y)
+	coin.add_to_group("rainbow_coin")
+	
+	# Rainbow colored sprite
+	var sprite = Polygon2D.new()
+	var pts = PackedVector2Array()
+	for i in range(8):
+		var angle = i * TAU / 8
+		pts.append(Vector2(cos(angle), sin(angle)) * 10)
+	sprite.polygon = pts
+	sprite.position = Vector2(0, -8)
+	coin.add_child(sprite)
+	
+	# Rainbow animation
+	var colors = [Color(1, 0, 0), Color(1, 0.5, 0), Color(1, 1, 0), Color(0, 1, 0), Color(0, 0, 1), Color(0.5, 0, 1)]
+	
+	var tween = create_tween()
+	tween.set_loops()
+	var color_idx = 0
+	for c in colors:
+		tween.tween_property(sprite, "color", c, 0.2)
+	
+	# Collision
+	var col = CollisionShape2D.new()
+	var circle = CircleShape2D.new()
+	circle.radius = 10
+	col.shape = circle
+	coin.add_child(col)
+	
+	coin.body_entered.connect(func(body):
+		if body.is_in_group("player"):
+			collect_rainbow_coin(coin)
+	)
+	
+	add_child(coin)
+	rainbow_coins.append(coin)
+
+func collect_rainbow_coin(coin):
+	if not is_instance_valid(coin):
+		return
+	
+	# Big bonus!
+	var bonus = 100 + randi() % 100  # 100-200 points
+	add_score(bonus)
+	
+	# Rainbow explosion effect
+	spawn_rainbow_explosion(coin.global_position)
+	
+	coin.queue_free()
+
+func spawn_rainbow_explosion(pos: Vector2):
+	for i in range(12):
+		var particle = Polygon2D.new()
+		var colors = [Color(1, 0, 0), Color(1, 0.5, 0), Color(1, 1, 0), Color(0, 1, 0), Color(0, 0, 1), Color(0.5, 0, 1)]
+		particle.polygon = PackedVector2Array([Vector2(-3, 0), Vector2(0, -3), Vector2(3, 0), Vector2(0, 3)])
+		particle.color = colors[randi() % colors.size()]
+		particle.position = pos
+		add_child(particle)
+		
+		var angle = i * TAU / 12
+		var dist = randf_range(30, 60)
+		var tw = create_tween()
+		tw.tween_property(particle, "position", pos + Vector2(cos(angle), sin(angle)) * dist, 0.4)
+		tw.tween_property(particle, "modulate:a", 0.0, 0.4)
+		tw.tween_callback(particle.queue_free)
 
 # 🌀 Create a warp portal - teleports to unlocked levels
 var warp_portals: Array[Area2D] = []

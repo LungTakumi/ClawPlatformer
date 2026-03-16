@@ -140,7 +140,7 @@ func _physics_process(delta):
 				hp_bar.get_parent().position = screen_center + relative_pos + Vector2(-50, -120)
 
 func perform_attack():
-	current_attack = randi() % 3
+	current_attack = randi() % 5
 	
 	match current_attack:
 		0:
@@ -152,6 +152,12 @@ func perform_attack():
 		2:
 			# Dash attack
 			dash_attack()
+		3:
+			# Spiral fireballs - new attack!
+			spiral_fireballs()
+		4:
+			# Ground slam shockwave - new attack!
+			ground_slam_shockwave()
 
 func fire_breath():
 	# Spawn fireball
@@ -195,6 +201,57 @@ func dash_attack():
 		var tween = create_tween()
 		tween.tween_property(visual, "modulate", Color(1, 0.3, 0.3), 0.1)
 		tween.tween_property(visual, "modulate", Color.WHITE, 0.2)
+
+# New attack: Spiral fireballs in all directions
+func spiral_fireballs():
+	var num_fireballs = 8
+	for i in range(num_fireballs):
+		var angle = i * TAU / num_fireballs
+		var fireball = CharacterBody2D.new()
+		fireball.position = position + Vector2(0, -30)
+		fireball.script = load("res://fireball.gd")
+		fireball.direction = Vector2(cos(angle), sin(angle)).normalized()
+		get_parent().add_child(fireball)
+	
+	# Visual feedback - charge up effect
+	if visual:
+		var tween = create_tween()
+		tween.tween_property(visual, "scale", Vector2(2.2, 2.2), 0.3)
+		tween.tween_property(visual, "modulate", Color(1, 0.8, 0.3), 0.3)
+		tween.tween_property(visual, "scale", Vector2(2, 2), 0.2)
+		tween.tween_property(visual, "modulate", Color.WHITE, 0.2)
+
+# New attack: Ground slam with shockwave
+func ground_slam_shockwave():
+	# Jump up then slam down
+	velocity.y = -600
+	
+	await get_tree().create_timer(0.6).timeout
+	
+	# Create shockwave
+	for i in range(12):
+		var shockwave = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(8):
+			var angle = j * TAU / 8
+			pts.append(Vector2(cos(angle), sin(angle)) * 15)
+		shockwave.polygon = pts
+		shockwave.color = Color(1, 0.4, 0.1, 0.8)
+		shockwave.position = position + Vector2(0, 20)
+		get_parent().add_child(shockwave)
+		
+		# Expand outward
+		var tw = create_tween()
+		var angle = i * TAU / 12
+		tw.tween_property(shockwave, "position", position + Vector2(cos(angle), sin(angle)) * 200, 0.5)
+		tw.parallel().tween_property(shockwave, "scale", Vector2(3, 3), 0.5)
+		tw.parallel().tween_property(shockwave, "modulate:a", 0.0, 0.5)
+		tw.tween_callback(shockwave.queue_free)
+	
+	# Screen shake
+	var game = get_tree().get_first_node_in_group("game")
+	if game:
+		game.screen_shake_intensity(10)
 
 func take_damage(amount = 1):
 	if not can_take_damage:
