@@ -1210,6 +1210,45 @@ var levels = [
 			{"x": 1000, "y": 240, "min_x": 950, "max_x": 1050, "type": "teleport"}
 		],
 		"goal": {"x": 1450, "y": 230}
+	},
+	# NEW! Crystal Cavern - Crystal themed level (v6.5)
+	{
+		"name": "Crystal Cavern",
+		"bg_color": Color(0.05, 0.1, 0.15),
+		"platforms": [
+			{"x": 50, "y": 550, "w": 150, "h": 30},
+			{"x": 250, "y": 480, "w": 100, "h": 25},
+			{"x": 100, "y": 380, "w": 80, "h": 25},
+			{"x": 280, "y": 300, "w": 100, "h": 25},
+			{"x": 450, "y": 380, "w": 80, "h": 25},
+			{"x": 600, "y": 300, "w": 100, "h": 25},
+			{"x": 450, "y": 180, "w": 80, "h": 25},
+			{"x": 650, "y": 120, "w": 100, "h": 25},
+			{"x": 850, "y": 200, "w": 80, "h": 25},
+			{"x": 1000, "y": 280, "w": 100, "h": 25},
+			{"x": 1200, "y": 350, "w": 80, "h": 25},
+			{"x": 1350, "y": 280, "w": 150, "h": 25}
+		],
+		"coins": [
+			{"x": 80, "y": 480}, {"x": 270, "y": 420},
+			{"x": 120, "y": 310}, {"x": 300, "y": 230},
+			{"x": 470, "y": 310}, {"x": 630, "y": 230},
+			{"x": 480, "y": 110}, {"x": 680, "y": 50},
+			{"x": 870, "y": 130}, {"x": 1030, "y": 210},
+			{"x": 1220, "y": 280}, {"x": 1400, "y": 210}
+		],
+		"stars": [
+			{"x": 280, "y": 180}, {"x": 680, "y": 80}, {"x": 1430, "y": 210}
+		],
+		"powerups": [
+			{"x": 450, "y": 100, "type": "phase_shift"}
+		],
+		"enemies": [
+			{"x": 250, "y": 400, "min_x": 200, "max_x": 300, "type": "jellyfish"},
+			{"x": 600, "y": 230, "min_x": 550, "max_x": 650, "type": "electric"},
+			{"x": 1000, "y": 240, "min_x": 950, "max_x": 1050, "type": "chaser"}
+		],
+		"goal": {"x": 1450, "y": 230}
 	}
 ]
 
@@ -2456,7 +2495,7 @@ func show_start_screen():
 	
 	# Version in bottom right
 	var version = Label.new()
-	version.text = "v6.4"
+	version.text = "v6.5"
 	version.position = Vector2(650, 550)
 	version.add_theme_font_size_override("font_size", 14)
 	version.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
