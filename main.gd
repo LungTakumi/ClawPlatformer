@@ -85,7 +85,10 @@ const ABILITIES = {
 	"time_slow": {"name": "Time Slow", "desc": "Press Z to slow time", "icon": "⏱️"},
 	"teleport": {"name": "Teleport", "desc": "Press X to teleport", "icon": "🌀"},
 	"shadow_clone": {"name": "Shadow Clone", "desc": "Press C to spawn clone", "icon": "👤"},
-	"bounce": {"name": "Bounce", "desc": "Jump again in air to bounce", "icon": "⭕"}
+	"bounce": {"name": "Bounce", "desc": "Jump again in air to bounce", "icon": "⭕"},
+	"time_rewind": {"name": "Time Rewind", "desc": "Press R to rewind time", "icon": "🔄"},
+	"energy_shield": {"name": "Energy Shield", "desc": "Press F to block 1 hit", "icon": "🛡️"},
+	"phase_shift": {"name": "Phase Shift", "desc": "Press Q to dodge through enemies", "icon": "👻"}
 }
 
 func screen_shake_intensity(amount):
@@ -1014,6 +1017,46 @@ var levels = [
 			{"x": 1100, "y": 240, "min_x": 1050, "max_x": 1150, "type": "phantom_mage"}
 		],
 		"goal": {"x": 1350, "y": 150}
+	},
+	# NEW! Cherry Blossom Garden - Japanese themed level (v6.2)
+	{
+		"name": "Cherry Blossom Garden",
+		"bg_color": Color(0.15, 0.08, 0.12),
+		"cherry_blossom_theme": true,
+		"platforms": [
+			{"x": 50, "y": 500, "w": 120, "h": 30},
+			{"x": 200, "y": 450, "w": 100, "h": 25},
+			{"x": 80, "y": 350, "w": 80, "h": 25},
+			{"x": 250, "y": 280, "w": 100, "h": 25},
+			{"x": 450, "y": 350, "w": 80, "h": 25},
+			{"x": 600, "y": 280, "w": 100, "h": 25},
+			{"x": 450, "y": 180, "w": 80, "h": 25},
+			{"x": 650, "y": 120, "w": 100, "h": 25},
+			{"x": 850, "y": 200, "w": 80, "h": 25},
+			{"x": 1000, "y": 280, "w": 100, "h": 25},
+			{"x": 1200, "y": 350, "w": 80, "h": 25},
+			{"x": 1350, "y": 280, "w": 150, "h": 25}
+		],
+		"coins": [
+			{"x": 80, "y": 430}, {"x": 230, "y": 380},
+			{"x": 110, "y": 280}, {"x": 280, "y": 210},
+			{"x": 470, "y": 280}, {"x": 630, "y": 210},
+			{"x": 480, "y": 110}, {"x": 680, "y": 50},
+			{"x": 870, "y": 130}, {"x": 1030, "y": 210},
+			{"x": 1220, "y": 280}, {"x": 1400, "y": 210}
+		],
+		"stars": [
+			{"x": 280, "y": 150}, {"x": 680, "y": 80}, {"x": 1430, "y": 210}
+		],
+		"powerups": [
+			{"x": 450, "y": 100, "type": "energy_shield"}
+		],
+		"enemies": [
+			{"x": 250, "y": 400, "min_x": 200, "max_x": 300, "type": "slime"},
+			{"x": 600, "y": 230, "min_x": 550, "max_x": 650, "type": "phantom_mage"},
+			{"x": 1000, "y": 240, "min_x": 950, "max_x": 1050, "type": "slime"}
+		],
+		"goal": {"x": 1450, "y": 230}
 	}
 ]
 
@@ -1114,6 +1157,7 @@ func clear_effects():
 	clear_chaos_effect()
 	clear_candy_effect()
 	clear_lava_effect()
+	clear_cherry_blossom_effect()
 
 # 🪞 Mirror effect for Mirror World level
 var mirror_container: Node2D = null
@@ -1445,6 +1489,47 @@ func clear_aurora_effect():
 	if aurora_container:
 		aurora_container.queue_free()
 		aurora_container = null
+
+# 🌸 Cherry blossom effect for Japanese themed levels
+var cherry_blossom_container: Node2D = null
+
+func create_cherry_blossom_effect():
+	if cherry_blossom_container:
+		cherry_blossom_container.queue_free()
+	
+	cherry_blossom_container = Node2D.new()
+	cherry_blossom_container.name = "CherryBlossomEffect"
+	add_child(cherry_blossom_container)
+	cherry_blossom_container.z_index = -50
+	
+	for i in range(40):
+		var petal = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(5):
+			var angle = j * TAU / 5
+			pts.append(Vector2(cos(angle), sin(angle)) * randf_range(3, 6))
+		petal.polygon = pts
+		petal.color = Color(1, randf_range(0.7, 0.9), randf_range(0.8, 0.95), randf_range(0.6, 0.9))
+		petal.position = Vector2(randf() * 1400, randf() * 800)
+		cherry_blossom_container.add_child(petal)
+		
+		var tween = create_tween()
+		var start_pos = petal.position
+		tween.set_loops()
+		var fall_speed = randf_range(3.0, 6.0)
+		var drift = randf_range(-30, 30)
+		var rot_speed = randf_range(-2, 2)
+		tween.tween_property(petal, "position:y", petal.position.y + 400, fall_speed)
+		tween.tween_property(petal, "position:x", petal.position.x + drift, fall_speed)
+		tween.tween_property(petal, "rotation", petal.rotation + rot_speed, fall_speed)
+		tween.tween_property(petal, "position:y", petal.position.y - 400, 0)
+		tween.tween_property(petal, "position:x", petal.position.x, 0)
+		tween.tween_property(petal, "rotation", petal.rotation, 0)
+
+func clear_cherry_blossom_effect():
+	if cherry_blossom_container:
+		cherry_blossom_container.queue_free()
+		cherry_blossom_container = null
 
 # 🐾 Pet theme effect for Pet Haven level
 var pet_effect_container: Node2D = null
@@ -2228,7 +2313,9 @@ var shop_items = {
 	"teleport": {"name": "Teleport", "desc": "Press X to teleport", "icon": "🌀", "price": 350},
 	"shadow_clone": {"name": "Shadow Clone", "desc": "Press C to spawn clone", "icon": "👤", "price": 400},
 	"bounce": {"name": "Bounce", "desc": "Jump again in air to bounce", "icon": "⭕", "price": 250},
-	"time_rewind": {"name": "Time Rewind", "desc": "Press R to rewind time", "icon": "🔄", "price": 500}
+	"time_rewind": {"name": "Time Rewind", "desc": "Press R to rewind time", "icon": "🔄", "price": 500},
+	"energy_shield": {"name": "Energy Shield", "desc": "Press F to block 1 hit", "icon": "🛡️", "price": 450},
+	"phase_shift": {"name": "Phase Shift", "desc": "Press Q to dodge through enemies", "icon": "👻", "price": 550}
 }
 
 func show_shop():
@@ -3485,6 +3572,12 @@ func setup_level(level_index):
 	else:
 		clear_ice_crystals()
 	
+	# 🌸 Create cherry blossom effect for Japanese themed levels
+	if level.get("cherry_blossom_theme", false):
+		create_cherry_blossom_effect()
+	else:
+		clear_cherry_blossom_effect()
+	
 	# 🌌 Create nebula effect for Nebula Nexus
 	if level.get("nebula_theme", false):
 		create_nebula_effect()
@@ -3589,6 +3682,9 @@ func setup_level(level_index):
 	player.add_to_group("player")
 	add_child(player)
 	
+	# Apply unlocked abilities to player
+	apply_player_abilities(player)
+	
 	create_player_visual(player)
 	
 	# Camera
@@ -3677,6 +3773,31 @@ func setup_level(level_index):
 	setup_ui()
 	# 注意：虚拟按钮由 virtual_controls.tscn 处理，不需要再次创建
 	# setup_mobile_controls() 已移除以避免重复按钮
+
+func apply_player_abilities(p):
+	# Apply all unlocked abilities from save data
+	if has_ability("double_jump"):
+		p.activate_double_jump()
+	if has_ability("dash"):
+		p.can_dash = true
+	if has_ability("wall_climb"):
+		p.can_wall_climb = true
+	if has_ability("ground_slam"):
+		p.activate_ground_slam()
+	if has_ability("time_slow"):
+		p.can_time_slow = true
+	if has_ability("teleport"):
+		p.can_teleport = true
+	if has_ability("shadow_clone"):
+		p.can_shadow_clone = true
+	if has_ability("bounce"):
+		p.can_bounce = true
+	if has_ability("time_rewind"):
+		p.activate_time_rewind()
+	if has_ability("energy_shield"):
+		p.activate_energy_shield_ability()
+	if has_ability("phase_shift"):
+		p.activate_phase_shift_ability()
 
 func create_player_visual(p):
 	# Create lobster character using polygons
@@ -5341,6 +5462,9 @@ func show_boss_warning():
 		text_tween.tween_callback(warning.queue_free)
 
 func show_game_over():
+	# CRITICAL: Reset time scale to prevent permanent slow-mo
+	Engine.time_scale = 1.0
+	
 	var ui = get_tree().get_first_node_in_group("ui")
 	if ui:
 		if ui.has_node("GameOverOverlay"): ui.get_node("GameOverOverlay").queue_free()
@@ -5368,6 +5492,9 @@ func show_game_over():
 		ui.add_child(game_over)
 
 func show_victory():
+	# CRITICAL: Reset time scale to prevent permanent slow-mo
+	Engine.time_scale = 1.0
+	
 	# Save high score
 	save_high_score()
 	

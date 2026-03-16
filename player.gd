@@ -80,6 +80,18 @@ var time_rewind_timer = 0.0
 var time_rewind_buffer = []
 var max_rewind_frames = 60
 
+# Energy Shield - blocks one hit
+var has_energy_shield = false
+var energy_shield_active = false
+var shield_cooldown = 0.0
+var can_energy_shield = false
+
+# Phase Shift - dodge through enemies
+var can_phase_shift = false
+var phase_shift_cooldown = 0.0
+var is_phase_shifting = false
+var phase_shift_timer = 0.0
+
 func _physics_process(delta):
 	if is_dead:
 		return
@@ -249,6 +261,28 @@ func _physics_process(delta):
 		})
 		if time_rewind_buffer.size() > max_rewind_frames:
 			time_rewind_buffer.pop_front()
+	
+	# Handle Energy Shield ability (Press F to activate)
+	if can_energy_shield and shield_cooldown <= 0:
+		if Input.is_key_pressed(KEY_F):
+			activate_energy_shield()
+	
+	if shield_cooldown > 0:
+		shield_cooldown -= delta
+	
+	# Handle Phase Shift ability (Press Q to phase through enemies)
+	if can_phase_shift and phase_shift_cooldown <= 0:
+		if Input.is_key_pressed(KEY_Q):
+			perform_phase_shift()
+	
+	if is_phase_shifting:
+		phase_shift_timer -= delta
+		if phase_shift_timer <= 0:
+			is_phase_shifting = false
+			modulate = Color.WHITE
+	
+	if phase_shift_cooldown > 0:
+		phase_shift_cooldown -= delta
 
 	# Get input direction
 	var direction = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
@@ -973,4 +1007,134 @@ func spawn_time_rewind_effect():
 		var tw = create_tween()
 		tw.tween_property(particle, "modulate:a", 0.0, 0.2)
 		tw.tween_callback(particle.queue_free)
+
+func activate_energy_shield():
+	has_energy_shield = true
+	energy_shield_active = true
+	shield_cooldown = 12.0
+	
+	spawn_energy_shield_effect()
+	
+	var game = get_tree().get_first_node_in_group("game")
+	if game:
+		game.screen_shake_intensity(3)
+
+func spawn_energy_shield_effect():
+	var visual = get_node_or_null("Visual")
+	if not visual:
+		return
+	
+	for i in range(12):
+		var orb = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(6):
+			var angle = j * TAU / 6
+			pts.append(Vector2(cos(angle), sin(angle)) * 15)
+		orb.polygon = pts
+		orb.color = Color(0.2, 0.9, 0.6, 0.7)
+		orb.position = Vector2(randf_range(-20, 20), randf_range(-30, 0))
+		add_child(orb)
+		
+		var tw = create_tween()
+		tw.set_loops()
+		var target_pos = orb.position + Vector2(randf_range(-40, 40), randf_range(-50, 10))
+		tw.tween_property(orb, "position", target_pos, 0.5)
+		tw.tween_property(orb, "position", orb.position, 0.5)
+		tw.tween_callback(orb.queue_free)
+	
+	var label = Label.new()
+	label.text = "🛡️ SHIELD ACTIVE!"
+	label.add_theme_font_size_override("font_size", 18)
+	label.add_theme_color_override("font_color", Color(0.3, 1, 0.6))
+	label.position = global_position + Vector2(-60, -50)
+	get_parent().add_child(label)
+	var tw = create_tween()
+	tw.tween_property(label, "position", label.position + Vector2(0, -20), 1.0)
+	tw.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
+	tw.tween_callback(label.queue_free)
+
+func break_shield():
+	if energy_shield_active:
+		energy_shield_active = false
+		spawn_shield_break_effect()
+		
+		var game = get_tree().get_first_node_in_group("game")
+		if game:
+			game.screen_shake_intensity(5)
+
+func spawn_shield_break_effect():
+	for i in range(15):
+		var particle = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(6):
+			var angle = j * TAU / 6
+			pts.append(Vector2(cos(angle), sin(angle)) * 6)
+		particle.polygon = pts
+		particle.color = Color(0.2, 0.9, 0.6, 0.8)
+		particle.position = position + Vector2(randf_range(-15, 15), randf_range(-25, 5))
+		get_parent().add_child(particle)
+		
+		var tw = create_tween()
+		var angle = i * TAU / 15
+		var dist = randf_range(30, 60)
+		tw.tween_property(particle, "position", position + Vector2(cos(angle), sin(angle)) * dist, 0.4)
+		tw.parallel().tween_property(particle, "modulate:a", 0.0, 0.4)
+		tw.tween_callback(particle.queue_free)
+
+func perform_phase_shift():
+	phase_shift_cooldown = 8.0
+	is_phase_shifting = true
+	phase_shift_timer = 0.3
+	
+	modulate = Color(0.5, 0.5, 1, 0.3)
+	
+	spawn_phase_shift_trail()
+	
+	var game = get_tree().get_first_node_in_group("game")
+	if game:
+		game.screen_shake_intensity(4)
+
+func spawn_phase_shift_trail():
+	for i in range(8):
+		var trail = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(6):
+			var angle = j * TAU / 6
+			pts.append(Vector2(cos(angle), sin(angle)) * 10)
+		trail.polygon = pts
+		trail.color = Color(0.5, 0.5, 1, 0.5)
+		trail.position = position + Vector2(randf_range(-15, 15), randf_range(-20, 10))
+		trail.z_index = -1
+		get_parent().add_child(trail)
+		
+		var tw = create_tween()
+		tw.tween_property(trail, "modulate:a", 0.0, 0.3)
+		tw.tween_property(trail, "scale", Vector2(0.5, 0.5), 0.3)
+		tw.tween_callback(trail.queue_free)
+
+func activate_energy_shield_ability():
+	can_energy_shield = true
+	var label = Label.new()
+	label.text = "🛡️ ENERGY SHIELD!"
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", Color(0.3, 1, 0.6))
+	label.position = global_position + Vector2(-60, -50)
+	get_parent().add_child(label)
+	var tw = create_tween()
+	tw.tween_property(label, "position", label.position + Vector2(0, -30), 1.0)
+	tw.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
+	tw.tween_callback(label.queue_free)
+
+func activate_phase_shift_ability():
+	can_phase_shift = true
+	var label = Label.new()
+	label.text = "👻 PHASE SHIFT!"
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", Color(0.6, 0.6, 1))
+	label.position = global_position + Vector2(-50, -50)
+	get_parent().add_child(label)
+	var tw = create_tween()
+	tw.tween_property(label, "position", label.position + Vector2(0, -30), 1.0)
+	tw.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
+	tw.tween_callback(label.queue_free)
 
