@@ -71,19 +71,18 @@ func _on_body_entered(body):
 		collect()
 
 func collect():
-	if body.is_in_group("player"):
-		var game = get_tree().get_first_node_in_group("game")
-		if game and game.lives < 5:
-			game.lives += heal_amount
-			game._update_lives()
-			spawn_heal_effect()
-			get_tree().call_group("game", "add_score", 20)
-			get_tree().call_group("game", "screen_shake_intensity", 3)
-		elif game:
-			get_tree().call_group("game", "add_score", 10)
-		
-		animate_collect()
-		queue_free()
+	var game = get_tree().get_first_node_in_group("game")
+	if game and game.lives < 5:
+		game.lives += heal_amount
+		game._update_lives()
+		spawn_heal_effect()
+		get_tree().call_group("game", "add_score", 20)
+		get_tree().call_group("game", "screen_shake_intensity", 3)
+	elif game:
+		get_tree().call_group("game", "add_score", 10)
+	
+	animate_collect()
+	queue_free()
 
 func spawn_heal_effect():
 	for i in range(12):
