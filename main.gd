@@ -12,6 +12,7 @@ var high_score = 0
 var player: CharacterBody2D = null
 var platforms: Array[Node2D] = []
 var coins: Array[Area2D] = []
+var gems: Array[Area2D] = []  # 💎 Gem collectibles
 var stars: Array[Area2D] = []
 var enemies: Array[CharacterBody2D] = []
 var goal: Area2D = null
@@ -40,7 +41,11 @@ var achievements = {
 	"no_damage_boss": {"name": "Perfect Fighter", "desc": "Defeat boss without taking damage", "unlocked": false},
 	"combo_master": {"name": "Combo Master", "desc": "Get a 10x combo", "unlocked": false},
 	"speed_runner": {"name": "Speed Runner", "desc": "Complete a level in under 30 seconds", "unlocked": false},
-	"perfect_level": {"name": "Perfect Level", "desc": "Complete a level without dying", "unlocked": false, "progress": 0, "target": 1}
+	"perfect_level": {"name": "Perfect Level", "desc": "Complete a level without dying", "unlocked": false, "progress": 0, "target": 1},
+	"gem_collector": {"name": "Gem Collector", "desc": "Collect 50 gems", "unlocked": false, "progress": 0, "target": 50},
+	"explorer": {"name": "Explorer", "desc": "Find all secrets in 5 levels", "unlocked": false, "progress": 0, "target": 5},
+	"perfectionist": {"name": "Perfectionist", "desc": "Get 3 stars in 10 levels", "unlocked": false, "progress": 0, "target": 10},
+	"time_trialist": {"name": "Time Trialist", "desc": "Complete 5 levels under best time", "unlocked": false, "progress": 0, "target": 5}
 }
 var boss_damage_taken = false
 var level_deaths = 0
@@ -53,8 +58,15 @@ var save_data = {
 	"total_stars": 0,        # 总星星
 	"level_stars": {},       # 每个关卡的星星数 {level_index: stars_count}
 	"unlocked_abilities": [], # 解锁的能力
-	"best_times": {}         # 最佳时间
+	"best_times": {},         # 最佳时间
+	"total_gems": 0,         # 总宝石数
+	"level_gems": {},        # 每个关卡的宝石数
+	"completed_challenges": []  # 已完成的挑战
 }
+
+# Time Trial Mode
+var time_trial_mode = false
+var time_trial_best_times = {}  # {level_index: best_time}
 # 可解锁的能力
 const ABILITIES = {
 	"double_jump": {"name": "Double Jump", "desc": "Jump again in mid-air", "icon": "🔺"},
@@ -500,6 +512,9 @@ var levels = [
 			{"x": 600, "y": 300, "type": "dash"},
 			{"x": 900, "y": 200, "type": "double_jump"}
 		],
+		"gems": [
+			{"x": 500, "y": 250}, {"x": 800, "y": 180}, {"x": 1100, "y": 130}
+		],
 		"enemies": [],
 		"goal": {"x": 1350, "y": 250}
 	},
@@ -525,6 +540,9 @@ var levels = [
 		"stars": [
 			{"x": 500, "y": 150}, {"x": 800, "y": 100}, {"x": 1100, "y": 120}
 		],
+		"gems": [
+			{"x": 600, "y": 180}
+		],
 		"enemies": [
 			{"x": 400, "y": 200, "type": "flying"},
 			{"x": 700, "y": 150, "type": "flying"},
@@ -549,6 +567,9 @@ var levels = [
 			{"x": 100, "y": 480}, {"x": 200, "y": 450},
 			{"x": 400, "y": 380}, {"x": 600, "y": 280},
 			{"x": 900, "y": 380}, {"x": 1200, "y": 480}
+		],
+		"gems": [
+			{"x": 500, "y": 200}, {"x": 700, "y": 150}
 		],
 		"enemies": [
 			{"x": 700, "y": 250, "type": "boss", "hp": 5}
@@ -584,6 +605,9 @@ var levels = [
 		],
 		"stars": [
 			{"x": 350, "y": 180}, {"x": 720, "y": 150}, {"x": 1010, "y": 150}
+		],
+		"gems": [
+			{"x": 500, "y": 220}
 		],
 		"enemies": [
 			{"x": 300, "y": 310, "min_x": 260, "max_x": 380},
@@ -1189,7 +1213,10 @@ var levels = [
 		"goal": {"x": 1640, "y": 150}
 	},
 	
-	# NEW! Void Dimension - Dark void theme (v3.7)
+	# NEW! Void Dimension - Dark void theme (v3.7) - Now with shooting turrets!
+	{
+		"name": "Void Dimension",
+		"bg_color": Color(0.02, 0.02, 0.05),
 	{
 		"name": "Void Dimension",
 		"bg_color": Color(0.02, 0.02, 0.05),
@@ -1649,10 +1676,18 @@ func show_start_screen():
 	level_select_btn.pressed.connect(func(): show_level_select())
 	container.add_child(level_select_btn)
 	
+	# Time Trial button
+	var time_trial_btn = Button.new()
+	time_trial_btn.text = "⏱️ Time Trial"
+	time_trial_btn.custom_minimum_size = Vector2(200, 50)
+	time_trial_btn.pressed.connect(func(): start_time_trial())
+	container.add_child(time_trial_btn)
+	
 	# Metroidvania: 显示进度
 	var progress_text = "💾 Progress:\n"
 	progress_text += "🪙 Coins: " + str(save_data["total_coins"]) + " | "
 	progress_text += "⭐ Stars: " + str(save_data["total_stars"]) + "\n"
+	progress_text += "💎 Gems: " + str(save_data.get("total_gems", 0)) + " | "
 	progress_text += "🔓 Levels: " + str(save_data["unlocked_levels"].size()) + "/" + str(levels.size())
 	
 	# 显示已解锁的能力
@@ -2126,6 +2161,9 @@ func clear_level():
 	for c in coins:
 		if is_instance_valid(c): c.queue_free()
 	coins.clear()
+	for g in gems:  # 💎 Clear gems
+		if is_instance_valid(g): g.queue_free()
+	gems.clear()
 	for s in stars:  # 🌟 Clear stars
 		if is_instance_valid(s): s.queue_free()
 	stars.clear()
@@ -2185,11 +2223,62 @@ func skip_shop():
 
 func start_game():
 	game_started = true
+	time_trial_mode = false
 	current_level = 0
 	score = 0
 	lives = 3
 	total_play_time = 0.0
 	level_deaths = 0
+	setup_level(current_level)
+
+func start_time_trial():
+	# Time Trial mode - speedrun through levels
+	time_trial_mode = true
+	game_started = true
+	current_level = 0
+	score = 0
+	lives = 3
+	total_play_time = 0.0
+	level_deaths = 0
+	show_time_trial_intro()
+
+func show_time_trial_intro():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if not ui:
+		return
+	
+	# Show time trial intro overlay
+	var intro = Node2D.new()
+	intro.name = "TimeTrialIntro"
+	intro.position = Vector2(640, 360)
+	ui.add_child(intro)
+	
+	var bg = ColorRect.new()
+	bg.color = Color(0, 0, 0, 0.8)
+	bg.size = Vector2(500, 200)
+	bg.position = Vector2(-250, -100)
+	intro.add_child(bg)
+	
+	var title = Label.new()
+	title.text = "⏱️ TIME TRIAL MODE"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 36)
+	title.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+	title.position = Vector2(-120, -60)
+	intro.add_child(title)
+	
+	var info = Label.new()
+	info.text = "Complete levels as fast as possible!\nYour best times will be saved."
+	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info.add_theme_font_size_override("font_size", 16)
+	info.add_theme_color_override("font_color", Color(0.8, 0.9, 1))
+	info.position = Vector2(-120, 0)
+	intro.add_child(info)
+	
+	# Auto-start after delay
+	await get_tree().create_timer(2.5).timeout
+	if intro and is_instance_valid(intro):
+		intro.queue_free()
 	setup_level(current_level)
 
 func setup_level(level_index):
@@ -2226,6 +2315,7 @@ func setup_level(level_index):
 	start_level_timer()
 	level_deaths = 0
 	boss_damage_taken = false
+	gems_collected = 0  # Reset gems for new level
 	
 	# Show level name
 	show_level_name(level.get("name", "Level " + str(level_index + 1)))
@@ -2261,6 +2351,11 @@ func setup_level(level_index):
 	# Create coins
 	for c in level["coins"]:
 		create_coin(c.x, c.y)
+	
+	# 💎 Create gems (if defined in level) - rare collectibles
+	if level.has("gems"):
+		for g in level["gems"]:
+			create_gem(g.x, g.y)
 	
 	# 🌟 Create stars (if defined in level)
 	if level.has("stars"):
@@ -2456,6 +2551,83 @@ func create_coin(x, y):
 	add_child(coin)
 	coins.append(coin)
 
+# 💎 Create a gem collectible - rare valuable item
+var gems_collected = 0
+
+func create_gem(x, y):
+	var gem = Area2D.new()
+	gem.position = Vector2(x, y)
+	gem.set_script(load("res://coin.gd"))  # Reuse coin script with custom behavior
+	
+	# Create diamond/gem shape using Polygon2D
+	var sprite = Polygon2D.new()
+	var pts = PackedVector2Array([
+		Vector2(0, -12),   # Top
+		Vector2(8, -4),    # Upper right
+		Vector2(8, 6),    # Lower right
+		Vector2(0, 12),    # Bottom
+		Vector2(-8, 6),   # Lower left
+		Vector2(-8, -4)    # Upper left
+	])
+	sprite.polygon = pts
+	sprite.color = Color(0.3, 0.9, 1.0, 1)  # Cyan diamond
+	sprite.position = Vector2(0, 0)
+	gem.add_child(sprite)
+	
+	# Add inner glow
+	var inner = Polygon2D.new()
+	inner.polygon = pts.duplicate()
+	inner.scale = Vector2(0.5, 0.5)
+	inner.color = Color(0.8, 1, 1, 0.7)
+	gem.add_child(inner)
+	
+	# Add sparkle effect
+	var sparkle = Polygon2D.new()
+	var sparkle_pts = PackedVector2Array()
+	for i in range(4):
+		var angle = i * TAU / 4
+		sparkle_pts.append(Vector2(cos(angle), sin(angle)) * 10)
+	sparkle.polygon = sparkle_pts
+	sparkle.color = Color(1, 1, 1, 0.8)
+	sparkle.position = Vector2(0, -2)
+	gem.add_child(sparkle)
+	
+	# Collision
+	var col = CollisionShape2D.new()
+	var circle = CircleShape2D.new()
+	circle.radius = 14
+	col.shape = circle
+	gem.add_child(col)
+	
+	# Override the collect method for gems
+	gem.collect = func():
+		if is_instance_valid(gem):
+			gems_collected += 1
+			add_score(50)  # Gems worth more than coins
+			collect_gem()
+			spawn_collection_particles(Color(0.3, 0.9, 1.0), gem.position)
+			gem.queue_free()
+	
+	# Connect body entered
+	gem.body_entered.connect(func(body):
+		if body.is_in_group("player") and gem.collect:
+			gem.collect.call()
+	)
+	
+	add_child(gem)
+	gems.append(gem)
+	
+	# Add floating animation
+	var float_tween = create_tween()
+	float_tween.set_loops()
+	float_tween.tween_property(gem, "position:y", gem.position.y - 5, 1.0)
+	float_tween.tween_property(gem, "position:y", gem.position.y + 5, 1.0)
+
+func collect_gem():
+	save_data["total_gems"] += 1
+	update_achievement_progress("gem_collector", save_data["total_gems"])
+	update_ui_labels()
+
 # 🌟 Create a star collectible
 func create_star(x, y):
 	var star = Area2D.new()
@@ -2595,6 +2767,40 @@ func create_enemy(x, y, type = "ground", hp = 1, min_x = 0, max_x = 300) -> Char
 		col.position = Vector2(0, -12)
 		var rect = RectangleShape2D.new()
 		rect.size = Vector2(18, 18)
+		col.shape = rect
+		enemy.add_child(col)
+		
+		# Set movement bounds
+		enemy.set_meta("min_x", min_x)
+		enemy.set_meta("max_x", max_x)
+	elif type == "shooting":
+		# Shooting Turret - shoots projectiles at player
+		enemy = CharacterBody2D.new()
+		enemy.position = Vector2(x, y)
+		enemy.script = load("res://shooting_enemy.gd")
+		
+		# Turret sprite - red/orange turret
+		var sprite = Sprite2D.new()
+		sprite.name = "Visual"
+		sprite.texture = char_tilesheet
+		sprite.region_enabled = true
+		sprite.region_rect = Rect2(8 * 25, 0, 24, 24)  # Monster tile
+		sprite.position = Vector2(0, -12)
+		sprite.modulate = Color(1, 0.4, 0.2, 1)  # Orange/red turret
+		enemy.add_child(sprite)
+		
+		# Add a "gun" indicator
+		var gun = Polygon2D.new()
+		gun.polygon = PackedVector2Array([Vector2(0, -4), Vector2(12, 0), Vector2(0, 4)])
+		gun.color = Color(1, 0.3, 0.1, 1)
+		gun.position = Vector2(8, -12)
+		enemy.add_child(gun)
+		
+		# Collision
+		var col = CollisionShape2D.new()
+		col.position = Vector2(0, -12)
+		var rect = RectangleShape2D.new()
+		rect.size = Vector2(20, 20)
 		col.shape = rect
 		enemy.add_child(col)
 		
@@ -2841,6 +3047,21 @@ func setup_ui():
 	star_label.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
 	star_container.add_child(star_label)
 	vbox.add_child(star_container)
+	
+	# 💎 Gems collected
+	var gem_container = HBoxContainer.new()
+	var gem_icon = Label.new()
+	gem_icon.text = "💎"
+	gem_icon.add_theme_font_size_override("font_size", 18)
+	gem_container.add_child(gem_icon)
+	
+	var gem_label = Label.new()
+	gem_label.name = "GemLabel"
+	gem_label.text = "0"
+	gem_label.add_theme_font_size_override("font_size", 18)
+	gem_label.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0))
+	gem_container.add_child(gem_label)
+	vbox.add_child(gem_container)
 
 func setup_mobile_controls():
 	# 只在移动端显示虚拟按钮，Web PC 隐藏
@@ -2890,10 +3111,12 @@ func update_ui_labels():
 		var ll = ui.get_node_or_null("LevelLabel")
 		var lv = ui.get_node_or_null("LivesLabel")
 		var star_lbl = ui.get_node_or_null("StarLabel")
+		var gem_lbl = ui.get_node_or_null("GemLabel")
 		if sl: sl.text = "Score: " + str(score)
 		if ll: ll.text = "Level: " + str(current_level + 1)
 		if lv and player: lv.text = "Lives: " + str(player.lives)
 		if star_lbl: star_lbl.text = "⭐: " + str(stars_collected)
+		if gem_lbl: gem_lbl.text = "💎: " + str(gems_collected)
 		update_combo_display()
 		update_timer_display()
 
@@ -3021,14 +3244,32 @@ func next_level():
 	# 保存进度到存档
 	save_data["total_coins"] += score
 	save_data["total_stars"] += stars_collected
+	save_data["total_gems"] += gems_collected
 	# 保存每个关卡的星星数量（取最大值）
 	if not save_data["level_stars"].has(current_level):
 		save_data["level_stars"][current_level] = 0
 	save_data["level_stars"][current_level] = max(save_data["level_stars"][current_level], stars_collected)
-	save_data["best_times"][current_level] = current_level_time
+	# 保存每个关卡的宝石数量（取最大值）
+	if not save_data["level_gems"].has(current_level):
+		save_data["level_gems"][current_level] = 0
+	save_data["level_gems"][current_level] = max(save_data["level_gems"][current_level], gems_collected)
+	# 保存最佳时间
+	var prev_best = save_data["best_times"].get(current_level, 999.0)
+	if current_level_time < prev_best:
+		save_data["best_times"][current_level] = current_level_time
+		# Check time trial achievement
+		var time_trial_count = 0
+		for level_idx in save_data["best_times"]:
+			if save_data["best_times"][level_idx] < 60:  # Under 60 seconds
+				time_trial_count += 1
+		update_achievement_progress("time_trialist", time_trial_count)
+	
 	# 解锁下一关
 	unlock_level(current_level + 1)
 	save_save_data()
+	
+	# Reset gems collected for next level
+	gems_collected = 0
 	
 	# Show level complete popup
 	show_level_complete_popup()
