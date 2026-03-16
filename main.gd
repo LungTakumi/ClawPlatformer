@@ -138,6 +138,12 @@ func play_checkpoint_sound():
 	if audio_manager and audio_manager.has_method("play_checkpoint"):
 		audio_manager.play_checkpoint()
 
+func play_chest_sound():
+	if audio_manager and audio_manager.has_method("play_chest"):
+		audio_manager.play_chest()
+	else:
+		screen_shake_intensity(3)
+
 # Kenney assets - sprite sheets
 var char_tilesheet: Texture2D
 var tile_tilesheet: Texture2D
@@ -526,6 +532,10 @@ var levels = [
 		],
 		"gems": [
 			{"x": 500, "y": 250}, {"x": 800, "y": 180}, {"x": 1100, "y": 130}
+		],
+		"treasure_chests": [
+			{"x": 550, "y": 280, "type": "gold"},
+			{"x": 950, "y": 180, "type": "silver"}
 		],
 		"enemies": [],
 		"goal": {"x": 1350, "y": 250}
@@ -1272,6 +1282,10 @@ var levels = [
 			{"x": 870, "y": 230, "min_x": 850, "max_x": 930, "type": "electric"},
 			{"x": 1300, "y": 200, "min_x": 1250, "max_x": 1350, "type": "jellyfish"}
 		],
+		"pressure_plates": [
+			{"x": 400, "y": 360, "type": "coins", "id": 1},
+			{"x": 850, "y": 240, "type": "enemy", "id": 2}
+		],
 		"goal": {"x": 1500, "y": 150}
 	},
 	
@@ -1572,6 +1586,10 @@ var levels = [
 		"powerups": [
 			{"x": 350, "y": 200, "type": "shadow_clone"},
 			{"x": 800, "y": 80, "type": "dash"}
+		],
+		"treasure_chests": [
+			{"x": 450, "y": 300, "type": "silver"},
+			{"x": 1050, "y": 180, "type": "gold"}
 		],
 		"enemies": [
 			{"x": 230, "y": 400, "min_x": 200, "max_x": 300, "type": "slime"},
@@ -3596,6 +3614,16 @@ func setup_level(level_index):
 		for p in level["powerups"]:
 			create_powerup(p.x, p.y, p.get("type", "dash"))
 	
+	# Create treasure chests (if defined in level)
+	if level.has("treasure_chests"):
+		for t in level["treasure_chests"]:
+			create_treasure_chest(t.x, t.y, t.get("type", null))
+	
+	# Create pressure plates (if defined in level)
+	if level.has("pressure_plates"):
+		for pp in level["pressure_plates"]:
+			create_pressure_plate(pp.x, pp.y, pp.get("type", "enemy"), pp.get("id", 0))
+	
 	# Create goal
 	if level.has("goal"):
 		create_goal(level.goal.x, level.goal.y)
@@ -4375,6 +4403,24 @@ func create_powerup(x, y, powerup_type = null):
 		powerup.set_meta("forced_type", powerup_type)
 	add_child(powerup)
 	powerups.append(powerup)
+
+# 💰 Create a treasure chest
+func create_treasure_chest(x, y, chest_type = null):
+	var chest = Area2D.new()
+	chest.position = Vector2(x, y)
+	chest.script = load("res://treasure_chest.gd")
+	if chest_type != null:
+		chest.set_meta("forced_type", chest_type)
+	add_child(chest)
+
+# 🎯 Create a pressure plate trigger
+func create_pressure_plate(x, y, trigger_type = "enemy", trigger_id = 0):
+	var plate = Area2D.new()
+	plate.position = Vector2(x, y)
+	plate.script = load("res://pressure_plate.gd")
+	plate.set_meta("trigger_type", trigger_type)
+	plate.set_meta("trigger_id", trigger_id)
+	add_child(plate)
 
 # 🦋 Create a pet companion
 var current_pet: Node2D = null

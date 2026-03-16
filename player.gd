@@ -679,8 +679,13 @@ func spawn_shadow_clone():
 	shadow_clone.add_child(clone_script)
 	
 	# Clone inherits some player state
-	if has_method("get_stored_state"):
-		clone_script.store_state = get_stored_state()
+	clone_script.store_state = {
+		"facing_right": facing_right,
+		"has_permanent_double_jump": has_permanent_double_jump,
+		"can_dash": can_dash,
+		"can_ground_slam": can_ground_slam,
+		"speed_multiplier": speed_multiplier
+	}
 	
 	# Visual feedback
 	spawn_clone_spawn_effect()
