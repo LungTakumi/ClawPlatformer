@@ -57,6 +57,11 @@ var can_shadow_clone = false
 var clone_cooldown = 0.0
 var shadow_clone: Node2D = null
 
+# Bounce ability - bounce off surfaces
+var can_bounce = false
+var bounce_count = 0
+var max_bounces = 1
+
 func _physics_process(delta):
 	if is_dead:
 		return
@@ -104,16 +109,20 @@ func _physics_process(delta):
 	if platform_velocity.length() > 0:
 		position += platform_velocity * delta
 
-	# Handle Jump - double jump
+	# Handle Jump - double jump + bounce ability
 	if Input.is_action_just_pressed("jump"):
 		if is_on_floor() or jump_count < max_jumps:
 			velocity.y = JUMP_VELOCITY
 			jump_count += 1
+			bounce_count = 0
 			animate_jump()
-			# Play jump sound
 			var game = get_tree().get_first_node_in_group("game")
 			if game and game.audio_manager:
 				game.audio_manager.play_jump()
+		elif can_bounce and bounce_count < max_bounces and not is_on_floor() and velocity.y > 100:
+			bounce_count += 1
+			velocity.y = -JUMP_VELOCITY * 1.2
+			spawn_bounce_effect()
 	
 	# Handle Dash ability
 	if can_dash and dash_cooldown <= 0:
@@ -276,6 +285,12 @@ func _physics_process(delta):
 	if global_position.y > 800:
 		die()
 
+func reset_time_scale():
+	if Engine.time_scale != 1.0:
+		Engine.time_scale = 1.0
+		is_time_slowed = false
+		time_scale = 1.0
+
 func has_child_named(name: String) -> bool:
 	var visual = get_node_or_null("Visual")
 	if visual:
@@ -401,6 +416,14 @@ func spawn_dash_trail():
 		tween.parallel().tween_property(trail, "modulate:a", 0.0, 0.2)
 		tween.tween_callback(trail.queue_free)
 
+func _enter_tree():
+	# CRITICAL: Always reset time scale when player enters scene
+	# This prevents permanent slow-mo from glitching
+	if Engine.time_scale != 1.0:
+		Engine.time_scale = 1.0
+		is_time_slowed = false
+		time_scale = 1.0
+
 func die():
 	if is_dead:
 		return
@@ -408,10 +431,7 @@ func die():
 	lives -= 1
 	
 	# IMPORTANT: Reset time scale on death to prevent permanent slow-mo
-	if is_time_slowed:
-		is_time_slowed = false
-		time_scale = 1.0
-		Engine.time_scale = 1.0
+	reset_time_scale()
 	
 	# Track level deaths for achievements
 	get_tree().call_group("game", "track_death")
@@ -710,4 +730,22 @@ func spawn_clone_spawn_effect():
 		tw.tween_property(particle, "position", position + Vector2(cos(angle), sin(angle)) * dist, 0.3)
 		tw.parallel().tween_property(particle, "modulate:a", 0.0, 0.3)
 		tw.tween_callback(particle.queue_free)
+
+func spawn_bounce_effect():
+	for i in range(8):
+		var particle = ColorRect.new()
+		particle.size = Vector2(6, 6)
+		particle.color = Color(1, 0.5, 0.8, 0.8)
+		particle.position = position + Vector2(randf_range(-10, 10), randf_range(5, 15))
+		get_parent().add_child(particle)
+		
+		var tw = create_tween()
+		var target = Vector2(randf_range(-30, 30), randf_range(-20, -50))
+		tw.tween_property(particle, "position", particle.position + target, 0.4)
+		tw.parallel().tween_property(particle, "modulate:a", 0.0, 0.4)
+		tw.tween_callback(particle.queue_free)
+	
+	var game = get_tree().get_first_node_in_group("game")
+	if game:
+		game.screen_shake_intensity(4)
 

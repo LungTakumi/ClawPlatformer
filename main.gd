@@ -84,11 +84,26 @@ const ABILITIES = {
 	"ground_slam": {"name": "Ground Slam", "desc": "Press Down in air", "icon": "💥"},
 	"time_slow": {"name": "Time Slow", "desc": "Press Z to slow time", "icon": "⏱️"},
 	"teleport": {"name": "Teleport", "desc": "Press X to teleport", "icon": "🌀"},
-	"shadow_clone": {"name": "Shadow Clone", "desc": "Press C to spawn clone", "icon": "👤"}
+	"shadow_clone": {"name": "Shadow Clone", "desc": "Press C to spawn clone", "icon": "👤"},
+	"bounce": {"name": "Bounce", "desc": "Jump again in air to bounce", "icon": "⭕"}
 }
 
 func screen_shake_intensity(amount):
 	screen_shake = amount
+	if amount > 15:
+		flash_screen(Color(1, 0.5, 0.5, 0.3))
+
+func flash_screen(color: Color):
+	var flash = ColorRect.new()
+	flash.size = Vector2(2000, 2000)
+	flash.position = Vector2(-500, -500)
+	flash.color = color
+	flash.z_index = 100
+	add_child(flash)
+	
+	var tw = create_tween()
+	tw.tween_property(flash, "color:a", 0.0, 0.15)
+	tw.tween_callback(flash.queue_free)
 
 # Checkpoint system
 func set_checkpoint(pos: Vector2):
@@ -1596,6 +1611,48 @@ var levels = [
 			{"x": 480, "y": 340, "min_x": 450, "max_x": 550, "type": "jellyfish"},
 			{"x": 750, "y": 80, "min_x": 700, "max_x": 800, "type": "flying"},
 			{"x": 1100, "y": 240, "min_x": 1000, "max_x": 1200, "type": "slime"}
+		],
+		"goal": {"x": 1450, "y": 230}
+	},
+	# NEW! Neon Nexus - Shows off new orb enemy and bounce ability (v4.10)
+	{
+		"name": "Neon Nexus",
+		"bg_color": Color(0.1, 0.05, 0.15),
+		"neon_theme": true,
+		"platforms": [
+			{"x": 50, "y": 500, "w": 120, "h": 30},
+			{"x": 200, "y": 450, "w": 100, "h": 25},
+			{"x": 80, "y": 350, "w": 80, "h": 25},
+			{"x": 280, "y": 300, "w": 100, "h": 25},
+			{"x": 450, "y": 400, "w": 80, "h": 25},
+			{"x": 600, "y": 320, "w": 100, "h": 25},
+			{"x": 450, "y": 180, "w": 80, "h": 25},
+			{"x": 650, "y": 120, "w": 100, "h": 25},
+			{"x": 850, "y": 200, "w": 120, "h": 25},
+			{"x": 1050, "y": 280, "w": 100, "h": 25},
+			{"x": 1200, "y": 200, "w": 80, "h": 25},
+			{"x": 1350, "y": 280, "w": 150, "h": 25}
+		],
+		"coins": [
+			{"x": 80, "y": 430}, {"x": 230, "y": 380},
+			{"x": 110, "y": 280}, {"x": 310, "y": 230},
+			{"x": 470, "y": 330}, {"x": 630, "y": 250},
+			{"x": 480, "y": 110}, {"x": 680, "y": 50},
+			{"x": 880, "y": 130}, {"x": 1080, "y": 210},
+			{"x": 1230, "y": 130}, {"x": 1400, "y": 210}
+		],
+		"stars": [
+			{"x": 280, "y": 180}, {"x": 680, "y": 80}, {"x": 1430, "y": 210}
+		],
+		"powerups": [
+			{"x": 650, "y": 50, "type": "bounce"},
+			{"x": 350, "y": 200, "type": "dash"}
+		],
+		"enemies": [
+			{"x": 250, "y": 410, "min_x": 200, "max_x": 300, "type": "orb"},
+			{"x": 550, "y": 280, "min_x": 500, "max_x": 600, "type": "orb"},
+			{"x": 900, "y": 160, "min_x": 850, "max_x": 950, "type": "orb"},
+			{"x": 1200, "y": 160, "min_x": 1150, "max_x": 1250, "type": "orb"}
 		],
 		"goal": {"x": 1450, "y": 230}
 	}

@@ -1,6 +1,6 @@
 extends Area2D
 
-enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE, DASH, WALL_CLIMB, GROUND_SLAM, TIME_SLOW, FREEZE, INVISIBLE, PHOENIX, SHIELD, MAGNET }
+enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE, DASH, WALL_CLIMB, GROUND_SLAM, TIME_SLOW, FREEZE, INVISIBLE, PHOENIX, SHIELD, MAGNET, BOUNCE }
 
 var powerup_type: PowerupType = PowerupType.INVINCIBLE
 var rotation_speed = 1.5
@@ -20,7 +20,8 @@ var colors = {
 	PowerupType.INVISIBLE: Color(0.6, 0.6, 0.7, 0.8),     # Silver - invisible
 	PowerupType.PHOENIX: Color(1, 0.5, 0.1, 1),           # Orange-red - phoenix
 	PowerupType.SHIELD: Color(0.3, 0.6, 1, 1),            # Blue - shield
-	PowerupType.MAGNET: Color(0.9, 0.3, 0.9, 1)          # Pink-purple - magnet
+	PowerupType.MAGNET: Color(0.9, 0.3, 0.9, 1),          # Pink-purple - magnet
+	PowerupType.BOUNCE: Color(1, 0.2, 0.6, 1)             # Pink-red - bounce
 }
 
 func _ready():
@@ -47,6 +48,8 @@ func _ready():
 			powerup_type = PowerupType.FREEZE
 		elif forced == "invisible":
 			powerup_type = PowerupType.INVISIBLE
+		elif forced == "bounce":
+			powerup_type = PowerupType.BOUNCE
 	else:
 		# Random type
 		powerup_type = randi() % PowerupType.size()
@@ -250,6 +253,29 @@ func create_visual():
 		flicker.tween_property(ghost, "modulate:a", 0.5, 0.3)
 		flicker.tween_property(ghost, "modulate:a", 1.0, 0.3)
 	
+	elif powerup_type == PowerupType.BOUNCE:
+		var spring = Polygon2D.new()
+		var pts = PackedVector2Array([
+			Vector2(-4, -14), Vector2(-8, -8), Vector2(-4, -6),
+			Vector2(-8, -2), Vector2(-4, 2), Vector2(-8, 6),
+			Vector2(-4, 14), Vector2(0, 14), Vector2(4, 14),
+			Vector2(8, 6), Vector2(4, 2), Vector2(8, -2),
+			Vector2(4, -6), Vector2(8, -8), Vector2(4, -14)
+		])
+		spring.polygon = pts
+		spring.color = color
+		add_child(spring)
+		
+		var glow = Polygon2D.new()
+		glow.polygon = pts.duplicate()
+		glow.color = Color(1, 0.4, 0.7, 0.4)
+		add_child(glow)
+		
+		var bounce = create_tween()
+		bounce.set_loops()
+		bounce.tween_property(spring, "scale", Vector2(1.1, 0.9), 0.2)
+		bounce.tween_property(spring, "scale", Vector2(1.0, 1.0), 0.2)
+	
 	# Collision
 	var col = CollisionShape2D.new()
 	var circle = CircleShape2D.new()
@@ -364,6 +390,11 @@ func apply_powerup():
 		PowerupType.MAGNET:
 			player_node.activate_magnet(10.0)
 			get_tree().call_group("game", "add_score", 35)
+		PowerupType.BOUNCE:
+			player_node.can_bounce = true
+			player_node.max_bounces = 2
+			get_tree().call_group("game", "unlock_ability", "bounce")
+			get_tree().call_group("game", "add_score", 50)
 
 func spawn_phoenix_effect(pos: Vector2):
 	for i in range(20):
