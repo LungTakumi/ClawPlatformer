@@ -53,6 +53,18 @@ func _physics_process(delta):
 		if speed_timer <= 0:
 			speed_multiplier = 1.0
 	
+	if is_frozen:
+		freeze_timer -= delta
+		if freeze_timer <= 0:
+			is_frozen = false
+			modulate = Color.WHITE
+	
+	if is_invisible:
+		invisible_timer -= delta
+		if invisible_timer <= 0:
+			is_invisible = false
+			modulate = Color.WHITE
+	
 	# Add gravity
 	if not is_on_floor():
 		velocity.y += gravity * delta
@@ -410,3 +422,41 @@ func spawn_ground_slam_impact():
 		tw.tween_property(particle, "position", particle.position + target, 0.4)
 		tw.parallel().tween_property(particle, "modulate:a", 0.0, 0.4)
 		tw.tween_callback(particle.queue_free)
+
+var is_frozen = false
+var freeze_timer = 0.0
+var is_invisible = false
+var invisible_timer = 0.0
+
+func activate_freeze(duration: float):
+	is_frozen = true
+	freeze_timer = duration
+	modulate = Color(0.3, 0.8, 1, 0.5)
+	# Freeze enemies in range
+	var game = get_tree().get_first_node_in_group("game")
+	if game and game.enemies:
+		for enemy in game.enemies:
+			if is_instance_valid(enemy) and enemy.has_method("freeze"):
+				enemy.freeze(duration)
+
+func activate_invisible(duration: float):
+	is_invisible = true
+	invisible_timer = duration
+	# Make player semi-transparent
+	modulate = Color(1, 1, 1, 0.3)
+	# Can't be detected by enemies
+	# Visual effect - particles
+	for i in range(6):
+		var p = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(4):
+			var angle = j * TAU / 4
+			pts.append(Vector2(cos(angle), sin(angle)) * 3)
+		p.polygon = pts
+		p.color = Color(0.6, 0.6, 0.7, 0.5)
+		p.position = Vector2(randf_range(-12, 12), randf_range(-20, 0))
+		add_child(p)
+		var tw = create_tween()
+		tw.tween_property(p, "position", p.position + Vector2(randf_range(-20, 20), randf_range(-30, -10)), 0.6)
+		tw.parallel().tween_property(p, "modulate:a", 0.0, 0.6)
+		tw.tween_callback(p.queue_free)

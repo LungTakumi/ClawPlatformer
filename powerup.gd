@@ -1,6 +1,6 @@
 extends Area2D
 
-enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE, DASH, WALL_CLIMB, GROUND_SLAM, TIME_SLOW }
+enum PowerupType { INVINCIBLE, SPEED_BOOST, DOUBLE_JUMP, LIFE, DASH, WALL_CLIMB, GROUND_SLAM, TIME_SLOW, FREEZE, INVISIBLE }
 
 var powerup_type: PowerupType = PowerupType.INVINCIBLE
 var rotation_speed = 1.5
@@ -15,7 +15,9 @@ var colors = {
 	PowerupType.DASH: Color(0.3, 1, 0.5, 1),             # Green - dash
 	PowerupType.WALL_CLIMB: Color(1, 0.5, 0.8, 1),        # Pink - wall climb
 	PowerupType.GROUND_SLAM: Color(1, 0.4, 0.1, 1),        # Orange - ground slam
-	PowerupType.TIME_SLOW: Color(0.5, 0.3, 0.8, 1)       # Purple - time slow
+	PowerupType.TIME_SLOW: Color(0.5, 0.3, 0.8, 1),       # Purple - time slow
+	PowerupType.FREEZE: Color(0.3, 0.8, 1, 1),           # Ice blue - freeze
+	PowerupType.INVISIBLE: Color(0.6, 0.6, 0.7, 0.8)     # Silver - invisible
 }
 
 func _ready():
@@ -38,6 +40,10 @@ func _ready():
 			powerup_type = PowerupType.GROUND_SLAM
 		elif forced == "time_slow":
 			powerup_type = PowerupType.TIME_SLOW
+		elif forced == "freeze":
+			powerup_type = PowerupType.FREEZE
+		elif forced == "invisible":
+			powerup_type = PowerupType.INVISIBLE
 	else:
 		# Random type
 		powerup_type = randi() % PowerupType.size()
@@ -189,6 +195,58 @@ func create_visual():
 		glow.color = Color(0.7, 0.5, 1, 0.4)
 		add_child(glow)
 	
+	elif powerup_type == PowerupType.FREEZE:
+		# Snowflake shape
+		var snowflake = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for i in range(6):
+			var angle = i * TAU / 6
+			pts.append(Vector2(cos(angle), sin(angle)) * 14)
+		snowflake.polygon = pts
+		snowflake.color = color
+		add_child(snowflake)
+		
+		# Inner crystal
+		var inner = Polygon2D.new()
+		var inner_pts = PackedVector2Array()
+		for i in range(6):
+			var angle = i * TAU / 6
+			inner_pts.append(Vector2(cos(angle), sin(angle)) * 7)
+		inner.polygon = inner_pts
+		inner.color = Color(0.8, 0.95, 1, 0.8)
+		add_child(inner)
+		
+		# Glow
+		var glow = Polygon2D.new()
+		glow.polygon = pts.duplicate()
+		glow.color = Color(0.5, 0.9, 1, 0.4)
+		add_child(glow)
+	
+	elif powerup_type == PowerupType.INVISIBLE:
+		# Ghost/invisible shape
+		var ghost = Polygon2D.new()
+		var pts = PackedVector2Array([
+			Vector2(-10, 14), Vector2(-10, -4), Vector2(-8, -10),
+			Vector2(-4, -14), Vector2(4, -14), Vector2(8, -10),
+			Vector2(10, -4), Vector2(10, 14), Vector2(6, 10),
+			Vector2(2, 14), Vector2(-2, 10), Vector2(-6, 14)
+		])
+		ghost.polygon = pts
+		ghost.color = color
+		add_child(ghost)
+		
+		# Glow
+		var glow = Polygon2D.new()
+		glow.polygon = pts.duplicate()
+		glow.color = Color(0.8, 0.8, 0.9, 0.3)
+		add_child(glow)
+		
+		# Flicker effect
+		var flicker = create_tween()
+		flicker.set_loops()
+		flicker.tween_property(ghost, "modulate:a", 0.5, 0.3)
+		flicker.tween_property(ghost, "modulate:a", 1.0, 0.3)
+	
 	# Collision
 	var col = CollisionShape2D.new()
 	var circle = CircleShape2D.new()
@@ -281,6 +339,13 @@ func apply_powerup():
 			player_node.can_time_slow = true
 			get_tree().call_group("game", "unlock_ability", "time_slow")
 			get_tree().call_group("game", "add_score", 50)
+		PowerupType.FREEZE:
+			player_node.activate_freeze(4.0)
+			get_tree().call_group("game", "add_score", 30)
+			get_tree().call_group("game", "screen_shake_intensity", 5)
+		PowerupType.INVISIBLE:
+			player_node.activate_invisible(6.0)
+			get_tree().call_group("game", "add_score", 30)
 
 func spawn_particles():
 	var color = colors[powerup_type]

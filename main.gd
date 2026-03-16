@@ -621,6 +621,7 @@ var levels = [
 	{
 		"name": "Ice Palace",
 		"bg_color": Color(0.1, 0.15, 0.3),
+		"weather": "snow",
 		"platforms": [
 			{"x": 50, "y": 550, "w": 150, "h": 30},
 			{"x": 250, "y": 480, "w": 100, "h": 20},
@@ -1352,6 +1353,53 @@ var levels = [
 			{"x": 1350, "y": 310, "min_x": 1300, "max_x": 1400, "type": "slime"}
 		],
 		"goal": {"x": 1500, "y": 300}
+	},
+	# NEW! Mystic Garden - Magical garden with flowers and butterflies (v4.1)
+	{
+		"name": "Mystic Garden",
+		"bg_color": Color(0.1, 0.25, 0.15),
+		"weather": "fog",
+		"platforms": [
+			{"x": 50, "y": 520, "w": 150, "h": 30},
+			{"x": 250, "y": 460, "w": 100, "h": 25},
+			{"x": 100, "y": 380, "w": 80, "h": 25},
+			{"x": 300, "y": 300, "w": 100, "h": 25},
+			{"x": 150, "y": 220, "w": 80, "h": 25},
+			{"x": 350, "y": 140, "w": 100, "h": 25},
+			{"x": 550, "y": 200, "w": 80, "h": 25},
+			{"x": 700, "y": 280, "w": 100, "h": 25},
+			{"x": 550, "y": 380, "w": 80, "h": 25},
+			{"x": 700, "y": 460, "w": 100, "h": 25},
+			{"x": 900, "y": 380, "w": 80, "h": 25},
+			{"x": 1050, "y": 300, "w": 100, "h": 25},
+			{"x": 900, "y": 200, "w": 80, "h": 25},
+			{"x": 1050, "y": 140, "w": 100, "h": 25},
+			{"x": 1200, "y": 220, "w": 80, "h": 25},
+			{"x": 1350, "y": 300, "w": 150, "h": 25}
+		],
+		"coins": [
+			{"x": 80, "y": 450}, {"x": 280, "y": 390},
+			{"x": 130, "y": 310}, {"x": 330, "y": 230},
+			{"x": 170, "y": 150}, {"x": 380, "y": 70},
+			{"x": 570, "y": 130}, {"x": 730, "y": 210},
+			{"x": 570, "y": 310}, {"x": 730, "y": 390},
+			{"x": 930, "y": 310}, {"x": 1080, "y": 230},
+			{"x": 930, "y": 130}, {"x": 1080, "y": 70},
+			{"x": 1220, "y": 150}, {"x": 1400, "y": 230}
+		],
+		"stars": [
+			{"x": 180, "y": 80}, {"x": 700, "y": 320}, {"x": 1430, "y": 180}
+		],
+		"powerups": [
+			{"x": 900, "y": 80, "type": "freeze"}
+		],
+		"enemies": [
+			{"x": 280, "y": 420, "min_x": 250, "max_x": 350, "type": "jellyfish"},
+			{"x": 550, "y": 160, "min_x": 500, "max_x": 600, "type": "flying"},
+			{"x": 700, "y": 340, "min_x": 650, "max_x": 750, "type": "slime"},
+			{"x": 1050, "y": 260, "min_x": 1000, "max_x": 1100, "type": "jellyfish"}
+		],
+		"goal": {"x": 1450, "y": 250}
 	}
 ]
 
@@ -1444,6 +1492,7 @@ func clear_effects():
 	clear_phoenix_effect()
 	clear_abyss_effect()
 	clear_aurora_effect()
+	clear_weather_effect()
 
 # 🌈 Aurora effect for special levels
 var aurora_container: Node2D = null
@@ -1778,6 +1827,124 @@ func clear_abyss_effect():
 		abyss_container.queue_free()
 		abyss_container = null
 
+# 🌧️ Weather System - Rain, Snow, Fog
+var weather_container: Node2D = null
+enum WeatherType { NONE, RAIN, SNOW, FOG, STORM }
+
+func create_weather_effect(weather_type: WeatherType):
+	clear_weather_effect()
+	
+	if weather_type == WeatherType.NONE:
+		return
+	
+	weather_container = Node2D.new()
+	weather_container.name = "WeatherEffect"
+	add_child(weather_container)
+	weather_container.z_index = -40
+	
+	match weather_type:
+		WeatherType.RAIN:
+			create_rain_effect()
+		WeatherType.SNOW:
+			create_snow_effect()
+		WeatherType.FOG:
+			create_fog_effect()
+		WeatherType.STORM:
+			create_storm_effect()
+
+func clear_weather_effect():
+	if weather_container:
+		weather_container.queue_free()
+		weather_container = null
+
+func create_rain_effect():
+	# Rain drops falling
+	for i in range(100):
+		var drop = ColorRect.new()
+		drop.size = Vector2(2, randf_range(8, 15))
+		drop.color = Color(0.5, 0.6, 0.8, randf_range(0.3, 0.5))
+		drop.position = Vector2(randf() * 1400, randf() * 800)
+		weather_container.add_child(drop)
+		
+		var fall_speed = randf_range(300, 500)
+		var tween = create_tween()
+		tween.set_loops()
+		tween.tween_property(drop, "position:y", drop.position.y + 600, fall_speed / 300)
+		tween.tween_property(drop, "position:y", drop.position.y - 600, 0)
+
+func create_snow_effect():
+	# Snowflakes falling slowly
+	for i in range(60):
+		var snow = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(6):
+			var angle = j * TAU / 6
+			pts.append(Vector2(cos(angle), sin(angle)) * randf_range(2, 4))
+		snow.polygon = pts
+		snow.color = Color(1, 1, 1, randf_range(0.6, 0.9))
+		snow.position = Vector2(randf() * 1400, randf() * 800)
+		weather_container.add_child(snow)
+		
+		var tween = create_tween()
+		tween.set_loops()
+		var fall_speed = randf_range(2.0, 4.0)
+		var drift = randf_range(-20, 20)
+		tween.tween_property(snow, "position:y", snow.position.y + 400, fall_speed)
+		tween.tween_property(snow, "position:x", snow.position.x + drift, fall_speed)
+		tween.tween_property(snow, "position:y", snow.position.y - 400, 0)
+
+func create_fog_effect():
+	# Fog layers
+	for i in range(5):
+		var fog = ColorRect.new()
+		fog.size = Vector2(400, 200)
+		fog.color = Color(0.7, 0.7, 0.75, randf_range(0.15, 0.25))
+		fog.position = Vector2(randf() * 1200, randf() * 400 + 100)
+		weather_container.add_child(fog)
+		
+		var tween = create_tween()
+		tween.set_loops()
+		var move_speed = randf_range(5.0, 10.0)
+		var drift = randf_range(-50, 50)
+		tween.tween_property(fog, "position:x", fog.position.x + drift, move_speed)
+		tween.tween_property(fog, "position:x", fog.position.x, move_speed)
+
+func create_storm_effect():
+	# Storm - heavy rain + lightning
+	for i in range(150):
+		var drop = ColorRect.new()
+		drop.size = Vector2(2, randf_range(10, 20))
+		drop.color = Color(0.4, 0.5, 0.7, randf_range(0.4, 0.6))
+		drop.position = Vector2(randf() * 1400, randf() * 800)
+		weather_container.add_child(drop)
+		
+		var fall_speed = randf_range(400, 700)
+		var tween = create_tween()
+		tween.set_loops()
+		tween.tween_property(drop, "position:y", drop.position.y + 600, fall_speed / 400)
+		tween.tween_property(drop, "position:y", drop.position.y - 600, 0)
+	
+	# Random lightning
+	var lightning_timer = randf_range(3.0, 6.0)
+	await get_tree().create_timer(lightning_timer).timeout
+	if weather_container:
+		spawn_lightning()
+		create_storm_effect()  # Continue storm
+
+func spawn_lightning():
+	var flash = ColorRect.new()
+	flash.size = Vector2(2000, 2000)
+	flash.position = Vector2(-500, -500)
+	flash.color = Color(0.8, 0.9, 1, 0.3)
+	flash.z_index = 50
+	add_child(flash)
+	
+	var tween = create_tween()
+	tween.tween_property(flash, "color:a", 0.0, 0.2)
+	tween.tween_callback(flash.queue_free)
+	
+	screen_shake_intensity(8)
+
 func show_level_name(level_name):
 	var ui = get_tree().get_first_node_in_group("ui")
 	if ui:
@@ -2035,6 +2202,13 @@ func show_start_screen():
 	endless_btn.pressed.connect(func(): start_endless_mode())
 	container.add_child(endless_btn)
 	
+	# Daily Challenge button
+	var daily_btn = Button.new()
+	daily_btn.text = "📅 Daily Challenge"
+	daily_btn.custom_minimum_size = Vector2(200, 50)
+	daily_btn.pressed.connect(func(): start_daily_challenge())
+	container.add_child(daily_btn)
+	
 	# Metroidvania: 显示进度
 	var progress_text = "💾 Progress:\n"
 	progress_text += "🪙 Coins: " + str(save_data["total_coins"]) + " | "
@@ -2072,7 +2246,7 @@ func show_start_screen():
 	
 	# Version in bottom right
 	var version = Label.new()
-	version.text = "v4.0"
+	version.text = "v4.2"
 	version.position = Vector2(650, 550)
 	version.add_theme_font_size_override("font_size", 14)
 	version.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
@@ -2648,6 +2822,113 @@ var endless_difficulty = 1.0
 var endless_platform_count = 0
 var endless_coin_count = 0
 
+# Daily Challenge system
+var daily_challenge_mode = false
+var daily_challenge_seed = 0
+var daily_challenge_completed_today = false
+var daily_challenge_date = ""
+
+func start_daily_challenge():
+	# Check if already completed today
+	var today = Time.get_date_string_from_system()
+	if daily_challenge_date == today and daily_challenge_completed_today:
+		show_daily_challenge_result(true)
+		return
+	
+	daily_challenge_mode = true
+	daily_challenge_seed = Time.get_unix_time_from_system() / 86400  # Day number
+	daily_challenge_date = today
+	game_started = true
+	current_level = 0
+	score = 0
+	lives = 3
+	total_play_time = 0.0
+	level_deaths = 0
+	show_daily_challenge_intro()
+
+func show_daily_challenge_intro():
+	var ui = get_tree().get_first_node_in_group("ui")
+	if not ui:
+		return
+	
+	var intro = Node2D.new()
+	intro.name = "DailyIntro"
+	intro.position = Vector2(640, 360)
+	ui.add_child(intro)
+	
+	var bg = ColorRect.new()
+	bg.color = Color(0.1, 0.05, 0.2, 0.9)
+	bg.size = Vector2(500, 250)
+	bg.position = Vector2(-250, -125)
+	intro.add_child(bg)
+	
+	var title = Label.new()
+	title.text = "📅 DAILY CHALLENGE"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+	title.position = Vector2(-120, -80)
+	intro.add_child(title)
+	
+	# Show challenge type based on seed
+	var challenge_types = ["Speed Run", "No Damage", "Coin Collector", "Endless Rush"]
+	var challenge_idx = int(daily_challenge_seed) % challenge_types.size()
+	var challenge = challenge_types[challenge_idx]
+	
+	var info = Label.new()
+	info.text = "Today's Challenge: " + challenge + "\nComplete for bonus points!\nYour unique seed: " + str(daily_challenge_seed)
+	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info.add_theme_font_size_override("font_size", 16)
+	info.add_theme_color_override("font_color", Color(0.9, 0.9, 1))
+	info.position = Vector2(-120, -20)
+	intro.add_child(info)
+	
+	await get_tree().create_timer(3.0).timeout
+	if intro and is_instance_valid(intro):
+		intro.queue_free()
+	setup_level(current_level)
+
+func show_daily_challenge_result(show_completed = false):
+	var ui = get_tree().get_first_node_in_group("ui")
+	if not ui:
+		return
+	
+	var result = Node2D.new()
+	result.name = "DailyResult"
+	result.position = Vector2(640, 360)
+	ui.add_child(result)
+	
+	var bg = ColorRect.new()
+	bg.color = Color(0.1, 0.05, 0.2, 0.9)
+	bg.size = Vector2(400, 180)
+	bg.position = Vector2(-200, -90)
+	result.add_child(bg)
+	
+	var title = Label.new()
+	if show_completed:
+		title.text = "✅ Already Completed Today!"
+		title.add_theme_color_override("font_color", Color(0.4, 1, 0.4))
+	else:
+		title.text = "📅 Daily Challenge Complete!"
+		title.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 24)
+	title.position = Vector2(-100, -50)
+	result.add_child(title)
+	
+	var bonus = Label.new()
+	bonus.text = "Bonus: +500 points!"
+	bonus.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bonus.add_theme_font_size_override("font_size", 18)
+	bonus.add_theme_color_override("font_color", Color(0.8, 0.9, 1))
+	bonus.position = Vector2(-80, 10)
+	result.add_child(bonus)
+	
+	score += 500
+	await get_tree().create_timer(2.5).timeout
+	if result and is_instance_valid(result):
+		result.queue_free()
+
 func start_endless_mode():
 	endless_mode = true
 	endless_score = 0
@@ -2761,7 +3042,7 @@ func generate_endless_platforms():
 		if endless_difficulty > 0.5 and randf() < 0.3 * endless_difficulty:
 			var enemy_x = current_x
 			var enemy_y = current_y - 30
-			create_enemy(enemy_x, enemy_y, current_x - 30, current_x + 30)
+			create_enemy(enemy_x, enemy_y, "ground", 1, current_x - 30, current_x + 30)
 		
 		# Add mimic enemies at higher difficulty
 		if endless_difficulty > 1.0 and randf() < 0.15 * (endless_difficulty - 1.0):
@@ -2841,6 +3122,19 @@ func setup_level(level_index):
 		create_abyss_effect()
 	else:
 		clear_abyss_effect()
+	
+	# 🌧️ Create weather effect
+	var weather_str = level.get("weather", "")
+	if weather_str != "":
+		var weather_type = WeatherType.RAIN
+		match weather_str:
+			"rain": weather_type = WeatherType.RAIN
+			"snow": weather_type = WeatherType.SNOW
+			"fog": weather_type = WeatherType.FOG
+			"storm": weather_type = WeatherType.STORM
+		create_weather_effect(weather_type)
+	else:
+		clear_weather_effect()
 	
 	# ⏱️ Start level timer
 	start_level_timer()
@@ -3446,6 +3740,65 @@ func create_enemy(x, y, type = "ground", hp = 1, min_x = 0, max_x = 300) -> Char
 		# Set movement bounds
 		enemy.set_meta("min_x", min_x)
 		enemy.set_meta("max_x", max_x)
+	elif type == "chaser":
+		# Chaser enemy - follows player
+		enemy = CharacterBody2D.new()
+		enemy.position = Vector2(x, y)
+		enemy.script = load("res://chaser_enemy.gd")
+		
+		var sprite = Sprite2D.new()
+		sprite.name = "Visual"
+		sprite.texture = char_tilesheet
+		sprite.region_enabled = true
+		sprite.region_rect = Rect2(11 * 25, 0, 24, 24)
+		sprite.position = Vector2(0, -12)
+		sprite.modulate = Color(1, 0.3, 0.3, 1)  # Red dangerous
+		enemy.add_child(sprite)
+		
+		var col = CollisionShape2D.new()
+		col.position = Vector2(0, -12)
+		var rect = RectangleShape2D.new()
+		rect.size = Vector2(18, 18)
+		col.shape = rect
+		enemy.add_child(col)
+	elif type == "suicide":
+		# Suicide bomber enemy - explodes when close
+		enemy = CharacterBody2D.new()
+		enemy.position = Vector2(x, y)
+		enemy.script = load("res://suicide_enemy.gd")
+		
+		var sprite = Sprite2D.new()
+		sprite.name = "Visual"
+		sprite.texture = char_tilesheet
+		sprite.region_enabled = true
+		sprite.region_rect = Rect2(14 * 25, 0, 24, 24)  # Different look
+		sprite.position = Vector2(0, -12)
+		sprite.modulate = Color(1, 0.2, 0.1, 1)  # Danger red
+		enemy.add_child(sprite)
+		
+		# Add pulsing effect to show it's dangerous
+		var pulse = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(8):
+			var angle = j * TAU / 8
+			pts.append(Vector2(cos(angle), sin(angle)) * 16)
+		pulse.polygon = pts
+		pulse.color = Color(1, 0.3, 0.0, 0.4)
+		pulse.position = Vector2(0, -12)
+		enemy.add_child(pulse)
+		
+		# Pulse animation
+		var tween = create_tween()
+		tween.set_loops()
+		tween.tween_property(pulse, "scale", Vector2(1.3, 1.3), 0.4)
+		tween.tween_property(pulse, "scale", Vector2(1.0, 1.0), 0.4)
+		
+		var col = CollisionShape2D.new()
+		col.position = Vector2(0, -12)
+		var rect = RectangleShape2D.new()
+		rect.size = Vector2(20, 20)
+		col.shape = rect
+		enemy.add_child(col)
 	elif type == "boss":
 		# Boss enemy
 		enemy = CharacterBody2D.new()
