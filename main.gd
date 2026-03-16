@@ -88,8 +88,48 @@ const ABILITIES = {
 	"bounce": {"name": "Bounce", "desc": "Jump again in air to bounce", "icon": "⭕"},
 	"time_rewind": {"name": "Time Rewind", "desc": "Press R to rewind time", "icon": "🔄"},
 	"energy_shield": {"name": "Energy Shield", "desc": "Press F to block 1 hit", "icon": "🛡️"},
-	"phase_shift": {"name": "Phase Shift", "desc": "Press Q to dodge through enemies", "icon": "👻"}
+	"phase_shift": {"name": "Phase Shift", "desc": "Press Q to dodge through enemies", "icon": "👻"},
+	"tracking_projectile": {"name": "Tracking Shot", "desc": "Press T to fire homing missile", "icon": "🎯"}
 }
+
+# Skill Tree System - Ability upgrades
+var skill_points = 0
+var skill_tree = {
+	"double_jump": {"level": 0, "max_level": 3, "desc": "Extra mid-air jumps", "icon": "🔺"},
+	"dash": {"level": 0, "max_level": 3, "desc": "Faster and farther dash", "icon": "💨"},
+	"speed": {"level": 0, "max_level": 3, "desc": "Movement speed boost", "icon": "⚡"},
+	"health": {"level": 0, "max_level": 5, "desc": "Max health increase", "icon": "❤️"},
+	"luck": {"level": 0, "max_level": 3, "desc": "Better item drops", "icon": "🍀"},
+	"power": {"level": 0, "max_level": 3, "desc": "Damage boost", "icon": "💪"}
+}
+
+func add_skill_point():
+	skill_points += 1
+
+func upgrade_skill(skill_name):
+	if not skill_tree.has(skill_name):
+		return false
+	if skill_points <= 0:
+		return false
+	var skill = skill_tree[skill_name]
+	if skill["level"] >= skill["max_level"]:
+		return false
+	
+	skill["level"] += 1
+	skill_points -= 1
+	apply_skill_upgrade(skill_name, skill["level"])
+	return true
+
+func apply_skill_upgrade(skill_name, level):
+	match skill_name:
+		"speed":
+			if player:
+				player.speed_multiplier = 1.0 + (level * 0.1)
+		"health":
+			lives = min(lives + 1, 5)
+			_update_lives()
+		"power":
+			# Boost player damage (future implementation)
 
 func screen_shake_intensity(amount):
 	screen_shake = amount
@@ -127,6 +167,7 @@ func create_secret_area(x, y, w, h):
 	var area = Area2D.new()
 	area.position = Vector2(x, y)
 	area.script = load("res://secret_area.gd")
+	area.add_to_group("secret_area")
 	
 	# Collision shape
 	var col = CollisionShape2D.new()
@@ -138,12 +179,84 @@ func create_secret_area(x, y, w, h):
 	
 	add_child(area)
 	
-	# Visual hint (subtle glow)
-	var hint = ColorRect.new()
-	hint.size = Vector2(w, h)
-	hint.color = Color(0.5, 0.3, 0.8, 0.05)
-	hint.position = Vector2.ZERO
+	# Subtle shimmer effect - indicates secret area
+	var shimmer = ColorRect.new()
+	shimmer.size = Vector2(w, h)
+	shimmer.color = Color(0.6, 0.4, 1, 0.08)
+	shimmer.position = Vector2.ZERO
+	area.add_child(shimmer)
+	
+	# Subtle particle hint
+	var hint = Polygon2D.new()
+	var pts = PackedVector2Array()
+	for i in range(6):
+		var angle = i * TAU / 6
+		pts.append(Vector2(cos(angle), sin(angle)) * 4)
+	hint.polygon = pts
+	hint.color = Color(0.7, 0.5, 1, 0.2)
+	hint.position = Vector2(w/2, h/2)
 	area.add_child(hint)
+	
+	# Gentle pulse animation
+	var tw = create_tween()
+	tw.set_loops()
+	tw.tween_property(hint, "scale", Vector2(1.3, 1.3), 1.0)
+	tw.tween_property(hint, "scale", Vector2(1.0, 1.0), 1.0)
+
+# Check if player is near secret area and show hint
+var secret_hint_shown = false
+
+func check_secret_area_proximity():
+	if not player or secret_hint_shown:
+		return
+	
+	var secret_areas = get_tree().get_nodes_in_group("secret_area")
+	for area in secret_areas:
+		if is_instance_valid(area):
+			var dist = player.global_position.distance_to(area.global_position)
+			if dist < 80:
+				show_secret_hint()
+				secret_hint_shown = true
+				break
+
+func show_secret_hint():
+	if not player:
+		return
+	
+	# Subtle sparkle effect near player
+	for i in range(6):
+		var sparkle = Polygon2D.new()
+		var pts = PackedVector2Array()
+		for j in range(4):
+			var angle = j * TAU / 4
+			pts.append(Vector2(cos(angle), sin(angle)) * 3)
+		sparkle.polygon = pts
+		sparkle.color = Color(0.7, 0.5, 1, 0.6)
+		sparkle.position = player.global_position + Vector2(randf_range(-15, 15), randf_range(-20, 0))
+		add_child(sparkle)
+		
+		var tw = create_tween()
+		tw.tween_property(sparkle, "position", sparkle.position + Vector2(randf_range(-10, 10), -randf_range(15, 30)), 0.6)
+		tw.parallel().tween_property(sparkle, "modulate:a", 0.0, 0.6)
+		tw.tween_callback(sparkle.queue_free)
+	
+	# Brief UI hint
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		var hint = Label.new()
+		hint.text = "🔍 Something hidden nearby..."
+		hint.add_theme_font_size_override("font_size", 16)
+		hint.add_theme_color_override("font_color", Color(0.7, 0.5, 1, 0.8))
+		hint.position = Vector2(500, 280)
+		hint.modulate.a = 0
+		ui.add_child(hint)
+		
+		var tw = create_tween()
+		tw.tween_property(hint, "modulate:a", 1.0, 0.5)
+		tw.tween_interval(2.0)
+		tw.tween_property(hint, "modulate:a", 0.0, 0.5)
+		tw.tween_property(hint, "position:y", hint.position.y - 20, 0.5)
+		tw.tween_callback(hint.queue_free)
 
 func clear_checkpoints():
 	for cp in checkpoints:
@@ -2157,6 +2270,12 @@ func _process(delta):
 		if level_start_time > 0:
 			current_level_time = (Time.get_ticks_msec() / 1000.0) - level_start_time
 			update_timer_display()
+		
+		# Check for secret area proximity
+		check_secret_area_proximity()
+		
+		# Random event system - chance to trigger special events
+		trigger_random_event(delta)
 
 func show_start_screen():
 	game_started = false
@@ -2850,6 +2969,10 @@ func quit_to_menu():
 	show_start_screen()
 
 func clear_level():
+	# CRITICAL: Reset time scale when clearing level to prevent permanent slow-mo
+	if Engine.time_scale != 1.0:
+		Engine.time_scale = 1.0
+	
 	for p in platforms:
 		if is_instance_valid(p): p.queue_free()
 	platforms.clear()
@@ -3798,6 +3921,8 @@ func apply_player_abilities(p):
 		p.activate_energy_shield_ability()
 	if has_ability("phase_shift"):
 		p.activate_phase_shift_ability()
+	if has_ability("tracking_projectile"):
+		p.activate_tracking_projectile_ability()
 
 func create_player_visual(p):
 	# Create lobster character using polygons
@@ -4803,6 +4928,131 @@ func spawn_rainbow_explosion(pos: Vector2):
 		tw.tween_property(particle, "modulate:a", 0.0, 0.4)
 		tw.tween_callback(particle.queue_free)
 
+# 🍀 Lucky Coin - grants random positive effect
+var lucky_coins: Array[Area2D] = []
+
+func create_lucky_coin(x, y):
+	var coin = Area2D.new()
+	coin.position = Vector2(x, y)
+	coin.add_to_group("lucky_coin")
+	
+	# Clover-shaped sprite
+	var sprite = Polygon2D.new()
+	var pts = PackedVector2Array([
+		Vector2(0, -8), Vector2(-3, -6), Vector2(-6, -3),
+		Vector2(-8, 0), Vector2(-6, 3), Vector2(-3, 6),
+		Vector2(0, 8), Vector2(3, 6), Vector2(6, 3),
+		Vector2(8, 0), Vector2(6, -3), Vector2(3, -6)
+	])
+	sprite.polygon = pts
+	sprite.position = Vector2(0, -8)
+	sprite.color = Color(0.2, 1, 0.4, 1)  # Lucky green
+	coin.add_child(sprite)
+	
+	# Glow effect
+	var glow = Polygon2D.new()
+	glow.polygon = pts.duplicate()
+	glow.scale = Vector2(1.3, 1.3)
+	glow.color = Color(0.4, 1, 0.6, 0.4)
+	glow.position = sprite.position
+	coin.add_child(glow)
+	
+	# Sparkle animation
+	var sparkle = Polygon2D.new()
+	var sparkle_pts = PackedVector2Array()
+	for i in range(4):
+		var angle = i * TAU / 4
+		sparkle_pts.append(Vector2(cos(angle), sin(angle)) * 6)
+	sparkle.polygon = sparkle_pts
+	sparkle.color = Color(1, 1, 0.5, 0.8)
+	sparkle.position = Vector2(4, -12)
+	coin.add_child(sparkle)
+	
+	var tw = create_tween()
+	tw.set_loops()
+	tw.tween_property(sparkle, "scale", Vector2(1.5, 1.5), 0.3)
+	tw.tween_property(sparkle, "scale", Vector2(1.0, 1.0), 0.3)
+	
+	# Collision
+	var col = CollisionShape2D.new()
+	var circle = CircleShape2D.new()
+	circle.radius = 12
+	col.shape = circle
+	coin.add_child(col)
+	
+	coin.body_entered.connect(func(body):
+		if body.is_in_group("player"):
+			collect_lucky_coin(coin)
+	)
+	
+	add_child(coin)
+	lucky_coins.append(coin)
+
+func collect_lucky_coin(coin):
+	if not is_instance_valid(coin):
+		return
+	
+	# Random lucky effect
+	var effects = [
+		"score_boost", "invincibility", "speed_boost", "extra_life", "skill_point"
+	]
+	var effect = effects[randi() % effects.size()]
+	
+	match effect:
+		"score_boost":
+			add_score(200)
+			show_floating_text("+200 LUCKY!", coin.global_position, Color(1, 0.9, 0.2))
+		"invincibility":
+			if player:
+				player.activate_invincible(3.0)
+			show_floating_text("INVINCIBLE!", coin.global_position, Color(1, 0.8, 0.2))
+		"speed_boost":
+			if player:
+				player.activate_speed_boost(5.0)
+			show_floating_text("SPEED UP!", coin.global_position, Color(0.2, 0.9, 1))
+		"extra_life":
+			lives = min(lives + 1, 5)
+			_update_lives()
+			show_floating_text("+1 LIFE!", coin.global_position, Color(1, 0.4, 0.4))
+		"skill_point":
+			add_skill_point()
+			show_floating_text("+1 SKILL POINT!", coin.global_position, Color(0.4, 1, 0.6))
+	
+	# Lucky explosion
+	spawn_lucky_explosion(coin.global_position)
+	coin.queue_free()
+
+func spawn_lucky_explosion(pos: Vector2):
+	for i in range(10):
+		var particle = Polygon2D.new()
+		particle.polygon = PackedVector2Array([Vector2(-2, 0), Vector2(0, -2), Vector2(2, 0), Vector2(0, 2)])
+		particle.color = Color(0.2 + randf() * 0.8, 1, 0.2 + randf() * 0.6, 0.9)
+		particle.position = pos
+		add_child(particle)
+		
+		var angle = i * TAU / 10
+		var dist = randf_range(25, 50)
+		var tw = create_tween()
+		tw.tween_property(particle, "position", pos + Vector2(cos(angle), sin(angle)) * dist, 0.4)
+		tw.parallel().tween_property(particle, "scale", Vector2(0.5, 0.5), 0.4)
+		tw.tween_property(particle, "modulate:a", 0.0, 0.4)
+		tw.tween_callback(particle.queue_free)
+	
+	screen_shake_intensity(3)
+
+func show_floating_text(text: String, pos: Vector2, color: Color):
+	var label = Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", 18)
+	label.add_theme_color_override("font_color", color)
+	label.position = pos + Vector2(-30, -30)
+	add_child(label)
+	
+	var tw = create_tween()
+	tw.tween_property(label, "position", label.position + Vector2(0, -30), 1.0)
+	tw.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
+	tw.tween_callback(label.queue_free)
+
 # 🌀 Create a warp portal - teleports to unlocked levels
 var warp_portals: Array[Area2D] = []
 
@@ -5049,10 +5299,52 @@ func update_combo_display():
 		if cl:
 			if combo > 1:
 				cl.text = "Combo x" + str(combo) + "!"
-				# Flash effect
-				cl.add_theme_color_override("font_color", Color(1, 0.8 + 0.2 * sin(Time.get_ticks_msec() / 100.0), 0.2))
+				# Dynamic color based on combo level
+				var combo_color = Color(1, 0.8, 0.2)
+				if combo >= 5:
+					combo_color = Color(1, 0.5, 0.2)  # Orange
+				if combo >= 8:
+					combo_color = Color(1, 0.2, 0.4)  # Red
+				if combo >= 10:
+					combo_color = Color(1, 0.2, 0.8)  # Purple - MAX!
+				cl.add_theme_color_override("font_color", combo_color)
+				# Pulse effect
+				var scale = 1.0 + 0.1 * sin(Time.get_ticks_msec() / 100.0)
+				cl.scale = Vector2(scale, scale)
 			else:
 				cl.text = ""
+				cl.scale = Vector2(1, 1)
+
+func trigger_combo_firework():
+	# Firework effect for high combos
+	if combo >= 5 and player:
+		for i in range(min(combo - 2, 8)):
+			var particle = Polygon2D.new()
+			var pts = PackedVector2Array()
+			for j in range(6):
+				var angle = j * TAU / 6
+				pts.append(Vector2(cos(angle), sin(angle)) * randf_range(3, 6))
+			particle.polygon = pts
+			
+			var color_choice = randi() % 4
+			if color_choice == 0:
+				particle.color = Color(1, 0.8, 0.2, 0.9)
+			elif color_choice == 1:
+				particle.color = Color(1, 0.4, 0.4, 0.9)
+			elif color_choice == 2:
+				particle.color = Color(0.4, 0.8, 1, 0.9)
+			else:
+				particle.color = Color(0.8, 0.4, 1, 0.9)
+			
+			particle.position = player.global_position + Vector2(randf_range(-20, 20), randf_range(-20, 10))
+			add_child(particle)
+			
+			var tw = create_tween()
+			var angle = i * TAU / 8
+			var dist = randf_range(30, 60)
+			tw.tween_property(particle, "position", particle.position + Vector2(cos(angle), sin(angle)) * dist, 0.5)
+			tw.parallel().tween_property(particle, "modulate:a", 0.0, 0.5)
+			tw.tween_callback(particle.queue_free)
 
 func add_score(points):
 	# Combo system - collect coins quickly for bonus!
@@ -5075,6 +5367,10 @@ func add_score(points):
 		if combo_meter >= combo_meter_max:
 			activate_super_combo()
 	
+	# Trigger combo firework on high combos
+	if combo >= 5:
+		trigger_combo_firework()
+	
 	update_ui_labels()
 	
 	# Spawn coin collection particles
@@ -5088,6 +5384,8 @@ func add_score(points):
 	# Combo achievements
 	if combo >= 10:
 		unlock_achievement("combo_master")
+	if combo >= 20:
+		unlock_achievement("combo_god")
 
 func activate_super_combo():
 	super_combo_active = true
@@ -5275,6 +5573,103 @@ func shake_screen(intensity: float, duration: float):
 
 func _update_lives():
 	update_ui_labels()
+
+# Random Event System - triggers special events during gameplay
+var random_event_timer = 0.0
+var last_random_event_time = 0.0
+var active_random_event = ""
+
+func trigger_random_event(delta):
+	if not game_started or endless_mode or boss_rush_mode:
+		return
+	
+	random_event_timer += delta
+	
+	# Only trigger random event every 30 seconds
+	if random_event_timer - last_random_event_time < 30.0:
+		return
+	
+	# 20% chance to trigger an event
+	if randf() > 0.2:
+		return
+	
+	last_random_event_time = random_event_timer
+	
+	# Pick random event
+	var events = ["coin_rain", "speed_boost", "mystery_gift", "enemies_appear"]
+	var event = events[randi() % events.size()]
+	active_random_event = event
+	
+	match event:
+		"coin_rain":
+			trigger_coin_rain()
+		"speed_boost":
+			trigger_speed_boost_event()
+		"mystery_gift":
+			trigger_mystery_gift()
+		"enemies_appear":
+			trigger_enemy_swarm()
+
+func trigger_coin_rain():
+	if not player:
+		return
+	
+	# Spawn coins falling from sky
+	for i in range(15):
+		await get_tree().create_timer(randf_range(0.1, 0.5)).timeout
+		
+		var coin_x = player.global_position.x + randf_range(-200, 200)
+		var coin_y = -50
+		create_coin(coin_x, coin_y)
+	
+	show_event_notification("💰 Coin Rain!")
+
+func trigger_speed_boost_event():
+	if player:
+		player.activate_speed_boost(8.0)
+	show_event_notification("⚡ Speed Boost!")
+
+func trigger_mystery_gift():
+	if not player:
+		return
+	
+	var gift_pos = player.global_position + Vector2(randf_range(-50, 50), -30)
+	var powerup = Area2D.new()
+	powerup.position = gift_pos
+	powerup.script = load("res://powerup.gd")
+	get_parent().add_child(powerup)
+	
+	show_event_notification("🎁 Mystery Gift!")
+
+func trigger_enemy_swarm():
+	if not player:
+		return
+	
+	# Spawn extra enemies
+	var spawn_x = player.global_position.x + randf_range(100, 300)
+	create_enemy(spawn_x, player.global_position.y + 50, "slime", 1, spawn_x - 50, spawn_x + 50)
+	create_enemy(spawn_x + 100, player.global_position.y + 50, "slime", 1, spawn_x + 50, spawn_x + 150)
+	
+	show_event_notification("⚠️ Enemy Swarm!")
+
+func show_event_notification(text: String):
+	var ui = get_tree().get_first_node_in_group("ui")
+	if ui:
+		var notif = Label.new()
+		notif.text = text
+		notif.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		notif.add_theme_font_size_override("font_size", 28)
+		notif.add_theme_color_override("font_color", Color(1, 0.9, 0.2))
+		notif.position = Vector2(540, 150)
+		notif.modulate.a = 0
+		ui.add_child(notif)
+		
+		var tw = create_tween()
+		tw.tween_property(notif, "modulate:a", 1.0, 0.3)
+		tw.tween_interval(2.0)
+		tw.tween_property(notif, "modulate:a", 0.0, 0.5)
+		tw.tween_property(notif, "position:y", notif.position.y - 30, 0.5)
+		tw.tween_callback(notif.queue_free)
 
 func track_death():
 	level_deaths += 1

@@ -283,6 +283,14 @@ func _physics_process(delta):
 	
 	if phase_shift_cooldown > 0:
 		phase_shift_cooldown -= delta
+	
+	# Handle Tracking Projectile ability (Press T to fire homing shot)
+	if can_tracking_projectile and tracking_projectile_cooldown <= 0:
+		if Input.is_key_pressed(KEY_T):
+			fire_tracking_projectile()
+	
+	if tracking_projectile_cooldown > 0:
+		tracking_projectile_cooldown -= delta
 
 	# Get input direction
 	var direction = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
@@ -521,6 +529,8 @@ func _enter_tree():
 func _exit_tree():
 	# Reset time scale when player leaves scene to prevent permanent slow-mo
 	Engine.time_scale = 1.0
+	time_scale = 1.0
+	is_time_slowed = false
 
 func die():
 	if is_dead:
@@ -1137,4 +1147,44 @@ func activate_phase_shift_ability():
 	tw.tween_property(label, "position", label.position + Vector2(0, -30), 1.0)
 	tw.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
 	tw.tween_callback(label.queue_free)
+
+# Tracking Projectile ability - lock-on shots
+var can_tracking_projectile = false
+var tracking_projectile_cooldown = 0.0
+
+func activate_tracking_projectile_ability():
+	can_tracking_projectile = true
+	var label = Label.new()
+	label.text = "🎯 TRACKING SHOT!"
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", Color(0.2, 1, 0.5))
+	label.position = global_position + Vector2(-60, -50)
+	get_parent().add_child(label)
+	var tw = create_tween()
+	tw.tween_property(label, "position", label.position + Vector2(0, -30), 1.0)
+	tw.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
+	tw.tween_callback(label.queue_free)
+
+func fire_tracking_projectile():
+	if not can_tracking_projectile or tracking_projectile_cooldown > 0:
+		return
+	
+	tracking_projectile_cooldown = 3.0
+	
+	var projectile = Area2D.new()
+	projectile.position = global_position
+	projectile.script = load("res://tracking_projectile.gd")
+	
+	# Set direction based on facing
+	if facing_right:
+		projectile.direction = Vector2(1, 0)
+	else:
+		projectile.direction = Vector2(-1, 0)
+	
+	get_parent().add_child(projectile)
+	
+	# Sound effect
+	var game = get_tree().get_first_node_in_group("game")
+	if game and game.audio_manager:
+		game.audio_manager.play_coin()
 
