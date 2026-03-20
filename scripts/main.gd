@@ -6,6 +6,35 @@ var particle_manager: Node
 # 音效管理器
 var audio_manager: Node
 
+# 粒子效果包装函数 - 将调用转发到 particle_manager
+func spawn_coin_effect(world_node: Node, position: Vector2, count: int = 10):
+	if particle_manager:
+		particle_manager.spawn_coin_effect(world_node, position, count)
+
+func spawn_success_effect(world_node: Node, position: Vector2):
+	if particle_manager:
+		particle_manager.spawn_success_effect(world_node, position)
+
+func spawn_negative_effect(world_node: Node, position: Vector2):
+	if particle_manager:
+		particle_manager.spawn_negative_effect(world_node, position)
+
+func spawn_stress_effect(world_node: Node, position: Vector2, is_positive: bool):
+	if particle_manager:
+		particle_manager.spawn_stress_effect(world_node, position, is_positive)
+
+func spawn_star_effect(world_node: Node, center: Vector2):
+	if particle_manager:
+		particle_manager.spawn_star_effect(world_node, center)
+
+func spawn_halo_effect(world_node: Node, position: Vector2, color: Color = Color(1, 0.84, 0)):
+	if particle_manager:
+		particle_manager.spawn_halo_effect(world_node, position, color)
+
+func spawn_breathing_dot(world_node: Node, position: Vector2, size: float = 20.0):
+	if particle_manager:
+		particle_manager.spawn_breathing_dot(world_node, position, size)
+
 # 背景装饰节点
 var background_particles: Array = []
 
@@ -334,16 +363,29 @@ var achievements = {
 	"workhorse": {"name": "Workhorse", "desc": "Complete 50 high-intensity work sessions", "unlocked": false},
 	"balanced_player": {"name": "Balanced Player", "desc": "Complete 30 medium-intensity work sessions", "unlocked": false},
 	"zen_master": {"name": "True Zen Master", "desc": "Reach day 50 with 0 stress and 0 resentment", "unlocked": false},
-	"lucky_lobster": {"name": "Lucky Lobster", "desc": "Experience 10 random events", "unlocked": false}
+	"lucky_lobster": {"name": "Lucky Lobster", "desc": "Experience 10 random events", "unlocked": false},
+	# Clicker Game Achievements
+	"first_click": {"name": "First Poke", "desc": "Click the lobster for the first time", "unlocked": false},
+	"click_master": {"name": "Click Master", "desc": "Click the lobster 50 times", "unlocked": false},
+	"combo_king": {"name": "Combo King", "desc": "Get a 10x combo click", "unlocked": false},
+	"click_millionaire": {"name": "Click Millionaire", "desc": "Earn $5000 from clicking", "unlocked": false}
 }
 
 var items_purchased_count: int = 0
 var event_panel_visible: bool = false
 var achievement_panel_visible: bool = false
 
+# Clicker Game System
+var click_count: int = 0
+var last_click_time: float = 0
+var combo_multiplier: float = 1.0
+var combo_timer: float = 0.0
+var click_rewards_earned: int = 0
+
 @onready var phase_label = $UI/PhaseLabel
 @onready var stats_label = $UI/StatsLabel
 @onready var lobster_sprite = $Lobster/Sprite2D
+@onready var lobster_container = $Lobster
 @onready var dialogue_box = $UI/DialogueBox
 @onready var dialogue_label = $UI/DialogueBox/DialogueLabel
 @onready var choice_buttons = $UI/ChoiceButtons
@@ -377,7 +419,103 @@ func _ready():
 	has_save_game = _check_save_exists()
 	_create_lobster_sprite()
 	_create_background_effects()
+	_setup_lobster_interaction()
 	_show_main_menu()
+
+func _setup_lobster_interaction():
+	# 为小龙虾容器添加点击检测
+	lobster_container.set_meta("clickable", true)
+	# 使用输入事件检测点击
+	pass
+
+func _input(event):
+	if is_in_menu:
+		return
+	
+	# 检测鼠标点击
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var mouse_pos = get_viewport().get_mouse_position()
+		# 检查是否点击在小龙虾附近
+		var lobster_pos = lobster_container.position
+		var distance = mouse_pos.distance_to(lobster_pos)
+		if distance < 100:  # 点击范围
+			_on_lobster_clicked()
+
+func _process(delta):
+	# 更新连击计时器
+	if combo_timer > 0:
+		combo_timer -= delta
+		if combo_timer <= 0:
+			combo_multiplier = 1.0
+			click_count = 0
+
+func _on_lobster_clicked():
+	if current_phase != Phase.MORNING_SCHEDULE:
+		return
+	
+	var current_time = Time.get_ticks_msec() / 1000.0
+	
+	# 检查连击（2秒内点击）
+	if current_time - last_click_time < 2.0:
+		click_count += 1
+		combo_multiplier = 1.0 + (click_count * 0.1)  # 每次点击增加10%倍率
+		combo_timer = 2.0
+	else:
+		click_count = 1
+		combo_multiplier = 1.0
+	
+	last_click_time = current_time
+	
+	# 计算奖励
+	var base_reward = randi_range(5, 15)
+	var total_reward = int(base_reward * combo_multiplier)
+	
+	game_data["money"] += total_reward
+	game_data["stats"]["total_earned"] += total_reward
+	click_rewards_earned += total_reward
+	
+	# 记录点击次数
+	if not game_data["stats"].has("total_clicks"):
+		game_data["stats"]["total_clicks"] = 0
+	game_data["stats"]["total_clicks"] += 1
+	
+	# 检查点击成就
+	_check_achievements()
+	
+	# 视觉反馈
+	spawn_coin_effect(self, lobster_container.position, 5)
+	spawn_success_effect(self, lobster_container.position)
+	
+	# 显示连击文字
+	_show_click_feedback(total_reward, click_count)
+	
+	# 播放音效
+	if audio_manager:
+		audio_manager.play_coin()
+		if click_count >= 3:
+			audio_manager.play_success()
+	
+	# 更新UI
+	_update_ui()
+
+func _show_click_feedback(reward: int, combo: int):
+	var feedback = Label.new()
+	feedback.position = lobster_container.position + Vector2(-20, -50)
+	feedback.modulate = Color(1, 0.9, 0.3)
+	
+	if combo >= 3:
+		feedback.text = "+$%d 🔥%dx" % [reward, combo]
+		feedback.modulate = Color(1, 0.5, 0.2)
+	else:
+		feedback.text = "+$%d" % reward
+	
+	add_child(feedback)
+	
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(feedback, "position:y", feedback.position.y - 50, 0.8)
+	tween.tween_property(feedback, "modulate:a", 0.0, 0.8)
+	tween.tween_callback(feedback.queue_free)
 
 func _check_save_exists() -> bool:
 	var file = FileAccess.file_exists(save_file_path)
@@ -490,7 +628,8 @@ func reset_game():
 			"comfort_count": 0,
 			"events_triggered": 0,
 			"achievements_unlocked": 0,
-			"best_day_income": 0
+			"best_day_income": 0,
+			"total_clicks": 0
 		}
 	}
 	achievements = {
@@ -509,9 +648,14 @@ func reset_game():
 		"workhorse": {"name": "Workhorse", "desc": "Complete 50 high-intensity work sessions", "unlocked": false},
 		"balanced_player": {"name": "Balanced Player", "desc": "Complete 30 medium-intensity work sessions", "unlocked": false},
 		"zen_master": {"name": "True Zen Master", "desc": "Reach day 50 with 0 stress and 0 resentment", "unlocked": false},
-		"lucky_lobster": {"name": "Lucky Lobster", "desc": "Experience 10 random events", "unlocked": false}
+		"lucky_lobster": {"name": "Lucky Lobster", "desc": "Experience 10 random events", "unlocked": false},
+		"first_click": {"name": "First Poke", "desc": "Click the lobster for the first time", "unlocked": false},
+		"click_master": {"name": "Click Master", "desc": "Click the lobster 50 times", "unlocked": false},
+		"combo_king": {"name": "Combo King", "desc": "Get a 10x combo click", "unlocked": false},
+		"click_millionaire": {"name": "Click Millionaire", "desc": "Earn $5000 from clicking", "unlocked": false}
 	}
 	items_purchased_count = 0
+	click_rewards_earned = 0
 	_update_lobster_appearance()
 	_update_ui()
 
@@ -601,12 +745,35 @@ func start_morning():
 	main_menu.visible = false
 	current_phase = Phase.MORNING_SCHEDULE
 	_update_ui()
+	
+	# 重置点击系统
+	click_count = 0
+	combo_multiplier = 1.0
+	combo_timer = 0.0
+	
+	# 显示点击提示
+	_show_click_hint()
+	
 	_create_choice_buttons([
 		{"key": "high_work", "text": "High-Intensity Work ($$$)\nHigh Stress, High Reward"},
 		{"key": "medium_work", "text": "Medium-Intensity Work ($$)\nBalanced"},
 		{"key": "slack_off", "text": "Slack Off\nRecover Stress"}
 	], true)
 	_check_achievements()
+
+func _show_click_hint():
+	# 显示点击提示（仅在第一天或第一天几次显示）
+	if game_data["day"] <= 3 or click_rewards_earned == 0:
+		var hint = Label.new()
+		hint.text = "👆 Click the lobster for bonus money!"
+		hint.position = Vector2(440, 450)
+		hint.modulate = Color(0.6, 0.8, 1, 0.8)
+		hint.add_theme_font_size_override("font_size", 16)
+		add_child(hint)
+		
+		var tween = create_tween()
+		tween.tween_property(hint, "modulate:a", 0.0, 3.0)
+		tween.tween_callback(hint.queue_free)
 
 func start_evening():
 	_hide_all_panels()
@@ -776,6 +943,23 @@ func _check_achievements():
 	if game_data["stats"]["events_triggered"] >= 10 and not achievements["lucky_lobster"]["unlocked"]:
 		achievements["lucky_lobster"]["unlocked"] = true
 		new_achievements.append("lucky_lobster")
+	
+	# Clicker game achievements
+	if click_rewards_earned >= 1 and not achievements["first_click"]["unlocked"]:
+		achievements["first_click"]["unlocked"] = true
+		new_achievements.append("first_click")
+	
+	if game_data["stats"].has("total_clicks") and game_data["stats"]["total_clicks"] >= 50 and not achievements["click_master"]["unlocked"]:
+		achievements["click_master"]["unlocked"] = true
+		new_achievements.append("click_master")
+	
+	if combo_multiplier >= 10 and not achievements["combo_king"]["unlocked"]:
+		achievements["combo_king"]["unlocked"] = true
+		new_achievements.append("combo_king")
+	
+	if click_rewards_earned >= 5000 and not achievements["click_millionaire"]["unlocked"]:
+		achievements["click_millionaire"]["unlocked"] = true
+		new_achievements.append("click_millionaire")
 	
 	# Show achievement notification
 	if new_achievements.size() > 0:
@@ -1131,7 +1315,7 @@ func _update_ui():
 			unlocked_count += 1
 	
 	phase_label.text = "Day %d - %s" % [game_data["day"], Phase.keys()[current_phase]]
-	stats_label.text = "Money: $%d | Stress: %d | Resentment: %d | Productivity: %d\nEvolution: %s | Achievements: %d/12" % [
+	stats_label.text = "Money: $%d | Stress: %d | Resentment: %d | Productivity: %d\nEvolution: %s | Achievements: %d/16" % [
 		game_data["money"], 
 		game_data["stress"], 
 		game_data["resentment"],
