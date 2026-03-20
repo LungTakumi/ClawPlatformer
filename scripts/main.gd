@@ -1,5 +1,11 @@
 extends Node
 
+# 粒子效果管理器
+var particle_manager: Node
+
+# 背景装饰节点
+var background_particles: Array = []
+
 # Save System
 var save_file_path = "user://save_game.json"
 var has_save_game: bool = false
@@ -229,9 +235,14 @@ var shop_button_refs: Array[Button] = []
 
 func _ready():
 	randomize()
+	# 初始化粒子管理器
+	particle_manager = load("res://scripts/particle_manager.gd").new()
+	add_child(particle_manager)
+	
 	# Check if save exists
 	has_save_game = _check_save_exists()
 	_create_lobster_sprite()
+	_create_background_effects()
 	_show_main_menu()
 
 func _check_save_exists() -> bool:
@@ -385,6 +396,20 @@ func _create_lobster_sprite():
 	
 	_update_lobster_appearance()
 
+# 创建背景装饰效果
+func _create_background_effects():
+	var bg = $Background
+	if bg:
+		# 创建随机分布的呼吸光点
+		for i in range(15):
+			var x = randf() * 1280
+			var y = randf() * 720
+			var size = randf_range(15, 35)
+			var dot = spawn_breathing_dot(self, Vector2(x, y), size)
+			background_particles.append(dot)
+			# 放在背景后面
+			move_child(dot, 0)
+
 func start_new_game():
 	reset_game()
 	main_menu.visible = false
@@ -481,6 +506,12 @@ func _trigger_random_event():
 	
 	current_event = random_events[selected_event]
 	
+	# 随机事件粒子效果
+	if current_event["money"] > 0 or current_event["stress"] < 0:
+		spawn_success_effect(self, lobster_sprite.position)
+	else:
+		spawn_negative_effect(self, lobster_sprite.position)
+	
 	# Apply event effects
 	game_data["money"] += current_event["money"]
 	game_data["stress"] = clamp(game_data["stress"] + current_event["stress"], 0, 100)
@@ -559,6 +590,10 @@ func _check_achievements():
 	
 	# Show achievement notification
 	if new_achievements.size() > 0:
+		# 成就解锁粒子效果
+		spawn_star_effect(self, lobster_sprite.position)
+		spawn_success_effect(self, lobster_sprite.position)
+		
 		var achievement_text = "🏆 ACHIEVEMENT UNLOCKED!\n\n"
 		for key in new_achievements:
 			achievement_text += "• %s: %s\n" % [achievements[key]["name"], achievements[key]["desc"]]
@@ -672,8 +707,13 @@ func select_activity(activity_key: String):
 		var money = randi_range(activity["money_range"][0], activity["money_range"][1])
 		game_data["money"] += money
 		game_data["productivity"] += randi_range(1, 5)
+		# 成功粒子效果
+		spawn_coin_effect(self, lobster_sprite.position, 15)
+		spawn_success_effect(self, lobster_sprite.position)
 	else:
 		game_data["money"] += randi_range(0, 10)
+		# 失败粒子效果
+		spawn_negative_effect(self, lobster_sprite.position)
 	
 	game_data["stress"] = clamp(game_data["stress"] + activity["stress"], 0, 100)
 	game_data["resentment"] = clamp(game_data["resentment"] + activity["resentment"], 0, 100)
@@ -685,12 +725,15 @@ func select_response(response_type: String):
 		"scold":
 			game_data["stress"] = clamp(game_data["stress"] + 10, 0, 100)
 			game_data["resentment"] = clamp(game_data["resentment"] + 20, 0, 100)
+			spawn_negative_effect(self, lobster_sprite.position)
 		"pua":
 			game_data["stress"] = clamp(game_data["stress"] + 5, 0, 100)
 			game_data["resentment"] = clamp(game_data["resentment"] - 5, 0, 100)
+			spawn_stress_effect(self, lobster_sprite.position, false)
 		"comfort":
 			game_data["stress"] = clamp(game_data["stress"] - 5, 0, 100)
 			game_data["resentment"] = clamp(game_data["resentment"] - 10, 0, 100)
+			spawn_success_effect(self, lobster_sprite.position)
 	
 	start_shop()
 
@@ -700,6 +743,10 @@ func _on_shop_item_selected(item_key: String):
 		game_data["money"] -= item["cost"]
 		game_data["decorations"][item["slot"]] = item_key
 		items_purchased_count += 1
+		
+		# 购买成功粒子效果
+		spawn_coin_effect(self, lobster_sprite.position, 8)
+		spawn_halo_effect(self, lobster_sprite.position)
 		
 		if item.has("stress_mod"):
 			game_data["stress"] = clamp(game_data["stress"] + item["stress_mod"], 0, 100)
