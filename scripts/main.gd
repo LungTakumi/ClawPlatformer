@@ -164,6 +164,25 @@ var shop_items = {
 		"stress_mod": -14,
 		"productivity_mod": 3,
 		"desc": "-14 Stress, +3 Productivity"
+	},
+	# New Shop Items
+	"gaming_monitor": {
+		"name": "Ultrawide Gaming Monitor",
+		"cost": 550,
+		"slot": "desk",
+		"stress_mod": -5,
+		"productivity_mod": 25,
+		"resentment_mod": -10,
+		"desc": "-5 Stress, +25 Productivity, -10 Resentment"
+	},
+	"massage_chair": {
+		"name": "Deluxe Massage Chair",
+		"cost": 600,
+		"slot": "floor",
+		"stress_mod": -25,
+		"productivity_mod": 5,
+		"resentment_mod": -15,
+		"desc": "-25 Stress, +5 Productivity, -15 Resentment"
 	}
 }
 
