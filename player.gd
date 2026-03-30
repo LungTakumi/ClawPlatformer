@@ -119,6 +119,20 @@ func _physics_process(delta):
 	if Input.is_action_pressed("attack") and attack_cooldown <= 0:
 		perform_attack()
 	
+	# 处理护盾激活（检测 F 键）
+	if Input.is_action_pressed("shield"):
+		if can_energy_shield and not shield_active and shield_energy >= shield_energy_cost:
+			activate_shield()
+	
+	# 更新护盾状态
+	if shield_active:
+		shield_duration -= delta
+		shield_energy -= shield_energy_cost * delta
+		
+		# 能量耗尽或时间结束，关闭护盾
+		if shield_duration <= 0 or shield_energy <= 0:
+			deactivate_shield()
+	
 	# 更新攻击特效位置和旋转
 	if is_attacking and attack_sprite:
 		attack_sprite.position = Vector2(20 * facing_direction(), 0)
@@ -194,6 +208,75 @@ func activate_time_rewind():
 # 激活能量护盾
 func activate_energy_shield_ability():
 	can_energy_shield = true
+
+# 护盾状态变量
+var shield_active: bool = false
+var shield_energy: float = 100.0  # 护盾能量 0-100
+var shield_duration: float = 0.0
+var shield_sprite: Node2D = null
+var shield_max_energy: float = 100.0
+var shield_duration_max: float = 3.0  # 护盾持续3秒
+var shield_energy_cost: float = 33.0  # 每秒消耗能量
+
+func activate_shield():
+	# 护盾激活条件
+	if not can_energy_shield:
+		return
+	if shield_active:
+		return
+	if shield_energy < shield_energy_cost:
+		return
+	
+	shield_active = true
+	shield_duration = shield_duration_max
+	shield_energy = shield_max_energy
+	
+	# 激活无敌
+	activate_invincible(shield_duration)
+	
+	# 创建护盾视觉
+	create_shield_visual()
+
+func deactivate_shield():
+	shield_active = false
+	if shield_sprite:
+		shield_sprite.queue_free()
+		shield_sprite = null
+
+func create_shield_visual():
+	if shield_sprite:
+		shield_sprite.queue_free()
+	
+	shield_sprite = Node2D.new()
+	add_child(shield_sprite)
+	
+	# 创建圆形护盾
+	var shield_circle = Polygon2D.new()
+	var points = PackedVector2Array()
+	var segments = 32
+	for i in range(segments):
+		var angle = (i as float / segments) * TAU
+		points.append(Vector2(cos(angle) * 25, sin(angle) * 25))
+	shield_circle.polygon = points
+	shield_circle.color = Color(0.3, 0.5, 1, 0.3)  # 蓝色半透明
+	shield_circle.width = 3.0
+	shield_sprite.add_child(shield_circle)
+	
+	# 内部光晕
+	var inner_glow = Polygon2D.new()
+	var inner_points = PackedVector2Array()
+	for i in range(segments):
+		var angle = (i as float / segments) * TAU
+		inner_points.append(Vector2(cos(angle) * 20, sin(angle) * 20))
+	inner_glow.polygon = inner_points
+	inner_glow.color = Color(0.5, 0.7, 1, 0.15)
+	shield_sprite.add_child(inner_glow)
+	
+	# 动画效果 - 脉冲
+	var tw = create_tween()
+	tw.set_loops(-1)
+	tw.tween_property(shield_sprite, "scale", Vector2(1.1, 1.1), 0.5)
+	tw.tween_property(shield_sprite, "scale", Vector2(1.0, 1.0), 0.5)
 
 # 激活相位转移
 func activate_phase_shift_ability():
