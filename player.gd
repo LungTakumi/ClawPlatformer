@@ -42,6 +42,16 @@ var is_wall_sliding: bool = false
 # 地面检测
 @onready var floor_check: RayCast2D = RayCast2D.new()
 
+# 攻击系统
+var attack_cooldown: float = 0.0
+var attack_cooldown_max: float = 0.4  # 攻击间隔 0.4秒
+var is_attacking: bool = false
+var attack_damage: int = 1
+var attack_hitbox: Area2D = null
+
+# 攻击特效
+var attack_sprite: Polygon2D = null
+
 func _ready():
 	# 设置 floor_check
 	floor_check.position = Vector2(0, 20)
@@ -100,6 +110,26 @@ func _physics_process(delta):
 		if invincible_timer <= 0:
 			is_invincible = false
 			modulate = Color.WHITE
+	
+	# 处理攻击冷却
+	if attack_cooldown > 0:
+		attack_cooldown -= delta
+	
+	# 处理攻击（检测 J 键或数字键2）
+	if Input.is_action_pressed("attack") and attack_cooldown <= 0:
+		perform_attack()
+	
+	# 更新攻击特效位置和旋转
+	if is_attacking and attack_sprite:
+		attack_sprite.position = Vector2(20 * facing_direction(), 0)
+
+func facing_direction() -> int:
+	# 根据速度方向或朝向确定攻击方向
+	if velocity.x > 0:
+		return 1
+	elif velocity.x < 0:
+		return -1
+	return 1  # 默认向右
 
 func _handle_jump():
 	# 墙壁跳跃 (Wall Jump) - 按跳跃键从墙壁跳开
@@ -172,3 +202,123 @@ func activate_phase_shift_ability():
 # 激活追踪弹
 func activate_tracking_projectile_ability():
 	can_tracking_projectile = true
+
+# 执行攻击
+func perform_attack():
+	if attack_cooldown > 0 or is_attacking:
+		return
+	
+	is_attacking = true
+	attack_cooldown = attack_cooldown_max
+	
+	# 创建攻击特效（挥舞的刀光）
+	create_attack_effect()
+	
+	# 短暂无敌时间（攻击时无敌帧）
+	activate_invincible(0.15)
+	
+	# 1秒后清除攻击状态
+	await get_tree().create_timer(0.3).timeout
+	is_attacking = false
+	if attack_sprite:
+		attack_sprite.queue_free()
+		attack_sprite = null
+
+func create_attack_effect():
+	# 清除旧特效
+	if attack_sprite:
+		attack_sprite.queue_free()
+	
+	# 创建刀光多边形（弧形）
+	var pts = PackedVector2Array()
+	var facing = facing_direction()
+	
+	# 创建弧形刀光
+	for i in range(8):
+		var angle = (i / 7.0 - 0.5) * 1.2  # -0.6 到 0.6 弧度
+		var r = 25 + sin(i * 0.8) * 8  # 弧长变化
+		pts.append(Vector2(cos(angle) * r, sin(angle) * r))
+	
+	attack_sprite = Polygon2D.new()
+	attack_sprite.polygon = pts
+	attack_sprite.position = Vector2(20 * facing, -5)
+	attack_sprite.color = Color(1, 0.9, 0.3, 0.8)  # 金黄色
+	
+	# 发光效果
+	attack_sprite.modulate = Color(1, 1, 0.5, 1)
+	
+	add_child(attack_sprite)
+	
+	# 刀光动画：快速收缩消失
+	var tw = create_tween()
+	tw.tween_property(attack_sprite, "scale", Vector2(1.5, 1.5), 0.1)
+	tw.parallel().tween_property(attack_sprite, "modulate:a", 0.0, 0.25)
+	
+	# 创建攻击检测区域
+	create_attack_hitbox(facing)
+
+func create_attack_hitbox(facing: int):
+	# 移除旧的 hitbox
+	if attack_hitbox and is_instance_valid(attack_hitbox):
+		attack_hitbox.queue_free()
+	
+	attack_hitbox = Area2D.new()
+	attack_hitbox.position = Vector2(30 * facing, -5)
+	attack_hitbox.monitoring = true
+	attack_hitbox.monitorable = true
+	
+	# 创建碰撞形状
+	var col = CollisionShape2D.new()
+	var shape = RectangleShape2D.new()
+	shape.size = Vector2(40, 30)
+	col.shape = shape
+	attack_hitbox.add_child(col)
+	
+	add_child(attack_hitbox)
+	
+	# 连接碰撞信号
+	attack_hitbox.body_entered.connect(_on_attack_hitbox_body_entered)
+	
+	# 0.3秒后移除 hitbox
+	await get_tree().create_timer(0.3).timeout
+	if attack_hitbox and is_instance_valid(attack_hitbox):
+		attack_hitbox.queue_free()
+		attack_hitbox = null
+
+func _on_attack_hitbox_body_entered(body: Node):
+	# 检查是否击中敌人
+	if body.is_in_group("enemy"):
+		# 造成伤害
+		if body.has_method("take_damage"):
+			body.take_damage(attack_damage)
+		
+		# 击退效果
+		if body.has_method("knockback"):
+			var knock_dir = (body.global_position - global_position).normalized()
+			body.knockback(knock_dir * 300)
+		
+		# 显示击中特效
+		spawn_hit_effect(body.global_position)
+		
+		# 播报击中：通知主游戏记录 combo
+		var main = get_tree().get_first_node_in_group("game")
+		if main and main.has_method("on_player_attack_hit"):
+			main.on_player_attack_hit()
+
+func spawn_hit_effect(pos: Vector2):
+	# 在击中位置产生火花效果
+	var parent = get_parent()
+	if parent:
+		for i in range(6):
+			var spark = Polygon2D.new()
+			spark.polygon = PackedVector2Array([Vector2(-2, 0), Vector2(0, -3), Vector2(2, 0), Vector2(0, 3)])
+			spark.color = Color(1, 0.8, 0.2, 1)
+			spark.position = pos + Vector2(randf_range(-5, 5), randf_range(-5, 5))
+			parent.add_child(spark)
+			
+			var tw = create_tween()
+			var angle = randf() * TAU
+			var dist = randf_range(15, 30)
+			tw.tween_property(spark, "position", pos + Vector2(cos(angle), sin(angle)) * dist, 0.25)
+			tw.parallel().tween_property(spark, "modulate:a", 0.0, 0.25)
+			tw.tween_callback(spark.queue_free)

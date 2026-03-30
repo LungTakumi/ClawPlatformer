@@ -2608,6 +2608,32 @@ func _process(delta):
 		# Update combo meter display
 		update_combo_meter_display()
 		
+		# Handle attack button for combo system
+		if game_started and player and player.is_attacking:
+			_on_player_attack_hit()
+
+func on_player_attack_hit():
+	# Combo system for attacks
+	combo += 1
+	combo_timer = 2.0  # Reset combo timer
+	combo_meter = min(combo_meter + 5.0, combo_meter_max)  # Add to combo meter
+	
+	# Update combo display
+	update_combo_display()
+	
+	# Check combo achievements
+	if combo >= 10:
+		unlock_achievement("combo_master")
+	if combo >= 20:
+		unlock_achievement("combo_god")
+	
+	# Super combo: build up meter for special ability
+	if combo_meter >= combo_meter_max:
+		activate_super_combo()
+	
+	# Add score based on combo
+	add_score(combo)
+		
 		# Camera shake effect
 		if screen_shake > 0:
 			screen_shake -= delta * 30
@@ -5728,6 +5754,35 @@ func setup_mobile_controls():
 	jump_label.position = Vector2(652, 475)
 	jump_label.add_theme_font_size_override("font_size", 24)
 	controls.add_child(jump_label)
+	
+	# 攻击按钮区域
+	var attack_bg = ColorRect.new()
+	attack_bg.color = Color(0.2, 0.1, 0.1, 0.5)
+	attack_bg.position = Vector2(1100, 460)
+	attack_bg.size = Vector2(100, 100)
+	controls.add_child(attack_bg)
+	
+	# 攻击键
+	var attack_btn = TouchScreenButton.new()
+	attack_btn.name = "AttackBtn"
+	attack_btn.position = Vector2(1120, 470)
+	attack_btn.size = Vector2(60, 60)
+	attack_btn.normal_color = Color(0.6, 0.3, 0.2)
+	attack_btn.pressed_color = Color(0.9, 0.5, 0.3)
+	attack_btn.action = "attack"
+	attack_btn.visibility_layer = 1
+	attack_btn.ignore_input_ended = false
+	attack_btn.passby_press = false
+	attack_btn.toggle_mode = false
+	controls.add_child(attack_btn)
+	
+	# 添加攻击按钮显示
+	var attack_label = Label.new()
+	attack_label.text = "⚔"
+	attack_label.position = Vector2(1132, 475)
+	attack_label.add_theme_font_size_override("font_size", 24)
+	attack_label.add_theme_color_override("font_color", Color(1, 0.8, 0.3))
+	controls.add_child(attack_label)
 	
 	# 输出调试信息
 	print("Mobile controls setup complete - multi-touch enabled")
