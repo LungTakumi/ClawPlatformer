@@ -20,7 +20,7 @@ var current_jumps: int = 0
 var can_double_jump: bool = false
 
 # 能力标志
-var can_dash: bool = false
+var can_dash: bool = true  # 默认启用冲刺
 var can_wall_climb: bool = false
 var can_ground_slam: bool = false
 var can_time_slow: bool = false
@@ -69,6 +69,7 @@ var dash_direction: Vector2 = Vector2.RIGHT
 var can_dash_while_airborne: bool = true  # 空中冲刺
 var dash_count: int = 0
 var max_dash_count: int = 1  # 空中最多冲刺次数
+var dash_original_gravity: float = 0  # 原始重力值
 
 func _ready():
 	# 设置 floor_check
@@ -80,6 +81,9 @@ func _ready():
 	# 默认启用双跳（如果已解锁）
 	if has_permanent_double_jump:
 		max_jumps = 2
+	
+	# 保存原始重力值用于冲刺恢复
+	dash_original_gravity = gravity
 
 func _physics_process(delta):
 	# 应用重力（支持重力反转）
@@ -486,3 +490,99 @@ func spawn_hit_effect(pos: Vector2):
 			tw.tween_property(spark, "position", pos + Vector2(cos(angle), sin(angle)) * dist, 0.25)
 			tw.parallel().tween_property(spark, "modulate:a", 0.0, 0.25)
 			tw.tween_callback(spark.queue_free)
+
+# ============ 冲刺系统 (Dash System) ============
+
+func handle_dash(delta: float):
+	if not can_dash:
+		return
+	
+	# 处理冲刺冷却
+	if dash_cooldown > 0:
+		dash_cooldown -= delta
+	
+	# 处理冲刺持续时间
+	if is_dashing:
+		dash_duration -= delta
+		if dash_duration <= 0:
+			is_dashing = false
+			velocity = Vector2.ZERO  # 冲刺结束停止
+			gravity = dash_original_gravity  # 恢复重力
+	
+	# 检测冲刺输入 (Shift 键)
+	if Input.is_action_just_pressed("dash") and not is_dashing:
+		_perform_dash()
+
+func _perform_dash():
+	# 检查冲刺条件
+	if dash_cooldown > 0:
+		return
+	
+	# 空中冲刺次数检查
+	if not is_on_floor():
+		if dash_count >= max_dash_count:
+			return
+		dash_count += 1
+	else:
+		dash_count = 0  # 地面冲刺重置计数
+	
+	# 确定冲刺方向（优先按键方向，否则朝向当前面朝方向）
+	var dash_dir = Vector2.ZERO
+	if Input.is_action_pressed("move_left"):
+		dash_dir = Vector2.LEFT
+	elif Input.is_action_pressed("move_right"):
+		dash_dir = Vector2.RIGHT
+	else:
+		dash_dir = Vector2(facing_direction(), 0)
+	
+	dash_direction = dash_dir
+	
+	# 激活冲刺状态
+	is_dashing = true
+	dash_duration = dash_duration_max
+	dash_cooldown = dash_cooldown_max
+	
+	# 设置冲刺速度（不受重力影响）
+	velocity = dash_direction * dash_speed
+	
+	# 重置垂直速度（水平冲刺）
+	velocity.y = 0
+	
+	# 冲刺特效
+	create_dash_effect()
+	
+	# 暂时禁用重力（冲刺期间）- 使用保存的原始重力值
+	gravity = 0
+
+func create_dash_effect():
+	# 创建冲刺拖尾粒子
+	for i in range(5):
+		var trail = Polygon2D.new()
+		trail.polygon = PackedVector2Array([Vector2(-8, -4), Vector2(0, -6), Vector2(8, -4), Vector2(0, 6)])
+		trail.color = Color(0.4, 0.8, 1.0, 0.6)  # 青色拖尾
+		trail.position = position + Vector2(-10 * facing_direction(), 0)
+		get_parent().add_child(trail)
+		
+		var tw = create_tween()
+		tw.tween_property(trail, "position:x", trail.position.x - 30 * facing_direction(), 0.2)
+		tw.parallel().tween_property(trail, "modulate:a", 0.0, 0.2)
+		tw.tween_callback(trail.queue_free)
+	
+	# 创建冲刺残影
+	for i in range(3):
+		await get_tree().create_timer(i * 0.03).timeout
+		create_dash_ghost()
+
+func create_dash_ghost():
+	var ghost = Sprite2D.new()
+	# 使用玩家的纹理（如果有）
+	if sprite and sprite.texture:
+		ghost.texture = sprite.texture
+		ghost.modulate = Color(1, 1, 1, 0.4)
+		ghost.position = position
+		ghost.scale = scale
+		get_parent().add_child(ghost)
+		
+		var tw = create_tween()
+		tw.tween_property(ghost, "modulate:a", 0.0, 0.15)
+		tw.tween_callback(ghost.queue_free)
